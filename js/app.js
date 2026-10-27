@@ -148,7 +148,7 @@ function openPaywallSheet(reason) {
   const body = document.getElementById("sheet-body");
   track(`paywall-visto-${reason || "perfil"}`);
   const reasonText = reason === "compra"
-    ? "Desbloquea tu lista de la compra con precios reales de Mercadona, agrupada por sección."
+    ? "Desbloquea tu lista de la compra con precios de los súper cerca de ti, agrupada por sección."
     : "Desbloquea todo lo que ofrece NutriPlan Premium.";
 
   body.innerHTML = `
@@ -156,7 +156,7 @@ function openPaywallSheet(reason) {
     <h3>Hazte Premium</h3>
     <p class="paywall-pitch">${reasonText}</p>
     <ul class="paywall-features">
-      <li>🛒 Lista de la compra con precios reales, lista para llevar al súper</li>
+      <li>🛒 Lista de la compra con precios y súper cercanos, lista para llevar</li>
       <li>📅 Plan semanal completo, los 7 días</li>
       <li>🔄 Regenera tu plan las veces que quieras</li>
     </ul>
@@ -429,6 +429,9 @@ function initOnboardingForm() {
     vegano: { emoji: "🌱", title: "Vegano" },
   }, "three");
   buildDislikesGrid();
+  const introLang = document.getElementById("intro-lang");
+  introLang.innerHTML = langPickerHtml();
+  bindLangPicker(introLang);
   addSportRow();
   document.getElementById("add-sport-btn").addEventListener("click", () => addSportRow());
 
@@ -1412,7 +1415,7 @@ function openRecipeSheet(dayIdx, slotKey) {
         const role = FOOD_ROLES[food.cat];
         return `
           <div class="ingredient-row">
-            <span class="ing-emoji" aria-hidden="true">${FOOD_ROLE_EMOJI[food.cat] || "•"}</span>
+            <span class="ing-emoji" aria-hidden="true">${FOOD_EMOJI[id] || FOOD_ROLE_EMOJI[food.cat] || "•"}</span>
             <div class="ing-text"><span class="ing-name">${food.name}</span><span class="ing-role">${role.label}</span></div>
             <div class="ing-qty">${formatQty(qty * factor, food.unit)}</div>
           </div>`;
@@ -1812,6 +1815,23 @@ function bmiInfo(p) {
   return { value: bmi.toFixed(1).replace(".", ","), label };
 }
 
+function langPickerHtml() {
+  return `<div class="lang-picker">${Object.entries(LANGUAGES).map(([code, l]) => `
+    <button type="button" class="lang-btn ${code === currentLang ? "selected" : ""}" data-lang="${code}">
+      <span class="lang-flag">${l.flag}</span>${l.label}
+    </button>`).join("")}</div>`;
+}
+
+function bindLangPicker(root) {
+  root.querySelectorAll(".lang-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      if (btn.dataset.lang === currentLang) return;
+      track(`idioma-${btn.dataset.lang}`);
+      setLang(btn.dataset.lang);
+    });
+  });
+}
+
 function renderPerfil() {
   const p = state.profile;
   const el = document.getElementById("perfil-content");
@@ -1894,10 +1914,16 @@ function renderPerfil() {
       </div>
     `}
 
+    <div class="pcard">
+      <div class="section-kicker">🌐 Idioma</div>
+      ${langPickerHtml()}
+    </div>
+
     <button class="btn secondary block edit-profile-spacing" id="edit-profile-btn" type="button">✏️ Editar mis datos</button>
     <p class="hint privacy-note">🔒 Tus datos se quedan en tu móvil. Solo contamos de forma anónima qué funciones se usan.</p>
   `;
   document.getElementById("edit-profile-btn").addEventListener("click", enterEditMode);
+  bindLangPicker(el);
   if (isPremium()) {
     document.getElementById("cancel-sub-btn").addEventListener("click", cancelSubscription);
   } else {
