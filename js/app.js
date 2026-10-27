@@ -83,10 +83,13 @@ function renderReportTeaser() {
   const featured = getWeeklyArticles(1)[0];
   return `
     <div class="report-teaser">
-      <div class="report-teaser-main" data-article="${featured.id}">
-        <span class="report-cat">${featured.category}</span>
-        <h4>${featured.title}</h4>
-        <span class="report-meta">${featured.readMins} min de lectura</span>
+      <div class="report-teaser-main photo-card" data-article="${featured.id}">
+        ${photoHtml(ARTICLE_CATEGORY_PHOTOS[featured.category], { width: 500, className: "photo-cover", fallback: "📰" })}
+        <div class="photo-card-text">
+          <span class="report-cat">${featured.category}</span>
+          <h4>${featured.title}</h4>
+          <span class="report-meta">⏱ ${featured.readMins} min</span>
+        </div>
       </div>
       <button type="button" class="report-teaser-link" data-goto="informes">Ver informes de la semana →</button>
     </div>
@@ -101,24 +104,22 @@ function renderInformes() {
   const el = document.getElementById("informes-content");
 
   el.innerHTML = `
-    <div class="report-card">
-      <div class="section-kicker">📰 Destacado de la semana</div>
-      <div class="report-featured" data-article="${featured.id}">
-        <span class="report-cat">${featured.category}</span>
+    <div class="report-hero photo-card" data-article="${featured.id}">
+      ${photoHtml(ARTICLE_CATEGORY_PHOTOS[featured.category], { width: 600, className: "photo-cover", fallback: "📰" })}
+      <div class="photo-card-text">
+        <span class="report-cat">⭐ Destacado · ${featured.category}</span>
         <h4>${featured.title}</h4>
-        <p>${featured.teaser}</p>
-        <span class="report-meta">${featured.readMins} min de lectura</span>
+        <span class="report-meta">⏱ ${featured.readMins} min</span>
       </div>
     </div>
-    <div class="report-card">
-      <div class="section-kicker">Todos los informes</div>
-      <div class="report-list">
-        ${others.map((a) => `
-          <div class="report-row" data-article="${a.id}">
-            <span class="report-row-title">${a.title}${weeklyIds.has(a.id) ? '<span class="report-new-badge">Nuevo</span>' : ""}</span>
-            <span class="report-row-meta">${a.readMins} min</span>
-          </div>`).join("")}
-      </div>
+    <div class="report-grid">
+      ${others.map((a) => `
+        <div class="report-tile" data-article="${a.id}">
+          ${photoHtml(ARTICLE_CATEGORY_PHOTOS[a.category], { width: 300, className: "photo-tile", fallback: "📰" })}
+          ${weeklyIds.has(a.id) ? '<span class="report-new-badge">Nuevo</span>' : ""}
+          <span class="report-tile-title">${a.title}</span>
+          <span class="report-row-meta">⏱ ${a.readMins} min</span>
+        </div>`).join("")}
     </div>
   `;
 
@@ -324,6 +325,26 @@ function readSportsFromForm() {
 function initOnboardingForm() {
   populateSelect(document.getElementById("activityLevel"), ACTIVITY_LABELS, "moderado");
   populateSelect(document.getElementById("goal"), GOAL_LABELS, "mantener");
+  const form = document.getElementById("onboarding-form");
+  enhanceChoiceCards(form.querySelector('select[name="sex"]'), {
+    hombre: { emoji: "👨", title: "Hombre" },
+    mujer: { emoji: "👩", title: "Mujer" },
+  }, "two");
+  enhanceChoiceCards(document.getElementById("goal"), {
+    perder: { emoji: "🔥", title: "Perder grasa", photo: GOAL_PHOTOS.perder },
+    mantener: { emoji: "⚖️", title: "Mantenerme", photo: GOAL_PHOTOS.mantener },
+    ganar: { emoji: "💪", title: "Ganar músculo", photo: GOAL_PHOTOS.ganar },
+  }, "three photos");
+  enhanceChoiceCards(document.getElementById("activityLevel"), {
+    sedentario: { emoji: "🪑", title: "Poco", sub: "Oficina" },
+    moderado: { emoji: "🚶", title: "Normal", sub: "Caminas bastante" },
+    activo: { emoji: "🏗️", title: "Mucho", sub: "Trabajo físico" },
+  }, "three");
+  enhanceChoiceCards(form.querySelector('select[name="dietType"]'), {
+    omnivoro: { emoji: "🍗", title: "De todo" },
+    vegetariano: { emoji: "🥚", title: "Vegetariano" },
+    vegano: { emoji: "🌱", title: "Vegano" },
+  }, "three");
   buildDislikesGrid();
   addSportRow();
   document.getElementById("add-sport-btn").addEventListener("click", () => addSportRow());
@@ -335,6 +356,46 @@ function initOnboardingForm() {
     dot.className = "dot";
     progress.appendChild(dot);
   }
+}
+
+/* Sustituye visualmente un <select> por tarjetas pulsables. El select sigue
+   en el formulario (oculto) y es quien guarda el valor. */
+function enhanceChoiceCards(select, choices, variant) {
+  select.classList.add("select-hidden");
+  select.tabIndex = -1;
+  const grid = document.createElement("div");
+  grid.className = `choice-grid ${variant}`;
+  grid.setAttribute("role", "radiogroup");
+  for (const [value, c] of Object.entries(choices)) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "choice-card";
+    btn.dataset.value = value;
+    btn.setAttribute("role", "radio");
+    btn.innerHTML = `${c.photo
+      ? photoHtml(c.photo, { width: 300, className: "photo-choice", fallback: c.emoji })
+      : `<span class="choice-emoji">${c.emoji}</span>`}
+      <span class="choice-title">${c.photo ? `${c.emoji} ` : ""}${c.title}</span>
+      ${c.sub ? `<span class="choice-sub">${c.sub}</span>` : ""}`;
+    btn.addEventListener("click", () => {
+      select.value = value;
+      buzz(8);
+      syncChoiceCards();
+    });
+    grid.appendChild(btn);
+  }
+  select.insertAdjacentElement("afterend", grid);
+}
+
+function syncChoiceCards() {
+  document.querySelectorAll(".choice-grid").forEach((grid) => {
+    const select = grid.previousElementSibling;
+    grid.querySelectorAll(".choice-card").forEach((card) => {
+      const on = card.dataset.value === select.value;
+      card.classList.toggle("selected", on);
+      card.setAttribute("aria-checked", on);
+    });
+  });
 }
 
 function readProfileFromForm(form) {
@@ -384,6 +445,7 @@ function setWizardMode(mode) {
 
 function goToWizardStep(step) {
   wizardStep = step;
+  syncChoiceCards();
   document.querySelectorAll(".wizard-step").forEach((el) => {
     el.classList.toggle("active", Number(el.dataset.step) === step);
   });
@@ -420,7 +482,10 @@ function enterEditMode() {
 
 function showView(name) {
   document.querySelectorAll(".view").forEach((v) => v.classList.add("hidden"));
-  document.getElementById(`view-${name}`).classList.remove("hidden");
+  const view = document.getElementById(`view-${name}`);
+  view.classList.remove("hidden", "view-enter");
+  void view.offsetWidth; // reinicia la animación de entrada
+  view.classList.add("view-enter");
   document.querySelectorAll(".tab-btn").forEach((b) => b.classList.toggle("active", b.dataset.view === name));
   document.getElementById("app-scroll").scrollTop = 0;
 }
@@ -470,11 +535,11 @@ function renderDashboard() {
     budgetHtml = `
       <div class="budget-banner ${ok ? "ok" : "warn"}">
         ${ok
-          ? `✅ Tu plan cuesta ~${grandTotal.toFixed(2)} € esta semana, dentro de tu presupuesto de ${profile.weeklyBudget} €.`
-          : `⚠️ Tu plan cuesta ~${grandTotal.toFixed(2)} €, ${Math.abs(diff).toFixed(2)} € por encima de tu presupuesto de ${profile.weeklyBudget} €. Prueba a regenerar el plan.`}
+          ? `🛒 <b>${grandTotal.toFixed(2)} €</b> esta semana · ✅ dentro de tus ${profile.weeklyBudget} €`
+          : `🛒 <b>${grandTotal.toFixed(2)} €</b> esta semana · ⚠️ ${Math.abs(diff).toFixed(2)} € por encima, prueba 🔄 en Plan`}
       </div>`;
   } else {
-    budgetHtml = `<div class="budget-banner ok">Coste estimado de la compra esta semana: <b>${grandTotal.toFixed(2)} €</b></div>`;
+    budgetHtml = `<div class="budget-banner ok">🛒 <b>${grandTotal.toFixed(2)} €</b> de compra esta semana</div>`;
   }
 
   el.innerHTML = `
@@ -677,7 +742,7 @@ function renderTodayCard() {
           return `
             <div class="today-meal ${eaten ? "eaten" : ""}" data-slot="${slot.key}">
               <button type="button" class="today-meal-info" data-open="${slot.key}">
-                <span class="today-meal-emoji">${mealEmoji(slot.key)}</span>
+                ${recipePhoto(info.recipe.id, { width: 120, className: "photo-thumb", fallback: mealEmoji(slot.key) })}
                 <span>
                   <span class="today-meal-slot">${slot.label}</span>
                   <span class="today-meal-name">${info.recipe.name}</span>
@@ -829,7 +894,7 @@ function renderProgressCard() {
   } else if (suggestion && suggestion.status === "ok") {
     adviceHtml = `<p class="hint">✅ ${explainAdjustment(state.profile, suggestion)}</p>`;
   } else {
-    adviceHtml = `<p class="hint">Pésate una vez por semana, en ayunas. Con unas dos semanas de datos te diremos si conviene ajustar tus calorías.</p>`;
+    adviceHtml = `<p class="hint">⚖️ Pésate 1 vez por semana, en ayunas.</p>`;
   }
 
   const change = last && first && last !== first ? last.kg - first.kg : null;
@@ -980,7 +1045,7 @@ function renderPlanDays() {
         const info = getRecipeInfo(state.plan[i][slot.key]);
         return `
           <div class="meal-card" data-day="${i}" data-slot="${slot.key}">
-            <div class="meal-emoji ${slot.key}">${mealEmoji(slot.key)}</div>
+            ${recipePhoto(info.recipe.id, { width: 160, className: `photo-thumb big ${slot.key}`, fallback: mealEmoji(slot.key) })}
             <div class="meal-info">
               <div class="slot-label">${slot.label}</div>
               <div class="recipe-name">${info.recipe.name}</div>
@@ -1016,20 +1081,18 @@ function openRecipeSheet(dayIdx, slotKey) {
   const body = document.getElementById("sheet-body");
   track("receta-vista");
   body.innerHTML = `
+    ${recipePhoto(r.id, { width: 700, className: "photo-hero", fallback: mealEmoji(slotKey) })}
     <h3>${r.name}</h3>
     <div class="modal-tags">${r.tags.map((t) => `<span class="tag ${TAG_COLOR_CLASS[t] || ""}">${t.replace("_", " ")}</span>`).join("")}</div>
-    <div class="macro-row">
-      <span class="macro-chip">${Math.round(info.kcal * factor)} kcal</span>
-      <span class="macro-chip">${(info.prot * factor).toFixed(1)} g prot</span>
-      <span class="macro-chip">${(info.carbs * factor).toFixed(1)} g carbs</span>
-      <span class="macro-chip">${(info.fat * factor).toFixed(1)} g grasa</span>
-      <span class="macro-chip">${(info.cost * factor).toFixed(2)} €</span>
+    <div class="macro-tiles">
+      <div class="macro-tile kcal"><b>${Math.round(info.kcal * factor)}</b><span>🔥 kcal</span></div>
+      <div class="macro-tile prot"><b>${Math.round(info.prot * factor)} g</b><span>🍗 prot</span></div>
+      <div class="macro-tile carbs"><b>${Math.round(info.carbs * factor)} g</b><span>🌾 carbs</span></div>
+      <div class="macro-tile fat"><b>${Math.round(info.fat * factor)} g</b><span>🥑 grasa</span></div>
+      <div class="macro-tile cost"><b>${(info.cost * factor).toFixed(2)} €</b><span>🛒 coste</span></div>
     </div>
     <button type="button" class="btn secondary block swap-open-btn" id="swap-open-btn">🔄 Cambiar por otro plato</button>
-    <div class="sheet-section">
-      <h4>Por qué esta receta</h4>
-      <div class="why-block">${whySentences.map((s) => `<p>${s}</p>`).join("")}</div>
-    </div>
+    <div class="why-block why-short"><p>💡 ${whySentences[0]}</p></div>
     <div class="sheet-section">
       <h4>Ingredientes (tu ración)</h4>
       ${Math.abs(factor - 1) >= 0.05 ? `<p class="hint portion-hint">Cantidades ajustadas a tus calorías (×${factor.toFixed(2).replace(".", ",")} la ración estándar).</p>` : ""}
@@ -1038,7 +1101,8 @@ function openRecipeSheet(dayIdx, slotKey) {
         const role = FOOD_ROLES[food.cat];
         return `
           <div class="ingredient-row">
-            <div><span class="ing-name">${food.name}</span><span class="ing-role">${role.label}</span></div>
+            <span class="ing-emoji" aria-hidden="true">${FOOD_ROLE_EMOJI[food.cat] || "•"}</span>
+            <div class="ing-text"><span class="ing-name">${food.name}</span><span class="ing-role">${role.label}</span></div>
             <div class="ing-qty">${formatQty(qty * factor, food.unit)}</div>
           </div>`;
       }).join("")}
@@ -1052,6 +1116,11 @@ function openRecipeSheet(dayIdx, slotKey) {
   document.getElementById("recipe-sheet").classList.remove("hidden");
 }
 
+const FOOD_ROLE_EMOJI = {
+  proteina_magra: "🍗", proteina_grasa: "🥩", carbohidrato: "🌾", legumbre: "🫘", verdura: "🥦",
+  fruta: "🍎", grasa_saludable: "🥑", lacteo: "🥛", condimento: "🧂",
+};
+
 function openSwapSheet(dayIdx, slotKey) {
   const slotLabel = MEAL_SLOTS.find((s) => s.key === slotKey).label;
   const currentId = state.plan[dayIdx][slotKey];
@@ -1061,10 +1130,11 @@ function openSwapSheet(dayIdx, slotKey) {
   body.innerHTML = `
     <span class="tag">${slotLabel} · ${DAYS[dayIdx]}</span>
     <h3>Cambiar ${getRecipeInfo(currentId).recipe.name.toLowerCase()}</h3>
-    <p class="hint">Platos con un reparto de proteína, carbohidratos y grasa parecido. Ajustamos la ración para que tu día siga cuadrando.</p>
+    <p class="hint">Mismo tipo de plato, macros parecidos. La ración se ajusta sola.</p>
     ${options.length ? `<div class="swap-list">
       ${options.map((info) => `
         <button type="button" class="swap-option" data-recipe="${info.recipe.id}">
+          ${recipePhoto(info.recipe.id, { width: 120, className: "photo-thumb", fallback: mealEmoji(slotKey) })}
           <span class="swap-name">${info.recipe.name}</span>
           <span class="swap-meta">${Math.round(info.prot * factor)} g prot · ${(info.cost * factor).toFixed(2)} €</span>
         </button>`).join("")}
