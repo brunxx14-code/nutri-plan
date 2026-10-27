@@ -39,7 +39,9 @@
       <div class="intro" id="wizard-intro">
         <div class="app-icon-badge small">🥗</div>
         <h1>Dinos tu objetivo y nos ocupamos del resto</h1>
-        <p>Calculamos tus calorías y macros, te damos un plan semanal con receta y preparación, y la lista de la compra con precios estimados en Mercadona ajustados a tu presupuesto — explicándote el porqué de cada cosa.</p>
+        <div class="intro-perks">
+          <span>🎯 Tus macros</span><span>🍽️ Plan semanal</span><span>🛒 Compra con precios</span>
+        </div>
       </div>
 
       <form id="onboarding-form" class="wizard-form">
@@ -77,7 +79,7 @@
           </div>
 
           <label class="block-label">¿Qué deporte practicas? (opcional)</label>
-          <p class="hint sport-hint">Con esto calculamos una media de las calorías que quemas entrenando, para ajustar tu objetivo con más precisión.</p>
+          <p class="hint sport-hint">Así afinamos tus calorías.</p>
           <div class="sport-row sport-row-header">
             <span class="field-label">Deporte</span>
             <span class="field-label">Veces/sem</span>
@@ -110,7 +112,7 @@
               <input type="number" name="weeklyBudget" min="0" step="1" placeholder="ej. 60">
             </label>
           </div>
-          <p class="hint">Si lo rellenas, ajustaremos el plan para intentar no superarlo.</p>
+          <p class="hint">Ajustamos el plan para no pasarnos.</p>
         </div>
 
       </form>
@@ -216,6 +218,7 @@
 </div>
 
 <script src="js/analytics.js"></script>
+<script src="js/photos.js"></script>
 <script src="js/data.js"></script>
 <script src="js/nutrition.js"></script>
 <script src="js/planner.js"></script>
