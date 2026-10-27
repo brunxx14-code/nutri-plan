@@ -2,7 +2,7 @@
    Primero intenta la red (así los probadores siempre ven la última versión)
    y, si no hay conexión, sirve la copia guardada. */
 
-const CACHE = "nutriplan-v2";
+const CACHE = "nutriplan-v3";
 const APP_SHELL = [
   "./",
   "index.html",
@@ -38,8 +38,10 @@ self.addEventListener("fetch", (event) => {
   const isFont = url.hostname === "fonts.googleapis.com" || url.hostname === "fonts.gstatic.com";
   if (!isOwn && !isFont) return; // la analítica y lo demás van directos a la red
 
+  // "no-cache" obliga a preguntar al servidor si hay versión nueva en vez de
+  // usar la copia del navegador (GitHub Pages la guarda hasta 10 minutos).
   event.respondWith(
-    fetch(request)
+    fetch(request, isOwn ? { cache: "no-cache" } : undefined)
       .then((response) => {
         if (response.ok) {
           const copy = response.clone();
