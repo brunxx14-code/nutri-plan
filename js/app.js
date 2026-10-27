@@ -7,6 +7,7 @@ if (!("subscription" in state)) state.subscription = null;
 if (!Array.isArray(state.weightLog)) state.weightLog = [];
 if (typeof state.calorieAdjust !== "number") state.calorieAdjust = 0;
 if (!("adjustDecisionAt" in state)) state.adjustDecisionAt = null;
+if (!state.daily || typeof state.daily !== "object") state.daily = {};
 let wizardStep = 0;
 let wizardMode = "create"; // 'create' | 'edit'
 let selectedDay = 0;
@@ -477,7 +478,10 @@ function renderDashboard() {
   }
 
   el.innerHTML = `
-    <div class="goal-chip">🎯 ${GOAL_LABELS[profile.goal]}</div>
+    <div class="chip-row">
+      <div class="goal-chip">🎯 ${GOAL_LABELS[profile.goal]}</div>
+      ${renderStreakChip()}
+    </div>
     <div class="ring-card">
       <div class="ring-wrap">
         <svg class="ring-svg" viewBox="0 0 160 160">
@@ -503,6 +507,7 @@ function renderDashboard() {
       </div>
       ${targets.exerciseKcal > 0 ? `<div class="ring-sport-note">🏃 +${targets.exerciseKcal} kcal/día de media por tu deporte, ya incluidas arriba</div>` : ""}
     </div>
+    ${renderTodayCard()}
     ${renderProgressCard()}
     ${budgetHtml}
     ${renderInstallCard()}
@@ -520,6 +525,7 @@ function renderDashboard() {
     </div>
   `;
   el.querySelectorAll("[data-goto]").forEach((b) => b.addEventListener("click", () => showView(b.dataset.goto)));
+  bindTodayCard();
   bindProgressCard();
   bindInstallCard();
   document.getElementById("targets-why-toggle").addEventListener("click", () => {
@@ -540,6 +546,231 @@ function renderAll() {
   renderPlan();
   renderCompra();
   renderPerfil();
+}
+
+// ---------- Hoy: comidas hechas, agua y racha ----------
+
+const GLASS_ML = 250;
+const MEALS_FOR_STREAK = 3; // un día "cuenta" para la racha con 3 de las 4 comidas hechas
+
+function todayPlanIndex() {
+  return (new Date().getDay() + 6) % 7; // el plan empieza en lunes
+}
+
+function dailyEntry(date = todayIso()) {
+  if (!state.daily[date]) state.daily[date] = { eaten: {}, water: 0 };
+  return state.daily[date];
+}
+
+function waterGoalGlasses() {
+  const ml = state.profile.weightKg * 35;
+  return Math.min(12, Math.max(6, Math.round(ml / GLASS_ML)));
+}
+
+function mealsDone(entry) {
+  return entry ? MEAL_SLOTS.filter((s) => entry.eaten[s.key]).length : 0;
+}
+
+/* Días seguidos cumpliendo el plan. Hoy suma si ya está cumplido, y si aún
+   no lo está la racha de ayer sigue viva hasta que termine el día. */
+function currentStreak() {
+  let streak = 0;
+  const d = new Date();
+  const iso = (x) => `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, "0")}-${String(x.getDate()).padStart(2, "0")}`;
+  if (mealsDone(state.daily[iso(d)]) >= MEALS_FOR_STREAK) streak++;
+  d.setDate(d.getDate() - 1);
+  while (mealsDone(state.daily[iso(d)]) >= MEALS_FOR_STREAK) {
+    streak++;
+    d.setDate(d.getDate() - 1);
+  }
+  return streak;
+}
+
+function todayTotals() {
+  const day = state.plan[todayPlanIndex()];
+  const factor = dayPortionFactor(day, currentTargets().calories);
+  const entry = dailyEntry();
+  let kcal = 0, prot = 0;
+  for (const slot of MEAL_SLOTS) {
+    if (!entry.eaten[slot.key]) continue;
+    const info = getRecipeInfo(day[slot.key]);
+    kcal += info.kcal * factor;
+    prot += info.prot * factor;
+  }
+  return { kcal, prot };
+}
+
+function buzz(ms = 12) {
+  if (navigator.vibrate) navigator.vibrate(ms);
+}
+
+function prefersReducedMotion() {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+function burstConfetti() {
+  if (prefersReducedMotion()) return;
+  const colors = ["var(--coral)", "var(--green)", "var(--amber)", "var(--purple)", "var(--rose)"];
+  const layer = document.createElement("div");
+  layer.className = "confetti-layer";
+  for (let i = 0; i < 36; i++) {
+    const piece = document.createElement("span");
+    piece.className = "confetti";
+    piece.style.left = `${Math.random() * 100}%`;
+    piece.style.background = colors[i % colors.length];
+    piece.style.animationDelay = `${Math.random() * 0.25}s`;
+    piece.style.setProperty("--drift", `${(Math.random() - 0.5) * 120}px`);
+    piece.style.setProperty("--spin", `${Math.random() * 720 - 360}deg`);
+    layer.appendChild(piece);
+  }
+  document.getElementById("app-shell").appendChild(layer);
+  setTimeout(() => layer.remove(), 1800);
+}
+
+function showToast(text) {
+  const old = document.querySelector(".toast");
+  if (old) old.remove();
+  const toast = document.createElement("div");
+  toast.className = "toast";
+  toast.textContent = text;
+  document.getElementById("app-shell").appendChild(toast);
+  setTimeout(() => toast.classList.add("hide"), 2400);
+  setTimeout(() => toast.remove(), 2900);
+}
+
+function renderStreakChip() {
+  const streak = currentStreak();
+  return `<div class="streak-chip ${streak ? "active" : ""}" id="streak-chip">🔥 ${streak} ${streak === 1 ? "día" : "días"}</div>`;
+}
+
+function renderTodayCard() {
+  const dayIdx = todayPlanIndex();
+  const day = state.plan[dayIdx];
+  const targets = currentTargets();
+  const factor = dayPortionFactor(day, targets.calories);
+  const entry = dailyEntry();
+  const done = mealsDone(entry);
+  const glasses = waterGoalGlasses();
+
+  return `
+    <div class="today-card" id="today-card">
+      <div class="today-head">
+        <div>
+          <div class="section-kicker">✅ Hoy · ${DAYS[dayIdx]}</div>
+          <div class="today-count"><span id="today-done">${done}</span>/${MEAL_SLOTS.length} comidas hechas</div>
+        </div>
+      </div>
+      <div class="today-bars">
+        <div class="today-bar">
+          <div class="today-bar-label"><span>Calorías</span><span id="today-kcal"></span></div>
+          <div class="bar-track"><div class="bar-fill kcal" id="today-kcal-bar"></div></div>
+        </div>
+        <div class="today-bar">
+          <div class="today-bar-label"><span>Proteína</span><span id="today-prot"></span></div>
+          <div class="bar-track"><div class="bar-fill prot" id="today-prot-bar"></div></div>
+        </div>
+      </div>
+      <div class="today-meals">
+        ${MEAL_SLOTS.map((slot) => {
+          const info = getRecipeInfo(day[slot.key]);
+          const eaten = !!entry.eaten[slot.key];
+          return `
+            <div class="today-meal ${eaten ? "eaten" : ""}" data-slot="${slot.key}">
+              <button type="button" class="today-meal-info" data-open="${slot.key}">
+                <span class="today-meal-emoji">${mealEmoji(slot.key)}</span>
+                <span>
+                  <span class="today-meal-slot">${slot.label}</span>
+                  <span class="today-meal-name">${info.recipe.name}</span>
+                </span>
+              </button>
+              <button type="button" class="eat-btn" data-eat="${slot.key}" aria-pressed="${eaten}" aria-label="Marcar ${slot.label.toLowerCase()} como hecha">${eaten ? "✓" : ""}</button>
+            </div>`;
+        }).join("")}
+      </div>
+      <div class="water-row">
+        <div class="today-bar-label"><span>💧 Agua</span><span id="water-count">${entry.water}/${glasses} vasos</span></div>
+        <div class="water-glasses">
+          ${Array.from({ length: glasses }, (_, i) => `<button type="button" class="glass ${i < entry.water ? "full" : ""}" data-glass="${i + 1}" aria-label="${i + 1} vasos"></button>`).join("")}
+        </div>
+      </div>
+    </div>`;
+}
+
+function updateTodayProgress(animate = true) {
+  const targets = currentTargets();
+  const { kcal, prot } = todayTotals();
+  const kcalPct = Math.min(100, (kcal / targets.calories) * 100);
+  const protPct = Math.min(100, (prot / targets.protein) * 100);
+  document.getElementById("today-kcal").textContent = `${Math.round(kcal)} / ${targets.calories} kcal`;
+  document.getElementById("today-prot").textContent = `${Math.round(prot)} / ${targets.protein} g`;
+  const set = () => {
+    document.getElementById("today-kcal-bar").style.width = `${kcalPct}%`;
+    document.getElementById("today-prot-bar").style.width = `${protPct}%`;
+  };
+  if (animate) requestAnimationFrame(() => requestAnimationFrame(set)); else set();
+  document.getElementById("today-done").textContent = mealsDone(dailyEntry());
+}
+
+function bindTodayCard() {
+  const card = document.getElementById("today-card");
+  updateTodayProgress();
+
+  card.querySelectorAll("[data-open]").forEach((btn) => {
+    btn.addEventListener("click", () => openRecipeSheet(todayPlanIndex(), btn.dataset.open));
+  });
+
+  card.querySelectorAll("[data-eat]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const entry = dailyEntry();
+      const slotKey = btn.dataset.eat;
+      const wasComplete = mealsDone(entry) >= MEALS_FOR_STREAK;
+      entry.eaten[slotKey] = !entry.eaten[slotKey];
+      const eaten = entry.eaten[slotKey];
+      saveState();
+      buzz(eaten ? 15 : 8);
+
+      btn.textContent = eaten ? "✓" : "";
+      btn.setAttribute("aria-pressed", eaten);
+      btn.closest(".today-meal").classList.toggle("eaten", eaten);
+      if (eaten) {
+        btn.classList.remove("pop");
+        void btn.offsetWidth;
+        btn.classList.add("pop");
+        track("comida-marcada");
+      }
+      updateTodayProgress(false);
+
+      const nowComplete = mealsDone(entry) >= MEALS_FOR_STREAK;
+      document.getElementById("streak-chip").outerHTML = renderStreakChip();
+      if (eaten && mealsDone(entry) === MEAL_SLOTS.length) {
+        burstConfetti();
+        showToast(`¡Día completado! 🔥 Llevas ${currentStreak()} ${currentStreak() === 1 ? "día" : "días"} seguidos`);
+        track("dia-completado");
+      } else if (eaten && nowComplete && !wasComplete) {
+        const chip = document.getElementById("streak-chip");
+        chip.classList.add("pop");
+        showToast(`🔥 Racha de ${currentStreak()} ${currentStreak() === 1 ? "día" : "días"}. ¡Sigue así!`);
+      }
+    });
+  });
+
+  card.querySelectorAll("[data-glass]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const entry = dailyEntry();
+      const n = Number(btn.dataset.glass);
+      entry.water = entry.water === n ? n - 1 : n; // tocar el último vaso lleno lo vacía
+      saveState();
+      buzz(8);
+      const goal = waterGoalGlasses();
+      card.querySelectorAll("[data-glass]").forEach((g) => g.classList.toggle("full", Number(g.dataset.glass) <= entry.water));
+      btn.classList.remove("pop");
+      void btn.offsetWidth;
+      btn.classList.add("pop");
+      document.getElementById("water-count").textContent = `${entry.water}/${goal} vasos`;
+      track("agua");
+      if (entry.water === goal && n === goal) showToast("💧 ¡Objetivo de agua cumplido!");
+    });
+  });
 }
 
 // ---------- Progreso de peso ----------
