@@ -1227,46 +1227,108 @@ function renderCompra() {
 
 // ---------- Perfil ----------
 
+const SPORT_EMOJI = {
+  running: "🏃", caminar: "🚶", ciclismo: "🚴", natacion: "🏊", pesas: "🏋️", futbol: "⚽", baloncesto: "🏀",
+  tenis: "🎾", yoga: "🧘", hiit: "🔥", spinning: "🚲", boxeo: "🥊", senderismo: "🥾", otro: "🏅",
+};
+const GOAL_EMOJI = { perder: "🔥", mantener: "⚖️", ganar: "💪" };
+const ACTIVITY_EMOJI = { sedentario: "🪑", moderado: "🚶", activo: "🏗️" };
+const DIET_INFO = {
+  omnivoro: { emoji: "🍗", label: "Como de todo" },
+  vegetariano: { emoji: "🥚", label: "Vegetariano" },
+  vegano: { emoji: "🌱", label: "Vegano" },
+};
+
+function bmiInfo(p) {
+  const bmi = p.weightKg / (p.heightCm / 100) ** 2;
+  const label = bmi < 18.5 ? "Bajo" : bmi < 25 ? "Saludable" : bmi < 30 ? "Elevado" : "Alto";
+  return { value: bmi.toFixed(1).replace(".", ","), label };
+}
+
 function renderPerfil() {
   const p = state.profile;
   const el = document.getElementById("perfil-content");
-  const dietLabel = p.dietType === "omnivoro" ? "Como de todo" : p.dietType === "vegano" ? "Vegano" : "Vegetariano";
-  const dislikesNames = p.dislikes.length ? p.dislikes.map((id) => FOODS[id].name).join(", ") : "Ninguno";
-  const sportsLabel = p.sports && p.sports.length
-    ? p.sports.map((s) => `${SPORTS[s.type].label} (${s.freq}×/sem, ${s.mins} min)`).join(" · ")
-    : "Sin deporte registrado";
+  const targets = currentTargets();
+  const diet = DIET_INFO[p.dietType] || DIET_INFO.omnivoro;
+  const bmi = bmiInfo(p);
+  const streak = currentStreak();
+  const log = state.weightLog;
+  const change = log.length > 1 ? log[log.length - 1].kg - log[0].kg : null;
+  const macroTotal = targets.protein * 4 + targets.carbs * 4 + targets.fat * 9 || 1;
+  const macroBar = (key, label, emoji, grams, kcalPerG) => `
+    <div class="pmacro ${key}">
+      <div class="pmacro-top"><span>${emoji} ${label}</span><b>${grams} g</b></div>
+      <div class="bar-track"><div class="bar-fill" style="width:${Math.round((grams * kcalPerG / macroTotal) * 100)}%"></div></div>
+    </div>`;
 
   el.innerHTML = `
-    <div class="profile-card">
-      <div class="profile-row"><span class="k">Sexo</span><span class="v">${p.sex === "mujer" ? "Mujer" : "Hombre"}</span></div>
-      <div class="profile-row"><span class="k">Edad</span><span class="v">${p.age} años</span></div>
-      <div class="profile-row"><span class="k">Peso</span><span class="v">${p.weightKg} kg</span></div>
-      <div class="profile-row"><span class="k">Altura</span><span class="v">${p.heightCm} cm</span></div>
-      <div class="profile-row"><span class="k">Actividad diaria</span><span class="v">${ACTIVITY_LABELS[p.activityLevel] || "—"}</span></div>
-      <div class="profile-row"><span class="k">Deporte</span><span class="v">${sportsLabel}</span></div>
-      <div class="profile-row"><span class="k">Objetivo</span><span class="v">${GOAL_LABELS[p.goal]}</span></div>
-      <div class="profile-row"><span class="k">Dieta</span><span class="v">${dietLabel}</span></div>
-      <div class="profile-row"><span class="k">Presupuesto</span><span class="v">${p.weeklyBudget ? p.weeklyBudget + " €/semana" : "Sin definir"}</span></div>
-      ${state.calorieAdjust ? `<div class="profile-row"><span class="k">Ajuste de calorías</span><span class="v">${state.calorieAdjust > 0 ? "+" : ""}${state.calorieAdjust} kcal/día</span></div>` : ""}
+    <div class="profile-hero photo-card">
+      ${photoHtml(GOAL_PHOTOS[p.goal], { width: 700, className: "photo-cover", fallback: GOAL_EMOJI[p.goal] })}
+      <div class="photo-card-text">
+        <div class="profile-avatar">${p.sex === "mujer" ? "👩" : "👨"}</div>
+        <h4>${GOAL_EMOJI[p.goal]} ${GOAL_LABELS[p.goal]}</h4>
+        <div class="profile-hero-chips">
+          <span>🔥 ${streak} ${streak === 1 ? "día" : "días"} de racha</span>
+          ${change !== null ? `<span>⚖️ ${change > 0 ? "+" : ""}${change.toFixed(1).replace(".", ",")} kg</span>` : ""}
+          ${isPremium() ? "<span>✨ Premium</span>" : ""}
+        </div>
+      </div>
     </div>
-    <p class="hint">Alimentos que evitamos: ${dislikesNames}</p>
 
-    <div class="section-kicker subscription-kicker">Suscripción</div>
+    <div class="stat-grid">
+      <div class="stat-tile"><span class="stat-emoji">⚖️</span><b>${String(p.weightKg).replace(".", ",")}</b><span>kg</span></div>
+      <div class="stat-tile"><span class="stat-emoji">📏</span><b>${p.heightCm}</b><span>cm</span></div>
+      <div class="stat-tile"><span class="stat-emoji">🎂</span><b>${p.age}</b><span>años</span></div>
+      <div class="stat-tile"><span class="stat-emoji">📊</span><b>${bmi.value}</b><span>IMC · ${bmi.label}</span></div>
+    </div>
+
+    <div class="pcard">
+      <div class="section-kicker">🎯 Tu objetivo diario</div>
+      <div class="pkcal"><b>${targets.calories}</b> kcal/día
+        ${targets.calorieAdjust ? `<span class="pill">${targets.calorieAdjust > 0 ? "+" : ""}${targets.calorieAdjust} ajuste</span>` : ""}
+      </div>
+      ${macroBar("prot", "Proteína", "🍗", targets.protein, 4)}
+      ${macroBar("carbs", "Carbohidratos", "🌾", targets.carbs, 4)}
+      ${macroBar("fat", "Grasas", "🥑", targets.fat, 9)}
+    </div>
+
+    <div class="pcard">
+      <div class="section-kicker">🏃 Actividad</div>
+      <div class="pline"><span class="pline-emoji">${ACTIVITY_EMOJI[p.activityLevel] || "🚶"}</span>${ACTIVITY_LABELS[p.activityLevel] || "—"}</div>
+      ${p.sports && p.sports.length ? `<div class="chip-wrap">
+        ${p.sports.map((sp) => `<span class="sport-chip">${SPORT_EMOJI[sp.type] || "🏅"} ${SPORTS[sp.type].label}<small>${sp.freq}×/sem · ${sp.mins} min</small></span>`).join("")}
+      </div>
+      <div class="pline muted">🔥 +${targets.exerciseKcal} kcal/día de media por entrenar</div>` : `<div class="pline muted">Sin deporte registrado</div>`}
+    </div>
+
+    <div class="pcard">
+      <div class="section-kicker">🍽️ Alimentación</div>
+      <div class="pduo">
+        <div class="pduo-tile"><span>${diet.emoji}</span><b>${diet.label}</b><small>Dieta</small></div>
+        <div class="pduo-tile"><span>🛒</span><b>${p.weeklyBudget ? `${p.weeklyBudget} €` : "Libre"}</b><small>Presupuesto/semana</small></div>
+      </div>
+      <div class="pline muted">🚫 Evitamos</div>
+      <div class="chip-wrap">
+        ${p.dislikes.length ? p.dislikes.map((id) => `<span class="avoid-chip">${FOODS[id].name}</span>`).join("") : `<span class="avoid-chip none">Nada, ¡comes de todo!</span>`}
+      </div>
+    </div>
+
     ${isPremium() ? `
-      <div class="profile-card">
-        <div class="profile-row"><span class="k">Plan</span><span class="v">✨ ${PLANS[state.subscription.plan].label} (simulado)</span></div>
-        <div class="profile-row"><span class="k">Precio</span><span class="v">${state.subscription.price.toFixed(2).replace(".", ",")} €${PLANS[state.subscription.plan].periodShort}</span></div>
+      <div class="sub-card premium">
+        <div><div class="sub-title">✨ Premium ${PLANS[state.subscription.plan].label.toLowerCase()}</div>
+        <div class="sub-sub">${state.subscription.price.toFixed(2).replace(".", ",")} €${PLANS[state.subscription.plan].periodShort} · simulado</div></div>
+        <button class="btn ghost small" id="cancel-sub-btn" type="button">Cancelar</button>
       </div>
-      <button class="btn ghost block" id="cancel-sub-btn" type="button">Cancelar suscripción</button>
     ` : `
-      <div class="profile-card">
-        <div class="profile-row"><span class="k">Plan</span><span class="v">Gratis</span></div>
+      <div class="sub-card">
+        <div><div class="sub-title">✨ Hazte Premium</div>
+        <div class="sub-sub">Lista de la compra con precios y más</div></div>
+        <button class="btn small" id="view-plans-btn" type="button">Ver planes</button>
       </div>
-      <button class="btn block" id="view-plans-btn" type="button">✨ Ver planes Premium</button>
     `}
 
-    <button class="btn secondary block edit-profile-spacing" id="edit-profile-btn" type="button">Editar mis datos</button>
-    <p class="hint privacy-note">Para mejorar NutriPlan contamos de forma anónima qué funciones se usan, sin cookies ni datos personales. Tus datos de salud se quedan en tu móvil.</p>
+    <button class="btn secondary block edit-profile-spacing" id="edit-profile-btn" type="button">✏️ Editar mis datos</button>
+    <p class="hint privacy-note">🔒 Tus datos se quedan en tu móvil. Solo contamos de forma anónima qué funciones se usan.</p>
   `;
   document.getElementById("edit-profile-btn").addEventListener("click", enterEditMode);
   if (isPremium()) {
