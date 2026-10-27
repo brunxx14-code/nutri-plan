@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>NutriPlan · Tu objetivo, tu plan, tu compra</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="app-shell">
+
+  <div id="splash">
+    <div class="app-icon-badge big">🥗</div>
+    <div class="splash-name">Nutri<span>Plan</span></div>
+  </div>
+
+  <div id="app-scroll">
+
+    <!-- ONBOARDING / EDICIÓN DE PERFIL (wizard por pasos) -->
+    <section id="view-onboarding" class="view">
+      <div class="wizard-header">
+        <div class="wizard-progress" id="wizard-progress"></div>
+        <button id="wizard-cancel" type="button" class="icon-btn hidden" aria-label="Cancelar">✕</button>
+      </div>
+
+      <div class="intro" id="wizard-intro">
+        <div class="app-icon-badge small">🥗</div>
+        <h1>Dinos tu objetivo y nos ocupamos del resto</h1>
+        <p>Calculamos tus calorías y macros, te damos un plan semanal con receta y preparación, y la lista de la compra con precios estimados en Mercadona ajustados a tu presupuesto — explicándote el porqué de cada cosa.</p>
+      </div>
+
+      <form id="onboarding-form" class="wizard-form">
+
+        <div class="wizard-step" data-step="0">
+          <h3>Tus características</h3>
+          <div class="form-grid">
+            <label>Sexo
+              <select name="sex" required>
+                <option value="hombre">Hombre</option>
+                <option value="mujer">Mujer</option>
+              </select>
+            </label>
+            <label>Edad
+              <input type="number" name="age" min="14" max="90" required placeholder="años">
+            </label>
+            <label>Peso
+              <input type="number" name="weightKg" min="30" max="300" step="0.1" required placeholder="kg">
+            </label>
+            <label>Altura
+              <input type="number" name="heightCm" min="120" max="230" required placeholder="cm">
+            </label>
+          </div>
+        </div>
+
+        <div class="wizard-step" data-step="1">
+          <h3>Tu actividad y objetivo</h3>
+          <div class="form-grid single">
+            <label>Tu día a día (sin contar el deporte)
+              <select name="activityLevel" id="activityLevel"></select>
+            </label>
+            <label>Objetivo físico
+              <select name="goal" id="goal"></select>
+            </label>
+          </div>
+
+          <label class="block-label">¿Qué deporte practicas? (opcional)</label>
+          <p class="hint sport-hint">Con esto calculamos una media de las calorías que quemas entrenando, para ajustar tu objetivo con más precisión.</p>
+          <div class="sport-row sport-row-header">
+            <span class="field-label">Deporte</span>
+            <span class="field-label">Veces/sem</span>
+            <span class="field-label">Min/sesión</span>
+            <span></span>
+          </div>
+          <div id="sports-rows"></div>
+          <button type="button" id="add-sport-btn" class="btn ghost small add-sport-btn">+ Añadir deporte</button>
+        </div>
+
+        <div class="wizard-step" data-step="2">
+          <h3>Tus preferencias de comida</h3>
+          <div class="form-grid single">
+            <label>Tipo de dieta
+              <select name="dietType">
+                <option value="omnivoro">Como de todo</option>
+                <option value="vegetariano">Vegetariano</option>
+                <option value="vegano">Vegano</option>
+              </select>
+            </label>
+          </div>
+          <label class="block-label">Alimentos que NO te gustan (opcional)</label>
+          <div id="dislikes-grid" class="dislikes-grid"></div>
+        </div>
+
+        <div class="wizard-step" data-step="3">
+          <h3>Tu presupuesto</h3>
+          <div class="form-grid single">
+            <label>Presupuesto semanal para comida (€, opcional)
+              <input type="number" name="weeklyBudget" min="0" step="1" placeholder="ej. 60">
+            </label>
+          </div>
+          <p class="hint">Si lo rellenas, ajustaremos el plan para intentar no superarlo.</p>
+        </div>
+
+      </form>
+
+      <div class="wizard-nav">
+        <button id="wizard-back" type="button" class="btn ghost">Atrás</button>
+        <button id="wizard-next" type="button" class="btn">Siguiente</button>
+        <button id="wizard-submit" class="btn hidden" form="onboarding-form" type="submit">Generar mi plan</button>
+      </div>
+    </section>
+
+    <!-- DASHBOARD -->
+    <section id="view-dashboard" class="view hidden">
+      <div class="app-header">
+        <div>
+          <div class="eyebrow">Hoy</div>
+          <h2>Tu resumen</h2>
+        </div>
+      </div>
+      <div id="dashboard-content"></div>
+    </section>
+
+    <!-- PLAN SEMANAL -->
+    <section id="view-plan" class="view hidden">
+      <div class="app-header">
+        <div>
+          <div class="eyebrow">Esta semana</div>
+          <h2>Tu plan</h2>
+        </div>
+        <button id="regenerate-btn" class="icon-btn" aria-label="Regenerar plan">🔄</button>
+      </div>
+      <div class="day-tabs" id="day-tabs"></div>
+      <div id="plan-content"></div>
+    </section>
+
+    <!-- LISTA DE LA COMPRA -->
+    <section id="view-compra" class="view hidden">
+      <div class="app-header">
+        <div>
+          <div class="eyebrow">Mercadona</div>
+          <h2>Lista de la compra</h2>
+        </div>
+      </div>
+      <div id="compra-content"></div>
+    </section>
+
+    <!-- INFORMES -->
+    <section id="view-informes" class="view hidden">
+      <div class="app-header">
+        <div>
+          <div class="eyebrow">Esta semana</div>
+          <h2>Informes</h2>
+        </div>
+      </div>
+      <div id="informes-content"></div>
+    </section>
+
+    <!-- PERFIL -->
+    <section id="view-perfil" class="view hidden">
+      <div class="app-header">
+        <div>
+          <div class="eyebrow">Tu cuenta</div>
+          <h2>Perfil</h2>
+        </div>
+      </div>
+      <div id="perfil-content"></div>
+    </section>
+
+    <!-- BOTTOM SHEET: DETALLE DE RECETA -->
+    <div id="recipe-sheet" class="sheet hidden">
+      <div class="sheet-backdrop" id="sheet-backdrop"></div>
+      <div class="sheet-card">
+        <div class="sheet-handle"></div>
+        <button class="icon-btn sheet-close" id="sheet-close" aria-label="Cerrar">✕</button>
+        <div id="sheet-body"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <nav id="tab-bar" class="hidden">
+    <button class="tab-btn active" data-view="dashboard">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg>
+      <span>Resumen</span>
+    </button>
+    <button class="tab-btn" data-view="plan">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>
+      <span>Plan</span>
+    </button>
+    <button class="tab-btn" data-view="compra">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.5 3h2l2.4 12.2a2 2 0 0 0 2 1.6h8.6a2 2 0 0 0 2-1.6L21 7H6"/></svg>
+      <span>Compra</span>
+    </button>
+    <button class="tab-btn" data-view="informes">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M9 7h7M9 11h7"/></svg>
+      <span>Informes</span>
+    </button>
+    <button class="tab-btn" data-view="perfil" id="tab-perfil">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      <span>Perfil</span>
+    </button>
+  </nav>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/nutrition.js"></script>
+<script src="js/planner.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
