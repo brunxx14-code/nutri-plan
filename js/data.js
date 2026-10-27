@@ -403,3 +403,47 @@ const RECIPES = [
     steps: ["Bate el plátano con la leche y la miel hasta que quede cremoso."]
   }
 ];
+
+/* Cadenas de supermercado con un índice de precio aproximado respecto a
+   Mercadona (1.00), a partir de las comparativas anuales de precios de cesta
+   en España. Los precios de FOODS son de Mercadona; el índice los escala para
+   dar una estimación en otras cadenas. `match` se busca en la marca o el
+   nombre del súper que devuelve OpenStreetMap. */
+const SUPERMARKETS = [
+  { key: "alcampo", name: "Alcampo", match: /alcampo|auchan/i, index: 0.94, color: "#e2001a" },
+  { key: "lidl", name: "Lidl", match: /lidl/i, index: 0.97, color: "#0050aa" },
+  { key: "aldi", name: "Aldi", match: /aldi/i, index: 0.97, color: "#00205b" },
+  { key: "mercadona", name: "Mercadona", match: /mercadona/i, index: 1.0, color: "#00843d" },
+  { key: "ahorramas", name: "Ahorramas", match: /ahorram/i, index: 1.01, color: "#e30613" },
+  { key: "dia", name: "Dia", match: /\bdia\b|dia%|la plaza/i, index: 1.02, color: "#e3001b" },
+  { key: "family", name: "Family Cash", match: /family ?cash/i, index: 0.96, color: "#e4002b" },
+  { key: "carrefour", name: "Carrefour", match: /carrefour/i, index: 1.03, color: "#004e9f" },
+  { key: "consum", name: "Consum", match: /consum/i, index: 1.05, color: "#f39200" },
+  { key: "gadis", name: "Gadis", match: /gadis/i, index: 1.05, color: "#e2231a" },
+  { key: "coviran", name: "Covirán", match: /covir/i, index: 1.06, color: "#d7141a" },
+  { key: "eroski", name: "Eroski", match: /eroski/i, index: 1.08, color: "#e30613" },
+  { key: "caprabo", name: "Caprabo", match: /caprabo/i, index: 1.08, color: "#e2001a" },
+  { key: "bonpreu", name: "Bonpreu", match: /bonpreu|esclat/i, index: 1.08, color: "#e4032e" },
+  { key: "bm", name: "BM", match: /^bm\b|bm supermercados/i, index: 1.1, color: "#00965e" },
+  { key: "spar", name: "Spar", match: /spar/i, index: 1.1, color: "#e1251b" },
+  { key: "hipercor", name: "Hipercor", match: /hipercor|supercor|corte ingl/i, index: 1.18, color: "#00843d" },
+];
+const DEFAULT_SUPERMARKET_INDEX = 1.05; // súper de barrio o cadena desconocida
+
+/* Emoji para cada alimento en la lista de la compra. */
+const FOOD_EMOJI = {
+  pollo_pechuga: "🍗", pollo_muslo: "🍗", pavo_filete: "🦃", ternera_picada: "🥩", lomo_cerdo: "🥓",
+  salmon: "🐟", merluza: "🐟", gambas: "🦐", atun_lata: "🥫",
+  huevos: "🥚", leche_semi: "🥛", yogur_griego: "🥣", yogur_natural: "🥣", queso_fresco: "🧀", queso_curado: "🧀",
+  arroz: "🍚", pasta: "🍝", avena: "🌾", quinoa: "🌾", lentejas: "🫘", garbanzos: "🫘", pan_integral: "🍞",
+  aceite_oliva: "🫒", almendras: "🌰", crema_cacahuete: "🥜", tofu: "⬜", miel: "🍯",
+  platano: "🍌", manzana: "🍎", aguacate: "🥑", tomate: "🍅", brocoli: "🥦", espinacas: "🥬", pimiento: "🫑",
+  cebolla: "🧅", limon: "🍋", ajo: "🧄", lechuga: "🥬", calabacin: "🥒", zanahoria: "🥕", patata: "🥔", boniato: "🍠",
+};
+const SECTION_STYLE = {
+  "Carnicería": { emoji: "🥩", color: "rose" },
+  "Pescadería": { emoji: "🐟", color: "purple" },
+  "Lácteos y huevos": { emoji: "🥛", color: "amber" },
+  "Despensa": { emoji: "🥫", color: "coral" },
+  "Frutería": { emoji: "🍎", color: "green" },
+};
