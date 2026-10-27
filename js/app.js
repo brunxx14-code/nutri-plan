@@ -238,6 +238,89 @@ function dismissSplash() {
   setTimeout(() => splash.remove(), 600);
 }
 
+// ---------- Pantalla de bienvenida ----------
+
+const WELCOME_LINES = {
+  perder: ["Cada comida del plan te acerca a tu meta.", "Hoy es un buen día para cuidarte.", "Pequeños pasos, grandes cambios."],
+  mantener: ["Constancia hoy, energía mañana.", "Comer bien también es disfrutar.", "Tu plan de hoy ya está listo."],
+  ganar: ["Hoy toca alimentar el músculo 💪", "Sin comida no hay progreso.", "Come bien, entrena fuerte."],
+};
+
+function greetingForNow() {
+  const h = new Date().getHours();
+  if (h >= 6 && h < 13) return { text: "Buenos días", emoji: "☀️" };
+  if (h >= 13 && h < 21) return { text: "Buenas tardes", emoji: "👋" };
+  return { text: "Buenas noches", emoji: "🌙" };
+}
+
+/* La siguiente comida que toca según la hora y lo que ya está marcado. */
+function nextMealSlot(entry) {
+  const order = ["desayuno", "comida", "merienda", "cena"];
+  const h = new Date().getHours();
+  const start = h < 11 ? 0 : h < 16 ? 1 : h < 19 ? 2 : 3;
+  const pending = order.filter((k) => !entry.eaten[k]);
+  if (!pending.length) return null;
+  return pending.find((k) => order.indexOf(k) >= start) || pending[pending.length - 1];
+}
+
+function welcomeMessage(entry) {
+  const streak = currentStreak();
+  const done = mealsDone(entry);
+  if (done === MEAL_SLOTS.length) return "¡Día completado! Mañana más 🎉";
+  if (streak >= 2) return `🔥 Llevas ${streak} días seguidos. ¡No rompas la racha!`;
+  if (weekRebalance().perDay) return "🔄 Tu semana ya está reajustada. ¡Sigue así!";
+  const lines = WELCOME_LINES[state.profile.goal] || WELCOME_LINES.mantener;
+  return lines[new Date().getDate() % lines.length];
+}
+
+function showWelcome() {
+  const entry = dailyEntry();
+  const greet = greetingForNow();
+  const dayIdx = todayPlanIndex();
+  const slotKey = nextMealSlot(entry);
+  const slot = slotKey && MEAL_SLOTS.find((s) => s.key === slotKey);
+  const info = slotKey && getRecipeInfo(state.plan[dayIdx][slotKey]);
+  const heroId = info ? RECIPE_PHOTOS[info.recipe.id] : GOAL_PHOTOS[state.profile.goal];
+  const streak = currentStreak();
+
+  const el = document.createElement("div");
+  el.id = "welcome";
+  el.innerHTML = `
+    <div class="welcome-bg">${heroId ? `<img src="${unsplashUrl(heroId, 800)}" alt="" onload="this.classList.add('loaded')" onerror="this.remove()">` : ""}</div>
+    <div class="welcome-shade"></div>
+    <div class="welcome-top"><span class="welcome-logo">🥗 Nutri<b>Plan</b></span><span class="welcome-day">${DAYS[dayIdx]}</span></div>
+    <div class="welcome-main">
+      <div class="welcome-emoji">${greet.emoji}</div>
+      <h1 class="welcome-hello">${greet.text}</h1>
+      <p class="welcome-msg">${welcomeMessage(entry)}</p>
+      ${info ? `
+        <div class="welcome-next">
+          ${recipePhoto(info.recipe.id, { width: 160, className: `photo-thumb big ${slotKey}`, fallback: mealEmoji(slotKey) })}
+          <div>
+            <span class="welcome-next-kicker">Lo siguiente · ${slot.label}</span>
+            <span class="welcome-next-name">${info.recipe.name}</span>
+          </div>
+        </div>` : ""}
+      <div class="welcome-chips">
+        <span>🍽️ ${mealsDone(entry)}/${MEAL_SLOTS.length} comidas</span>
+        <span>💧 ${entry.water}/${waterGoalGlasses()} vasos</span>
+        ${streak ? `<span>🔥 ${streak} ${streak === 1 ? "día" : "días"}</span>` : ""}
+      </div>
+    </div>
+    <button type="button" class="welcome-go" id="welcome-go">Empezar mi día <span>→</span></button>
+    <div class="welcome-hint">o toca en cualquier sitio</div>
+  `;
+  document.getElementById("app-shell").appendChild(el);
+  const close = () => {
+    if (el.classList.contains("hide")) return;
+    buzz(10);
+    track("bienvenida-entrar");
+    el.classList.add("hide");
+    setTimeout(() => el.remove(), 550);
+  };
+  el.addEventListener("click", close);
+}
+
 // ---------- Formulario / wizard de onboarding ----------
 
 function populateSelect(selectEl, labelsObj, defaultKey) {
@@ -1642,9 +1725,14 @@ document.addEventListener("DOMContentLoaded", () => {
     sessionStorage.setItem("nutriplan_splash_shown", "1");
   } catch (e) { /* almacenamiento no disponible, mostramos el splash igualmente */ }
 
+  const returning = !!(state.profile && state.plan);
   if (splashAlreadyShown) {
     const splash = document.getElementById("splash");
     if (splash) splash.remove();
+  } else if (returning) {
+    // Quien ya tiene plan entra por la pantalla de bienvenida en vez del splash
+    showWelcome();
+    setTimeout(dismissSplash, 250);
   } else {
     setTimeout(dismissSplash, 1100);
   }
