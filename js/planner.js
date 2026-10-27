@@ -79,7 +79,23 @@ function pickRotation(pool, count) {
   return result;
 }
 
-function generateWeeklyPlan(profile) {
+/* Las recetas vienen con una ración estándar. Para que el plan cuadre con las
+   calorías de cada persona escalamos todas las raciones de un día por el mismo
+   factor, acotado para que las cantidades sigan siendo realistas. */
+const PORTION_MIN = 0.6;
+const PORTION_MAX = 1.8;
+
+function dayPortionFactor(day, targetKcal) {
+  const kcal = MEAL_SLOTS.reduce((sum, slot) => sum + getRecipeInfo(day[slot.key]).kcal, 0);
+  if (!targetKcal || !kcal) return 1;
+  return Math.min(PORTION_MAX, Math.max(PORTION_MIN, targetKcal / kcal));
+}
+
+function recipePool(profile, mealType) {
+  return RECIPES.filter((r) => r.mealType === mealType && matchesProfile(r, profile)).map((r) => r.id);
+}
+
+function generateWeeklyPlan(profile, targetKcal) {
   const poolByType = { desayuno: [], principal: [], merienda: [] };
   for (const recipe of RECIPES) {
     if (matchesProfile(recipe, profile)) poolByType[recipe.mealType].push(recipe.id);
@@ -101,31 +117,34 @@ function generateWeeklyPlan(profile) {
     DAYS.forEach((_, i) => { plan[i][slot.key] = picks[i]; });
   }
 
-  if (profile.weeklyBudget) fitToBudget(plan, profile, poolByType);
+  if (profile.weeklyBudget) fitToBudget(plan, profile, poolByType, targetKcal);
   return plan;
 }
 
-function planWeeklyCost(plan) {
+function planWeeklyCost(plan, targetKcal) {
   let total = 0;
   for (const day of plan) {
+    const factor = dayPortionFactor(day, targetKcal);
     for (const slot of MEAL_SLOTS) {
-      total += getRecipeInfo(day[slot.key]).cost;
+      total += getRecipeInfo(day[slot.key]).cost * factor;
     }
   }
   return total;
 }
 
-function fitToBudget(plan, profile, poolByType) {
+function fitToBudget(plan, profile, poolByType, targetKcal) {
   const budget = profile.weeklyBudget;
   let guard = 0;
-  while (planWeeklyCost(plan) > budget && guard < 60) {
+  while (planWeeklyCost(plan, targetKcal) > budget && guard < 60) {
     guard++;
     // Busca la receta más cara actualmente usada en el plan.
     let worst = null;
     for (const day of plan) {
+      const factor = dayPortionFactor(day, targetKcal);
       for (const slot of MEAL_SLOTS) {
         const info = getRecipeInfo(day[slot.key]);
-        if (!worst || info.cost > worst.cost) worst = { ...info, slotKey: slot.key, mealType: slot.mealType, day };
+        const cost = info.cost * factor;
+        if (!worst || cost > worst.scaledCost) worst = { ...info, scaledCost: cost, slotKey: slot.key, mealType: slot.mealType, day };
       }
     }
     if (!worst) break;
@@ -139,13 +158,14 @@ function fitToBudget(plan, profile, poolByType) {
   }
 }
 
-function buildShoppingList(plan) {
+function buildShoppingList(plan, targetKcal) {
   const totals = {}; // foodId -> cantidad
   for (const day of plan) {
+    const factor = dayPortionFactor(day, targetKcal);
     for (const slot of MEAL_SLOTS) {
       const recipe = getRecipeInfo(day[slot.key]).recipe;
       for (const [foodId, qty] of recipe.ingredients) {
-        totals[foodId] = (totals[foodId] || 0) + qty;
+        totals[foodId] = (totals[foodId] || 0) + qty * factor;
       }
     }
   }
@@ -163,6 +183,30 @@ function buildShoppingList(plan) {
     bySection[section].sort((a, b) => a.name.localeCompare(b.name));
   }
   return { bySection, grandTotal };
+}
+
+/* Platos que pueden sustituir a uno del plan: mismo momento del día, que
+   encajen con la dieta del usuario, ordenados por parecido en el reparto de
+   macros (la cantidad la ajustan las raciones, así que importa la proporción). */
+function swapAlternatives(recipeId, profile, limit = 5) {
+  const current = getRecipeInfo(recipeId);
+  const share = (info) => ({
+    prot: (info.prot * 4) / info.kcal,
+    carbs: (info.carbs * 4) / info.kcal,
+    fat: (info.fat * 9) / info.kcal,
+  });
+  const target = share(current);
+  return recipePool(profile, current.recipe.mealType)
+    .filter((id) => id !== recipeId)
+    .map((id) => {
+      const info = getRecipeInfo(id);
+      const s = share(info);
+      const distance = Math.abs(s.prot - target.prot) * 2 + Math.abs(s.carbs - target.carbs) + Math.abs(s.fat - target.fat);
+      return { info, distance };
+    })
+    .sort((a, b) => a.distance - b.distance)
+    .slice(0, limit)
+    .map((a) => a.info);
 }
 
 /* Explica, en 2 frases, por qué esta receta encaja en el plan de esta persona. */

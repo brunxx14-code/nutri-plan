@@ -434,3 +434,52 @@ input:focus, select:focus { outline: 2px solid var(--coral); outline-offset: 1px
 .tab-btn.active { color: var(--coral-dark); background: var(--coral-light); }
 .tab-btn.active svg { transform: translateY(-1px); }
 .tab-btn:active svg { transform: scale(.88); }
+
+/* ---------- Progreso de peso ---------- */
+.progress-card {
+  background: var(--card); border-radius: var(--radius-lg); box-shadow: var(--shadow-card);
+  padding: 18px; margin: 16px 0;
+}
+.progress-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.progress-weight { font-size: 26px; font-weight: 800; margin-top: 2px; }
+.progress-change { display: block; font-size: 13px; font-weight: 600; color: var(--muted); }
+.due-badge {
+  background: var(--amber-light); color: var(--amber-dark, #9a6400);
+  font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px; white-space: nowrap;
+}
+.weight-spark { width: 100%; height: 56px; margin: 10px 0 4px; overflow: visible; }
+.weight-spark polyline { fill: none; stroke: var(--coral); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.weight-spark circle { fill: var(--coral); }
+.weigh-form { display: flex; gap: 8px; margin: 12px 0 6px; }
+.weigh-form input { flex: 1; min-width: 0; }
+.weigh-form .btn { flex: 0 0 auto; }
+.adjust-box {
+  border: 1.5px solid var(--coral); border-radius: var(--radius-md); padding: 14px; margin-top: 10px;
+}
+.adjust-title { font-weight: 800; margin-bottom: 4px; }
+.adjust-box p { margin: 0 0 12px; font-size: 14px; color: var(--muted); }
+.adjust-actions, .install-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+/* ---------- Instalar como app ---------- */
+.install-card {
+  background: var(--card); border-radius: var(--radius-lg); box-shadow: var(--shadow-card);
+  padding: 16px 18px; margin: 16px 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; align-items: center;
+}
+.install-icon { font-size: 28px; grid-row: span 2; }
+.install-card p { margin: 0; font-size: 14px; }
+.install-actions { grid-column: 2; }
+
+/* ---------- Cambiar plato ---------- */
+.swap-open-btn { margin: 4px 0 8px; }
+.portion-hint { margin: 0 0 8px; }
+.swap-list { display: flex; flex-direction: column; gap: 8px; margin: 14px 0; }
+.swap-option {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px; text-align: left;
+  background: var(--card); border: 1.5px solid var(--border); border-radius: var(--radius-md);
+  padding: 14px; font: inherit; color: inherit; cursor: pointer;
+}
+.swap-option:active { transform: scale(.98); }
+.swap-name { font-weight: 700; }
+.swap-meta { font-size: 13px; color: var(--muted); white-space: nowrap; }
+
+.privacy-note { margin-top: 18px; font-size: 12px; }
