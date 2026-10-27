@@ -148,7 +148,7 @@ function openPaywallSheet(reason) {
   const body = document.getElementById("sheet-body");
   track(`paywall-visto-${reason || "perfil"}`);
   const reasonText = reason === "compra"
-    ? "Desbloquea tu lista de la compra con precios reales de Mercadona, agrupada por sección."
+    ? "Desbloquea tu lista de la compra con precios de los súper cerca de ti, agrupada por sección."
     : "Desbloquea todo lo que ofrece NutriPlan Premium.";
 
   body.innerHTML = `
@@ -156,7 +156,7 @@ function openPaywallSheet(reason) {
     <h3>Hazte Premium</h3>
     <p class="paywall-pitch">${reasonText}</p>
     <ul class="paywall-features">
-      <li>🛒 Lista de la compra con precios reales, lista para llevar al súper</li>
+      <li>🛒 Lista de la compra con precios y súper cercanos, lista para llevar</li>
       <li>📅 Plan semanal completo, los 7 días</li>
       <li>🔄 Regenera tu plan las veces que quieras</li>
     </ul>
@@ -429,6 +429,9 @@ function initOnboardingForm() {
     vegano: { emoji: "🌱", title: "Vegano" },
   }, "three");
   buildDislikesGrid();
+  const introLang = document.getElementById("intro-lang");
+  introLang.innerHTML = langPickerHtml();
+  bindLangPicker(introLang);
   addSportRow();
   document.getElementById("add-sport-btn").addEventListener("click", () => addSportRow());
 
@@ -606,7 +609,7 @@ function buildMacroRing(targets) {
 function renderDashboard() {
   const { profile, plan } = state;
   const targets = currentTargets();
-  const { grandTotal } = buildShoppingList(plan, weekTargets());
+  const { grandTotal } = storeShoppingList();
   const el = document.getElementById("dashboard-content");
   const whyParas = explainTargets(profile, targets);
   const ring = buildMacroRing(targets);
@@ -1412,7 +1415,7 @@ function openRecipeSheet(dayIdx, slotKey) {
         const role = FOOD_ROLES[food.cat];
         return `
           <div class="ingredient-row">
-            <span class="ing-emoji" aria-hidden="true">${FOOD_ROLE_EMOJI[food.cat] || "•"}</span>
+            <span class="ing-emoji" aria-hidden="true">${FOOD_EMOJI[id] || FOOD_ROLE_EMOJI[food.cat] || "•"}</span>
             <div class="ing-text"><span class="ing-name">${food.name}</span><span class="ing-role">${role.label}</span></div>
             <div class="ing-qty">${formatQty(qty * factor, food.unit)}</div>
           </div>`;
@@ -1472,15 +1475,195 @@ function closeSheet() {
 
 // ---------- Lista de la compra ----------
 
+// ---------- Súper cercanos ----------
+
+const OVERPASS_URLS = ["https://overpass-api.de/api/interpreter", "https://overpass.kumi.systems/api/interpreter"];
+const NEARBY_RADIUS_M = 3000;
+const NEARBY_MAX = 6;
+const NEARBY_TTL_MS = 7 * 86400000; // la lista de súper se refresca cada semana
+
+function supermarketFor(text) {
+  return SUPERMARKETS.find((s) => s.match.test(text || "")) || null;
+}
+
+function storeIndex() {
+  return state.store ? state.store.index : 1;
+}
+
+/* Lista de la compra con los precios escalados al súper elegido. */
+function storeShoppingList() {
+  const list = buildShoppingList(state.plan, weekTargets());
+  const k = storeIndex();
+  if (k === 1) return list;
+  for (const items of Object.values(list.bySection)) {
+    for (const it of items) it.cost *= k;
+  }
+  list.grandTotal *= k;
+  return list;
+}
+
+function distanceM(lat1, lon1, lat2, lon2) {
+  const rad = Math.PI / 180;
+  const dLat = (lat2 - lat1) * rad;
+  const dLon = (lon2 - lon1) * rad;
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * rad) * Math.cos(lat2 * rad) * Math.sin(dLon / 2) ** 2;
+  return 6371000 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function formatDistance(m) {
+  return m < 1000 ? `${Math.round(m / 10) * 10} m` : `${(m / 1000).toFixed(1).replace(".", ",")} km`;
+}
+
+function getPosition() {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) return reject(new Error("sin-geo"));
+    navigator.geolocation.getCurrentPosition(
+      (p) => resolve({ lat: p.coords.latitude, lon: p.coords.longitude }),
+      reject,
+      { enableHighAccuracy: false, timeout: 12000, maximumAge: 600000 },
+    );
+  });
+}
+
+/* Súper en un radio de 3 km según OpenStreetMap: el más cercano de cada
+   cadena, ordenados por distancia. */
+async function fetchNearbyStores({ lat, lon }) {
+  const query = `[out:json][timeout:20];nwr["shop"="supermarket"](around:${NEARBY_RADIUS_M},${lat},${lon});out center 80;`;
+  let data = null;
+  for (const url of OVERPASS_URLS) {
+    try {
+      const res = await fetch(url, { method: "POST", body: new URLSearchParams({ data: query }) });
+      if (res.ok) { data = await res.json(); break; }
+    } catch (e) { /* probamos el siguiente servidor */ }
+  }
+  if (!data) throw new Error("sin-red");
+  const byChain = {};
+  for (const el of data.elements || []) {
+    const tags = el.tags || {};
+    const pos = el.center || el;
+    if (pos.lat == null) continue;
+    const chain = supermarketFor(`${tags.brand || ""} ${tags.name || ""}`);
+    const key = chain ? chain.key : `local-${el.id}`;
+    const dist = distanceM(lat, lon, pos.lat, pos.lon);
+    if (byChain[key] && byChain[key].dist <= dist) continue;
+    byChain[key] = {
+      key,
+      name: chain ? chain.name : (tags.name || "Súper de barrio"),
+      street: tags["addr:street"] ? `${tags["addr:street"]}${tags["addr:housenumber"] ? ` ${tags["addr:housenumber"]}` : ""}` : "",
+      index: chain ? chain.index : DEFAULT_SUPERMARKET_INDEX,
+      color: chain ? chain.color : "#8a8a8a",
+      dist: Math.round(dist),
+    };
+  }
+  return Object.values(byChain).sort((a, b) => a.dist - b.dist).slice(0, NEARBY_MAX);
+}
+
+async function findNearbyStores(btn) {
+  btn.disabled = true;
+  btn.innerHTML = `<span class="spin">📍</span> Buscando súper cerca…`;
+  track("super-buscar");
+  try {
+    const pos = await getPosition();
+    const list = await fetchNearbyStores(pos);
+    state.nearby = { at: Date.now(), list };
+    if (list.length && !state.store) {
+      // por defecto, el más barato de los cercanos
+      state.store = [...list].sort((a, b) => a.index - b.index || a.dist - b.dist)[0];
+    }
+    saveState();
+    renderCompra();
+    renderDashboard();
+    showToast(list.length ? `📍 ${list.length} súper cerca de ti` : "📍 No hay súper a menos de 3 km");
+  } catch (e) {
+    btn.disabled = false;
+    btn.innerHTML = "📍 Reintentar";
+    const denied = e && e.code === 1;
+    showToast(denied ? "📍 Necesitamos tu permiso de ubicación" : "📍 No pudimos buscar ahora, prueba otra vez");
+  }
+}
+
+function renderStoreCard() {
+  const nearby = state.nearby && Date.now() - state.nearby.at < NEARBY_TTL_MS ? state.nearby.list : null;
+  if (!nearby) {
+    return `
+      <div class="store-card empty">
+        <div class="store-pin">📍</div>
+        <div class="store-card-text">
+          <b>¿Dónde haces la compra?</b>
+          <span>Busca los súper cerca de ti y compara cuánto te costaría la lista en cada uno.</span>
+        </div>
+        <button type="button" class="btn block" id="find-stores">📍 Usar mi ubicación</button>
+      </div>`;
+  }
+  if (!nearby.length) {
+    return `<div class="store-card empty"><div class="store-card-text"><b>📍 No encontramos súper a menos de 3 km</b></div>
+      <button type="button" class="btn ghost block" id="find-stores">Buscar otra vez</button></div>`;
+  }
+  const base = buildShoppingList(state.plan, weekTargets()).grandTotal;
+  const cheapest = Math.min(...nearby.map((s) => s.index));
+  return `
+    <div class="store-card">
+      <div class="store-card-head"><b>📍 Súper cerca de ti</b><button type="button" class="link-btn" id="find-stores">Actualizar</button></div>
+      <div class="store-scroller">
+        ${nearby.map((s, i) => `
+          <button type="button" class="store-chip ${state.store && state.store.key === s.key ? "selected" : ""}" data-store="${s.key}" style="--brand:${s.color}; animation-delay:${i * 0.06}s">
+            ${s.index === cheapest ? `<span class="store-best">💸 Más barato</span>` : ""}
+            <span class="store-logo">${s.name.charAt(0)}</span>
+            <span class="store-name">${s.name}</span>
+            <span class="store-dist">${formatDistance(s.dist)}</span>
+            <span class="store-price">${(base * s.index).toFixed(2)} €</span>
+          </button>`).join("")}
+      </div>
+      <p class="hint">Precio aproximado de tu lista según la cadena: no son precios en tiempo real.</p>
+    </div>`;
+}
+
+function bindStoreCard(el) {
+  const find = el.querySelector("#find-stores");
+  if (find) find.addEventListener("click", () => findNearbyStores(find));
+  el.querySelectorAll(".store-chip").forEach((chip) => {
+    chip.addEventListener("click", () => {
+      state.store = state.nearby.list.find((s) => s.key === chip.dataset.store);
+      saveState();
+      buzz(10);
+      track(`super-${state.store.key.startsWith("local") ? "local" : state.store.key}`);
+      renderCompra();
+      renderDashboard();
+    });
+  });
+}
+
+// ---------- Lista de la compra ----------
+
+function compraProgressHtml(done, total, grandTotal) {
+  const r = 30;
+  const C = 2 * Math.PI * r;
+  const pct = total ? done / total : 0;
+  const budget = state.profile.weeklyBudget;
+  return `
+    <div class="cart-hero">
+      <div class="cart-ring">
+        <svg viewBox="0 0 72 72"><circle cx="36" cy="36" r="${r}" class="cart-ring-bg"/><circle cx="36" cy="36" r="${r}" class="cart-ring-fill" stroke-dasharray="${C}" stroke-dashoffset="${C * (1 - pct)}"/></svg>
+        <span class="cart-ring-emoji">${done === total && total ? "🎉" : "🛒"}</span>
+      </div>
+      <div class="cart-hero-text">
+        <span class="cart-count"><b id="cart-done">${done}</b>/${total} en el carro</span>
+        <span class="cart-total"><b id="cart-total" data-value="${grandTotal.toFixed(2)}">${grandTotal.toFixed(2)}</b> €</span>
+        ${budget ? `<span class="cart-budget ${grandTotal <= budget ? "ok" : "warn"}">${grandTotal <= budget ? `✅ ${(budget - grandTotal).toFixed(2)} € por debajo de tu presupuesto` : `⚠️ ${(grandTotal - budget).toFixed(2)} € por encima de tu presupuesto`}</span>` : ""}
+      </div>
+    </div>`;
+}
+
 function renderCompra() {
-  const { plan, bought } = state;
-  const { bySection, grandTotal } = buildShoppingList(plan, weekTargets());
+  const { bought } = state;
+  const { bySection, grandTotal } = storeShoppingList();
   const el = document.getElementById("compra-content");
   const sections = Object.keys(bySection).sort();
+  document.getElementById("compra-eyebrow").textContent = state.store ? `${state.store.name}${state.store.dist ? ` · ${formatDistance(state.store.dist)}` : ""}` : "Precios de Mercadona";
 
   if (!isPremium()) {
     const itemCount = Object.values(bySection).reduce((n, items) => n + items.length, 0);
-    el.innerHTML = `
+    el.innerHTML = renderStoreCard() + `
       <div class="locked-card">
         <div class="locked-icon">🔒</div>
         <h3>Tu lista ya está lista</h3>
@@ -1489,34 +1672,84 @@ function renderCompra() {
         <button type="button" class="btn block" id="unlock-compra-btn">Desbloquear con Premium</button>
       </div>
     `;
+    bindStoreCard(el);
     document.getElementById("unlock-compra-btn").addEventListener("click", () => openPaywallSheet("compra"));
     return;
   }
 
-  el.innerHTML = sections.map((section) => {
+  const allItems = sections.flatMap((sec) => bySection[sec]);
+  const doneCount = allItems.filter((it) => bought[it.foodId]).length;
+  let rowIdx = 0;
+
+  el.innerHTML = renderStoreCard() + compraProgressHtml(doneCount, allItems.length, grandTotal) + sections.map((section, si) => {
     const items = bySection[section];
+    const style = SECTION_STYLE[section] || { emoji: "🛒", color: "coral" };
     const subtotal = items.reduce((s, it) => s + it.cost, 0);
+    const secDone = items.filter((it) => bought[it.foodId]).length;
     return `
-      <div class="section-block">
-        <div class="section-title">${section} · ${subtotal.toFixed(2)} €</div>
+      <div class="section-block sec-${style.color} ${secDone === items.length ? "complete" : ""}" data-section="${section}" style="animation-delay:${0.05 + si * 0.07}s">
+        <button type="button" class="section-head" aria-expanded="true">
+          <span class="section-emoji">${style.emoji}</span>
+          <span class="section-head-text">
+            <span class="section-name">${section}</span>
+            <span class="section-sub"><span class="sec-done">${secDone}</span>/${items.length} · ${subtotal.toFixed(2)} €</span>
+          </span>
+          <span class="section-check">✓</span>
+          <span class="section-caret">⌄</span>
+        </button>
+        <div class="section-bar"><div class="section-bar-fill" style="width:${(secDone / items.length) * 100}%"></div></div>
         <div class="section-items">
           ${items.map((it) => {
             const isBought = !!bought[it.foodId];
             return `
-              <div class="item-row ${isBought ? "bought" : ""}" data-food="${it.foodId}">
+              <div class="item-row ${isBought ? "bought" : ""}" data-food="${it.foodId}" style="animation-delay:${0.1 + rowIdx++ * 0.025}s">
                 <div class="item-left">
-                  <div class="check-circle">${isBought ? "✓" : ""}</div>
+                  <span class="item-emoji">${FOOD_EMOJI[it.foodId] || "🛒"}</span>
                   <div>
                     <div class="item-name">${it.name}</div>
                     <div class="item-qty">${formatQty(it.qty, it.unit)}</div>
                   </div>
                 </div>
                 <div class="item-cost">${it.cost.toFixed(2)} €</div>
+                <div class="check-circle">${isBought ? "✓" : ""}</div>
               </div>`;
           }).join("")}
         </div>
       </div>`;
-  }).join("") + `<div class="total-row"><span>Total estimado</span><span>${grandTotal.toFixed(2)} €</span></div>`;
+  }).join("") + `
+    <div class="compra-actions">
+      ${doneCount ? `<button type="button" class="btn ghost block" id="reset-bought">↺ Vaciar el carro</button>` : ""}
+    </div>`;
+
+  bindStoreCard(el);
+  const totalEl = document.getElementById("cart-total");
+  animateCountUp(totalEl, Math.round(grandTotal), { duration: 600 });
+  setTimeout(() => { totalEl.textContent = grandTotal.toFixed(2); }, 650);
+
+  el.querySelectorAll(".section-head").forEach((head) => {
+    head.addEventListener("click", () => {
+      const block = head.closest(".section-block");
+      const collapsed = block.classList.toggle("collapsed");
+      head.setAttribute("aria-expanded", String(!collapsed));
+    });
+  });
+
+  const reset = document.getElementById("reset-bought");
+  if (reset) reset.addEventListener("click", () => {
+    state.bought = {};
+    saveState();
+    renderCompra();
+  });
+
+  const updateProgress = () => {
+    const done = allItems.filter((it) => state.bought[it.foodId]).length;
+    document.getElementById("cart-done").textContent = done;
+    const ring = el.querySelector(".cart-ring-fill");
+    const C = Number(ring.getAttribute("stroke-dasharray"));
+    ring.style.strokeDashoffset = C * (1 - done / allItems.length);
+    el.querySelector(".cart-ring-emoji").textContent = done === allItems.length ? "🎉" : "🛒";
+    return done;
+  };
 
   el.querySelectorAll(".item-row").forEach((row) => {
     row.addEventListener("click", () => {
@@ -1527,11 +1760,37 @@ function renderCompra() {
       const circle = row.querySelector(".check-circle");
       circle.textContent = newVal ? "✓" : "";
       if (newVal) {
+        buzz(8);
         circle.classList.remove("bounce");
         void circle.offsetWidth; // reinicia la animación si se reutiliza
         circle.classList.add("bounce");
+        const fly = document.createElement("span");
+        fly.className = "item-fly";
+        fly.textContent = FOOD_EMOJI[foodId] || "🛒";
+        row.appendChild(fly);
+        setTimeout(() => fly.remove(), 700);
       }
       saveState();
+
+      const block = row.closest(".section-block");
+      const items = bySection[block.dataset.section];
+      const secDone = items.filter((it) => state.bought[it.foodId]).length;
+      block.querySelector(".sec-done").textContent = secDone;
+      block.querySelector(".section-bar-fill").style.width = `${(secDone / items.length) * 100}%`;
+      const wasComplete = block.classList.contains("complete");
+      block.classList.toggle("complete", secDone === items.length);
+      const done = updateProgress();
+      if (done === allItems.length && newVal) {
+        burstConfetti();
+        showToast("🎉 ¡Compra completa! A cocinar");
+        track("compra-completa");
+      } else if (secDone === items.length && !wasComplete) {
+        showToast(`${(SECTION_STYLE[block.dataset.section] || {}).emoji || "✅"} ${block.dataset.section} completada`);
+        setTimeout(() => {
+          block.classList.add("collapsed");
+          block.querySelector(".section-head").setAttribute("aria-expanded", "false");
+        }, 600);
+      }
     });
   });
 }
@@ -1554,6 +1813,23 @@ function bmiInfo(p) {
   const bmi = p.weightKg / (p.heightCm / 100) ** 2;
   const label = bmi < 18.5 ? "Bajo" : bmi < 25 ? "Saludable" : bmi < 30 ? "Elevado" : "Alto";
   return { value: bmi.toFixed(1).replace(".", ","), label };
+}
+
+function langPickerHtml() {
+  return `<div class="lang-picker">${Object.entries(LANGUAGES).map(([code, l]) => `
+    <button type="button" class="lang-btn ${code === currentLang ? "selected" : ""}" data-lang="${code}">
+      <span class="lang-flag">${l.flag}</span>${l.label}
+    </button>`).join("")}</div>`;
+}
+
+function bindLangPicker(root) {
+  root.querySelectorAll(".lang-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      if (btn.dataset.lang === currentLang) return;
+      track(`idioma-${btn.dataset.lang}`);
+      setLang(btn.dataset.lang);
+    });
+  });
 }
 
 function renderPerfil() {
@@ -1638,10 +1914,16 @@ function renderPerfil() {
       </div>
     `}
 
+    <div class="pcard">
+      <div class="section-kicker">🌐 Idioma</div>
+      ${langPickerHtml()}
+    </div>
+
     <button class="btn secondary block edit-profile-spacing" id="edit-profile-btn" type="button">✏️ Editar mis datos</button>
     <p class="hint privacy-note">🔒 Tus datos se quedan en tu móvil. Solo contamos de forma anónima qué funciones se usan.</p>
   `;
   document.getElementById("edit-profile-btn").addEventListener("click", enterEditMode);
+  bindLangPicker(el);
   if (isPremium()) {
     document.getElementById("cancel-sub-btn").addEventListener("click", cancelSubscription);
   } else {
