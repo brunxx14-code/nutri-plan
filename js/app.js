@@ -523,7 +523,7 @@ function buildMacroRing(targets) {
 function renderDashboard() {
   const { profile, plan } = state;
   const targets = currentTargets();
-  const { grandTotal } = buildShoppingList(plan, targets.calories);
+  const { grandTotal } = buildShoppingList(plan, weekTargets());
   const el = document.getElementById("dashboard-content");
   const whyParas = explainTargets(profile, targets);
   const ring = buildMacroRing(targets);
@@ -651,13 +651,98 @@ function currentStreak() {
   return streak;
 }
 
+// ---------- Comidas fuera del plan y reajuste de la semana ----------
+
+/* Raciones normales; el tamaño elegido (poco / normal / mucho) las escala. */
+const OFF_PLAN_PRESETS = [
+  { id: "hamburguesa", emoji: "🍔", name: "Hamburguesa con patatas", kcal: 1100, prot: 40 },
+  { id: "pizza", emoji: "🍕", name: "Pizza", kcal: 900, prot: 35 },
+  { id: "menu", emoji: "🍽️", name: "Menú del día", kcal: 950, prot: 40 },
+  { id: "bocadillo", emoji: "🥪", name: "Bocadillo", kcal: 600, prot: 25 },
+  { id: "ensalada", emoji: "🥗", name: "Ensalada completa", kcal: 450, prot: 20 },
+  { id: "sushi", emoji: "🍣", name: "Sushi", kcal: 650, prot: 30 },
+  { id: "kebab", emoji: "🌯", name: "Kebab", kcal: 900, prot: 40 },
+  { id: "pasta", emoji: "🍝", name: "Pasta de restaurante", kcal: 850, prot: 28 },
+  { id: "tapas", emoji: "🍺", name: "Tapas y cañas", kcal: 800, prot: 30 },
+  { id: "dulce", emoji: "🍰", name: "Dulce o bollería", kcal: 400, prot: 6 },
+];
+const OFF_PLAN_SIZES = { poco: { label: "Poco", factor: 0.7 }, normal: { label: "Normal", factor: 1 }, mucho: { label: "Mucho", factor: 1.35 } };
+const MAX_DAILY_REBALANCE = 0.2; // como mucho ±20 % de tus calorías en un día
+
+function isoDate(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+/* Fechas (lunes a domingo) de la semana en curso, alineadas con el plan. */
+function weekDates() {
+  const monday = new Date();
+  monday.setDate(monday.getDate() - todayPlanIndex());
+  return DAYS.map((_, i) => {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    return isoDate(d);
+  });
+}
+
+/* Calorías de más (o de menos) que han supuesto esta semana las comidas
+   fuera del plan, comparadas con el plato que tocaba. */
+function weekOffPlanDelta() {
+  const base = currentTargets().calories;
+  const dates = weekDates();
+  let delta = 0;
+  for (let i = 0; i <= todayPlanIndex(); i++) {
+    const entry = state.daily[dates[i]];
+    if (!entry || !entry.offPlan) continue;
+    const factor = dayPortionFactor(state.plan[i], base);
+    for (const [slotKey, off] of Object.entries(entry.offPlan)) {
+      delta += off.kcal - getRecipeInfo(state.plan[i][slotKey]).kcal * factor;
+    }
+  }
+  return delta;
+}
+
+/* Ajuste diario para los días que quedan de semana (después de hoy). */
+function weekRebalance() {
+  const remaining = DAYS.length - 1 - todayPlanIndex();
+  const base = currentTargets().calories;
+  const delta = weekOffPlanDelta();
+  if (!remaining || Math.abs(delta) < 50) return { perDay: 0, remaining, delta };
+  const raw = -delta / remaining;
+  const cap = base * MAX_DAILY_REBALANCE;
+  return { perDay: Math.round(Math.max(-cap, Math.min(cap, raw)) / 10) * 10, remaining, delta };
+}
+
+function dayTargetKcal(dayIdx) {
+  const base = currentTargets().calories;
+  return dayIdx > todayPlanIndex() ? base + weekRebalance().perDay : base;
+}
+
+function weekTargets() {
+  return DAYS.map((_, i) => dayTargetKcal(i));
+}
+
+function dayFactor(dayIdx) {
+  return dayPortionFactor(state.plan[dayIdx], dayTargetKcal(dayIdx));
+}
+
+function rebalanceText(perDay) {
+  const sign = perDay > 0 ? "+" : "−";
+  return `${sign}${Math.abs(perDay)} kcal/día hasta el domingo`;
+}
+
 function todayTotals() {
   const day = state.plan[todayPlanIndex()];
-  const factor = dayPortionFactor(day, currentTargets().calories);
+  const factor = dayFactor(todayPlanIndex());
   const entry = dailyEntry();
   let kcal = 0, prot = 0;
   for (const slot of MEAL_SLOTS) {
     if (!entry.eaten[slot.key]) continue;
+    const off = entry.offPlan && entry.offPlan[slot.key];
+    if (off) {
+      kcal += off.kcal;
+      prot += off.prot;
+      continue;
+    }
     const info = getRecipeInfo(day[slot.key]);
     kcal += info.kcal * factor;
     prot += info.prot * factor;
@@ -711,10 +796,9 @@ function renderStreakChip() {
 function renderTodayCard() {
   const dayIdx = todayPlanIndex();
   const day = state.plan[dayIdx];
-  const targets = currentTargets();
-  const factor = dayPortionFactor(day, targets.calories);
   const entry = dailyEntry();
   const done = mealsDone(entry);
+  const rebalance = weekRebalance();
   const glasses = waterGoalGlasses();
 
   return `
@@ -739,19 +823,26 @@ function renderTodayCard() {
         ${MEAL_SLOTS.map((slot) => {
           const info = getRecipeInfo(day[slot.key]);
           const eaten = !!entry.eaten[slot.key];
+          const off = entry.offPlan && entry.offPlan[slot.key];
           return `
-            <div class="today-meal ${eaten ? "eaten" : ""}" data-slot="${slot.key}">
+            <div class="today-meal ${eaten ? "eaten" : ""} ${off ? "off-plan" : ""}" data-slot="${slot.key}">
               <button type="button" class="today-meal-info" data-open="${slot.key}">
-                ${recipePhoto(info.recipe.id, { width: 120, className: "photo-thumb", fallback: mealEmoji(slot.key) })}
+                ${off
+                  ? photoHtml(null, { className: "photo-thumb off", fallback: off.emoji })
+                  : recipePhoto(info.recipe.id, { width: 120, className: "photo-thumb", fallback: mealEmoji(slot.key) })}
                 <span>
-                  <span class="today-meal-slot">${slot.label}</span>
-                  <span class="today-meal-name">${info.recipe.name}</span>
+                  <span class="today-meal-slot">${slot.label}${off ? " · fuera del plan" : ""}</span>
+                  <span class="today-meal-name">${off ? `${off.name} · ${off.kcal} kcal` : info.recipe.name}</span>
                 </span>
               </button>
+              <button type="button" class="off-btn" data-off="${slot.key}" aria-label="Comí otra cosa en ${slot.label.toLowerCase()}">✏️</button>
               <button type="button" class="eat-btn" data-eat="${slot.key}" aria-pressed="${eaten}" aria-label="Marcar ${slot.label.toLowerCase()} como hecha">${eaten ? "✓" : ""}</button>
             </div>`;
         }).join("")}
       </div>
+      <p class="hint off-hint">${rebalance.perDay
+        ? `🔄 Semana reajustada por comidas fuera del plan: <b>${rebalanceText(rebalance.perDay)}</b>.`
+        : "¿Comiste otra cosa? Pulsa ✏️ y reajustamos el resto de tu semana."}</p>
       <div class="water-row">
         <div class="today-bar-label"><span>💧 Agua</span><span id="water-count">${entry.water}/${glasses} vasos</span></div>
         <div class="water-glasses">
@@ -781,7 +872,11 @@ function bindTodayCard() {
   updateTodayProgress();
 
   card.querySelectorAll("[data-open]").forEach((btn) => {
-    btn.addEventListener("click", () => openRecipeSheet(todayPlanIndex(), btn.dataset.open));
+    btn.addEventListener("click", () => {
+      const entry = dailyEntry();
+      if (entry.offPlan && entry.offPlan[btn.dataset.open]) openOffPlanSheet(btn.dataset.open);
+      else openRecipeSheet(todayPlanIndex(), btn.dataset.open);
+    });
   });
 
   card.querySelectorAll("[data-eat]").forEach((btn) => {
@@ -791,6 +886,12 @@ function bindTodayCard() {
       const wasComplete = mealsDone(entry) >= MEALS_FOR_STREAK;
       entry.eaten[slotKey] = !entry.eaten[slotKey];
       const eaten = entry.eaten[slotKey];
+      if (!eaten && entry.offPlan && entry.offPlan[slotKey]) {
+        delete entry.offPlan[slotKey];
+        saveState();
+        renderAll();
+        return;
+      }
       saveState();
       buzz(eaten ? 15 : 8);
 
@@ -819,6 +920,10 @@ function bindTodayCard() {
     });
   });
 
+  card.querySelectorAll("[data-off]").forEach((btn) => {
+    btn.addEventListener("click", () => openOffPlanSheet(btn.dataset.off));
+  });
+
   card.querySelectorAll("[data-glass]").forEach((btn) => {
     btn.addEventListener("click", () => {
       const entry = dailyEntry();
@@ -836,6 +941,110 @@ function bindTodayCard() {
       if (entry.water === goal && n === goal) showToast("💧 ¡Objetivo de agua cumplido!");
     });
   });
+}
+
+function openOffPlanSheet(slotKey) {
+  const slot = MEAL_SLOTS.find((s) => s.key === slotKey);
+  const entry = dailyEntry();
+  const existing = entry.offPlan && entry.offPlan[slotKey];
+  let selected = existing ? existing.presetId : null;
+  let size = existing ? existing.size : "normal";
+  const body = document.getElementById("sheet-body");
+
+  body.innerHTML = `
+    <span class="tag tag-amber">${mealEmoji(slotKey)} ${slot.label} de hoy</span>
+    <h3>¿Qué has comido?</h3>
+    <p class="hint">Elige lo más parecido. Reajustamos el resto de tu semana para que sigas en tu objetivo.</p>
+    <div class="off-grid">
+      ${OFF_PLAN_PRESETS.map((p) => `
+        <button type="button" class="off-option" data-preset="${p.id}">
+          <span class="off-emoji">${p.emoji}</span>
+          <span class="off-name">${p.name}</span>
+          <span class="off-kcal">~${p.kcal} kcal</span>
+        </button>`).join("")}
+      <button type="button" class="off-option" data-preset="otro">
+        <span class="off-emoji">✍️</span>
+        <span class="off-name">Otra cosa</span>
+        <span class="off-kcal">Tú pones las kcal</span>
+      </button>
+    </div>
+    <div class="off-custom hidden" id="off-custom">
+      <input type="text" id="off-custom-name" placeholder="¿Qué era? (opcional)" maxlength="40">
+      <input type="number" id="off-custom-kcal" inputmode="numeric" min="50" max="3000" placeholder="kcal aprox.">
+    </div>
+    <div class="section-kicker off-size-kicker">¿Cuánto?</div>
+    <div class="size-row">
+      ${Object.entries(OFF_PLAN_SIZES).map(([k, v]) => `<button type="button" class="size-chip" data-size="${k}">${v.label}</button>`).join("")}
+    </div>
+    <button type="button" class="btn block" id="off-save" disabled>Guardar y reajustar</button>
+    ${existing ? `<button type="button" class="btn ghost block off-undo" id="off-undo">Al final comí lo del plan</button>` : ""}
+  `;
+
+  const sync = () => {
+    body.querySelectorAll(".off-option").forEach((b) => b.classList.toggle("selected", b.dataset.preset === selected));
+    body.querySelectorAll(".size-chip").forEach((b) => b.classList.toggle("selected", b.dataset.size === size));
+    document.getElementById("off-custom").classList.toggle("hidden", selected !== "otro");
+    document.getElementById("off-save").disabled = !selected;
+  };
+  if (existing && existing.presetId === "otro") {
+    document.getElementById("off-custom-name").value = existing.name === "Otra cosa" ? "" : existing.name;
+    document.getElementById("off-custom-kcal").value = existing.baseKcal;
+  }
+  body.querySelectorAll(".off-option").forEach((b) => b.addEventListener("click", () => {
+    selected = b.dataset.preset;
+    buzz(8);
+    sync();
+    if (selected === "otro") document.getElementById("off-custom-kcal").focus();
+  }));
+  body.querySelectorAll(".size-chip").forEach((b) => b.addEventListener("click", () => {
+    size = b.dataset.size;
+    buzz(8);
+    sync();
+  }));
+  sync();
+
+  document.getElementById("off-save").addEventListener("click", () => {
+    let preset;
+    if (selected === "otro") {
+      const kcalInput = document.getElementById("off-custom-kcal");
+      const baseKcal = Number(kcalInput.value);
+      if (!(baseKcal >= 50 && baseKcal <= 3000)) {
+        kcalInput.reportValidity();
+        kcalInput.focus();
+        return;
+      }
+      const name = document.getElementById("off-custom-name").value.trim() || "Otra cosa";
+      preset = { id: "otro", emoji: "🍴", name, kcal: baseKcal, prot: Math.round((baseKcal * 0.15) / 4) };
+    } else {
+      preset = OFF_PLAN_PRESETS.find((p) => p.id === selected);
+    }
+    const f = OFF_PLAN_SIZES[size].factor;
+    if (!entry.offPlan) entry.offPlan = {};
+    entry.offPlan[slotKey] = {
+      presetId: preset.id, size, emoji: preset.emoji, name: preset.name, baseKcal: preset.kcal,
+      kcal: Math.round(preset.kcal * f), prot: Math.round(preset.prot * f),
+    };
+    entry.eaten[slotKey] = true;
+    saveState();
+    track(`fuera-del-plan-${preset.id}`);
+    closeSheet();
+    renderAll();
+    const { perDay, remaining } = weekRebalance();
+    showToast(perDay
+      ? `🔄 Semana reajustada: ${rebalanceText(perDay)}`
+      : remaining ? "✅ Anotado. ¡Casi igual que tu plan!" : "✅ Anotado. La semana que viene empezamos de cero");
+  });
+
+  const undo = document.getElementById("off-undo");
+  if (undo) undo.addEventListener("click", () => {
+    delete entry.offPlan[slotKey];
+    saveState();
+    closeSheet();
+    renderAll();
+    showToast("↩️ Vuelto al plato del plan");
+  });
+
+  document.getElementById("recipe-sheet").classList.remove("hidden");
 }
 
 // ---------- Progreso de peso ----------
@@ -1036,12 +1245,31 @@ function renderPlan() {
 
 function renderPlanDays() {
   const el = document.getElementById("plan-content");
-  const targetKcal = currentTargets().calories;
+  const { perDay } = weekRebalance();
+  const today = todayPlanIndex();
+  const offToday = (dailyEntry().offPlan) || {};
   el.innerHTML = DAYS.map((day, i) => {
-    const factor = dayPortionFactor(state.plan[i], targetKcal);
+    const factor = dayFactor(i);
+    const chip = perDay && i > today
+      ? `<div class="rebalance-chip ${perDay < 0 ? "down" : "up"}">🔄 Raciones reajustadas: ${perDay > 0 ? "+" : "−"}${Math.abs(perDay)} kcal por lo que comiste fuera</div>`
+      : "";
     return `
     <div class="day-panel ${i === selectedDay ? "active" : ""}" data-day="${i}">
+      ${chip}
       ${MEAL_SLOTS.map((slot) => {
+        const off = i === today && offToday[slot.key];
+        if (off) {
+          return `
+          <div class="meal-card off-plan" data-day="${i}" data-slot="${slot.key}" data-off="1">
+            <div class="photo photo-thumb big off"><span class="photo-fallback" aria-hidden="true">${off.emoji}</span></div>
+            <div class="meal-info">
+              <div class="slot-label">${slot.label} · fuera del plan</div>
+              <div class="recipe-name">${off.name}</div>
+              <div class="kcal">${off.kcal} kcal</div>
+            </div>
+            <div class="chevron-right">›</div>
+          </div>`;
+        }
         const info = getRecipeInfo(state.plan[i][slot.key]);
         return `
           <div class="meal-card" data-day="${i}" data-slot="${slot.key}">
@@ -1062,8 +1290,8 @@ function renderPlanDays() {
     card.addEventListener("click", () => {
       const day = Number(card.dataset.day);
       const slotKey = card.dataset.slot;
-      const slot = MEAL_SLOTS.find((s) => s.key === slotKey);
-      openRecipeSheet(day, slotKey);
+      if (card.dataset.off) openOffPlanSheet(slotKey);
+      else openRecipeSheet(day, slotKey);
     });
   });
 }
@@ -1076,7 +1304,7 @@ function openRecipeSheet(dayIdx, slotKey) {
   const slotLabel = MEAL_SLOTS.find((s) => s.key === slotKey).label;
   const info = getRecipeInfo(state.plan[dayIdx][slotKey]);
   const r = info.recipe;
-  const factor = dayPortionFactor(state.plan[dayIdx], currentTargets().calories);
+  const factor = dayFactor(dayIdx);
   const whySentences = explainRecipe(r, info, state.profile, slotLabel);
   const body = document.getElementById("sheet-body");
   track("receta-vista");
@@ -1124,7 +1352,7 @@ const FOOD_ROLE_EMOJI = {
 function openSwapSheet(dayIdx, slotKey) {
   const slotLabel = MEAL_SLOTS.find((s) => s.key === slotKey).label;
   const currentId = state.plan[dayIdx][slotKey];
-  const factor = dayPortionFactor(state.plan[dayIdx], currentTargets().calories);
+  const factor = dayFactor(dayIdx);
   const options = swapAlternatives(currentId, state.profile);
   const body = document.getElementById("sheet-body");
   body.innerHTML = `
@@ -1163,7 +1391,7 @@ function closeSheet() {
 
 function renderCompra() {
   const { plan, bought } = state;
-  const { bySection, grandTotal } = buildShoppingList(plan, currentTargets().calories);
+  const { bySection, grandTotal } = buildShoppingList(plan, weekTargets());
   const el = document.getElementById("compra-content");
   const sections = Object.keys(bySection).sort();
 

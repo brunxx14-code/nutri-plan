@@ -170,10 +170,12 @@ function fitToBudget(plan, profile, poolByType, targetKcal) {
   }
 }
 
+/* targetKcal puede ser un número (igual todos los días) o una lista con el
+   objetivo de cada día, cuando la semana se ha reajustado. */
 function buildShoppingList(plan, targetKcal) {
   const totals = {}; // foodId -> cantidad
-  for (const day of plan) {
-    const factor = dayPortionFactor(day, targetKcal);
+  for (const [i, day] of plan.entries()) {
+    const factor = dayPortionFactor(day, Array.isArray(targetKcal) ? targetKcal[i] : targetKcal);
     for (const slot of MEAL_SLOTS) {
       const recipe = getRecipeInfo(day[slot.key]).recipe;
       for (const [foodId, qty] of recipe.ingredients) {

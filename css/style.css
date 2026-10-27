@@ -730,3 +730,52 @@ input:focus, select:focus { outline: 2px solid var(--coral); outline-offset: 1px
 .sub-sub { font-size: 12.5px; opacity: .9; }
 .sub-card .btn { background: #fff; color: var(--coral-dark); flex: none; }
 .sub-card .btn.ghost { background: rgba(255,255,255,.18); color: #fff; border-color: rgba(255,255,255,.5); }
+
+/* ---------- Comidas fuera del plan ---------- */
+.off-btn {
+  flex: none; width: 34px; height: 34px; border-radius: 50%; border: none;
+  background: var(--card); font-size: 15px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; transition: transform .15s;
+}
+.off-btn:active { transform: scale(.88); }
+.today-meal.off-plan, .today-meal.off-plan.eaten { background: var(--amber-light); }
+.today-meal.off-plan .today-meal-name { color: var(--amber-dark); }
+.photo-thumb.off { background: var(--card); }
+.photo-thumb.off .photo-fallback { font-size: 24px; }
+.off-hint { margin-top: 10px; }
+.off-hint b { color: var(--coral-dark); }
+
+.off-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0 16px; }
+.off-option {
+  display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 12px 6px;
+  border-radius: var(--radius-md); border: 2px solid var(--border); background: var(--card);
+  font: inherit; color: inherit; cursor: pointer; text-align: center;
+  transition: border-color .2s, background .2s, transform .15s;
+}
+.off-option:active { transform: scale(.95); }
+.off-option.selected { border-color: var(--coral); background: var(--coral-light); }
+.off-emoji { font-size: 28px; line-height: 1; }
+.off-name { font-size: 12px; font-weight: 700; line-height: 1.2; }
+.off-kcal { font-size: 11px; color: var(--muted); }
+.off-custom { display: flex; gap: 8px; margin-bottom: 16px; animation: riseIn .3s ease; }
+.off-custom.hidden { display: none; }
+.off-custom input:first-child { flex: 1.4; min-width: 0; }
+.off-custom input:last-child { flex: 1; min-width: 0; }
+.off-size-kicker { margin-top: 4px; }
+.size-row { display: flex; gap: 8px; margin-bottom: 18px; }
+.size-chip {
+  flex: 1; padding: 10px 0; border-radius: 999px; border: 2px solid var(--border);
+  background: var(--card); font: inherit; font-weight: 700; font-size: 14px; color: inherit; cursor: pointer;
+  transition: border-color .2s, background .2s;
+}
+.size-chip.selected { border-color: var(--coral); background: var(--coral-light); color: var(--coral-dark); }
+.off-undo { margin-top: 10px; }
+
+.meal-card.off-plan { background: var(--amber-light); }
+.rebalance-chip {
+  display: inline-block; margin-bottom: 10px; padding: 7px 12px; border-radius: 999px;
+  font-size: 12.5px; font-weight: 700; animation: riseIn .4s ease;
+}
+.rebalance-chip.down { background: var(--green-light); color: var(--green-dark); }
+.rebalance-chip.up { background: var(--amber-light); color: var(--amber-dark); }
+.btn:disabled { opacity: .45; cursor: default; box-shadow: none; }
