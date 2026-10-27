@@ -44,7 +44,7 @@ function calcExerciseCaloriesPerDay(sports, weightKg) {
   return weeklyKcal / 7;
 }
 
-function calcTargets(profile) {
+function calcTargets(profile, calorieAdjust = 0) {
   const bmr = calcBMR(profile);
   const baseTdee = calcTDEE(bmr, profile.activityLevel);
   const exerciseKcal = calcExerciseCaloriesPerDay(profile.sports, profile.weightKg);
@@ -65,6 +65,8 @@ function calcTargets(profile) {
     proteinPerKg = 1.8;
     fatRatio = 0.28;
   }
+  // Ajuste manual aceptado por el usuario tras ver su evolución de peso.
+  if (calorieAdjust) calories = Math.max(calories + calorieAdjust, bmr * 1.05);
 
   const protein = proteinPerKg * w;
   const fat = (calories * fatRatio) / 9;
@@ -82,6 +84,7 @@ function calcTargets(profile) {
     carbs: Math.round(carbs),
     proteinPerKg,
     calorieDelta: Math.round(calories - tdee),
+    calorieAdjust: Math.round(calorieAdjust || 0),
   };
 }
 
@@ -120,6 +123,12 @@ function explainTargets(profile, targets) {
     );
   }
 
+  if (targets.calorieAdjust) {
+    paragraphs.push(
+      `Incluye un ajuste de ${targets.calorieAdjust > 0 ? "+" : ""}${targets.calorieAdjust} kcal que aceptaste al ver cómo evoluciona tu peso: las fórmulas son una estimación, y tu báscula nos dice cuánto gastas de verdad.`
+    );
+  }
+
   paragraphs.push(
     `Te recomendamos ${targets.protein} g de proteína al día (~${targets.proteinPerKg} g por kg de peso corporal), la cantidad que se asocia con preservar o ganar masa muscular en tu situación.`
   );
@@ -128,4 +137,80 @@ function explainTargets(profile, targets) {
   );
 
   return paragraphs;
+}
+
+/* ---------- Evolución del peso y ajuste automático ---------- */
+
+/* Ritmo de cambio de peso razonable para cada objetivo, en % del peso
+   corporal por semana. Fuera de este rango proponemos ajustar calorías. */
+const GOAL_WEEKLY_RATE = {
+  perder: { min: -1.0, ideal: -0.5, max: -0.25 },
+  mantener: { min: -0.25, ideal: 0, max: 0.25 },
+  ganar: { min: 0.1, ideal: 0.25, max: 0.5 },
+};
+
+const KCAL_PER_KG = 7700;
+const MIN_TREND_DAYS = 10;
+const ADJUST_STEP_MIN = 100;
+const ADJUST_STEP_MAX = 250;
+
+function daysBetween(isoA, isoB) {
+  return Math.round((new Date(isoB) - new Date(isoA)) / 86400000);
+}
+
+/* Tendencia de peso (recta de regresión) con los registros de las últimas
+   4 semanas. Usar la tendencia y no el último dato evita que un día de
+   retención de líquidos dispare un ajuste. */
+function weightTrend(log) {
+  if (!log || log.length < 2) return null;
+  const last = log[log.length - 1].date;
+  const recent = log.filter((e) => daysBetween(e.date, last) <= 28);
+  const span = daysBetween(recent[0].date, last);
+  if (recent.length < 2 || span < MIN_TREND_DAYS) return null;
+
+  const xs = recent.map((e) => daysBetween(recent[0].date, e.date));
+  const ys = recent.map((e) => e.kg);
+  const n = xs.length;
+  const mx = xs.reduce((a, b) => a + b, 0) / n;
+  const my = ys.reduce((a, b) => a + b, 0) / n;
+  let num = 0, den = 0;
+  for (let i = 0; i < n; i++) {
+    num += (xs[i] - mx) * (ys[i] - my);
+    den += (xs[i] - mx) ** 2;
+  }
+  const kgPerDay = den ? num / den : 0;
+  const kgPerWeek = kgPerDay * 7;
+  return { kgPerWeek, pctPerWeek: (kgPerWeek / my) * 100, spanDays: span, entries: n };
+}
+
+/* Devuelve una propuesta de ajuste (o null si vas bien o aún faltan datos). */
+function suggestCalorieAdjustment(profile, log) {
+  const trend = weightTrend(log);
+  if (!trend) return null;
+  const range = GOAL_WEEKLY_RATE[profile.goal] || GOAL_WEEKLY_RATE.mantener;
+  if (trend.pctPerWeek >= range.min && trend.pctPerWeek <= range.max) {
+    return { status: "ok", trend };
+  }
+  const currentKg = log[log.length - 1].kg;
+  const gapKgPerWeek = ((range.ideal - trend.pctPerWeek) / 100) * currentKg;
+  const raw = (gapKgPerWeek * KCAL_PER_KG) / 7;
+  const magnitude = Math.min(ADJUST_STEP_MAX, Math.max(ADJUST_STEP_MIN, Math.round(Math.abs(raw) / 50) * 50));
+  return { status: raw > 0 ? "up" : "down", kcal: raw > 0 ? magnitude : -magnitude, trend };
+}
+
+function explainAdjustment(profile, suggestion) {
+  const { trend } = suggestion;
+  const rate = `${trend.kgPerWeek > 0 ? "+" : ""}${trend.kgPerWeek.toFixed(2).replace(".", ",")} kg/semana`;
+  const range = GOAL_WEEKLY_RATE[profile.goal] || GOAL_WEEKLY_RATE.mantener;
+  const idealKg = Math.abs((range.ideal / 100) * profile.weightKg).toFixed(2).replace(".", ",");
+  if (suggestion.status === "ok") {
+    return `Tu peso va a ${rate}, dentro del ritmo que buscamos para tu objetivo. No hace falta tocar nada.`;
+  }
+  const goalText = profile.goal === "perder"
+    ? `Para perder grasa sin perder músculo buscamos bajar unos ${idealKg} kg/semana`
+    : profile.goal === "ganar"
+      ? `Para ganar músculo con poca grasa buscamos subir unos ${idealKg} kg/semana`
+      : "Para mantener buscamos que tu peso se quede estable";
+  const action = suggestion.kcal > 0 ? `subir ${suggestion.kcal}` : `bajar ${Math.abs(suggestion.kcal)}`;
+  return `En los últimos ${trend.spanDays} días tu peso va a ${rate}. ${goalText}, así que te proponemos ${action} kcal al día. Las raciones de tu plan se ajustan solas.`;
 }
