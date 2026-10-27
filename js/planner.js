@@ -117,8 +117,20 @@ function generateWeeklyPlan(profile, targetKcal) {
     DAYS.forEach((_, i) => { plan[i][slot.key] = picks[i]; });
   }
 
+  avoidSameLunchAndDinner(plan);
+
   if (profile.weeklyBudget) fitToBudget(plan, profile, poolByType, targetKcal);
   return plan;
+}
+
+/* Comida y cena salen del mismo grupo de recetas: si un día coinciden,
+   intercambiamos esa cena con la de otro día donde no choque. */
+function avoidSameLunchAndDinner(plan) {
+  for (let i = 0; i < plan.length; i++) {
+    if (plan[i].comida !== plan[i].cena) continue;
+    const j = plan.findIndex((day, k) => k !== i && day.cena !== plan[i].comida && plan[i].cena !== day.comida);
+    if (j !== -1) [plan[i].cena, plan[j].cena] = [plan[j].cena, plan[i].cena];
+  }
 }
 
 function planWeeklyCost(plan, targetKcal) {
