@@ -680,7 +680,13 @@ function showView(name) {
   view.classList.add(enter);
   currentView = name;
   if (name === "informes" && state.plan) renderInformes(); // el resumen de la semana, al día
-  document.querySelectorAll(".tab-btn").forEach((b) => b.classList.toggle("active", b.dataset.view === name));
+  document.querySelectorAll(".tab-btn").forEach((b) => {
+    const on = b.dataset.view === name;
+    b.classList.toggle("active", on);
+    // los lectores de pantalla anuncian en qué pestaña estás
+    if (on) b.setAttribute("aria-current", "page");
+    else b.removeAttribute("aria-current");
+  });
   moveTabIndicator();
   document.getElementById("app-scroll").scrollTop = 0;
 }

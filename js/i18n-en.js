@@ -106,6 +106,7 @@ I18N.en = {
     "Instalar": "Install",
     "Sin conexión: sigues con tu plan guardado": "You're offline: your saved plan still works",
     "Conexión recuperada": "Back online",
+    "Secciones": "Sections",
     "Añádela a tu pantalla de inicio: en Safari pulsa": "Add it to your home screen: in Safari tap",
     "Compartir": "Share",
     "y luego": "and then",
