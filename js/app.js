@@ -105,6 +105,7 @@ function renderInformes() {
 
   el.innerHTML = `
     ${recapCardHtml()}
+    ${calendarCardHtml()}
     <div class="report-hero photo-card" data-article="${featured.id}">
       ${photoHtml(ARTICLE_CATEGORY_PHOTOS[featured.category], { width: 600, className: "photo-cover", fallback: "📰" })}
       <div class="photo-card-text">
@@ -128,6 +129,7 @@ function renderInformes() {
     b.addEventListener("click", () => openArticleSheet(b.dataset.article));
   });
   bindRecapCard(el);
+  bindCalendarCard(el);
 }
 
 function openArticleSheet(articleId) {
