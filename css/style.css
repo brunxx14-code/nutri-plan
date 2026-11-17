@@ -1291,3 +1291,16 @@ input:focus, select:focus { outline: 2px solid var(--coral); outline-offset: 1px
 .fav-empty-heart { font-size: 54px; animation: fav-beat 1.6s ease-in-out infinite; }
 @keyframes fav-beat { 0%, 100% { transform: scale(1); } 15% { transform: scale(1.15); } 30% { transform: scale(1); } 45% { transform: scale(1.1); } }
 @media (prefers-reduced-motion: reduce) { .fav-btn.pop, .fav-empty-heart { animation: none; } }
+.seg { display: flex; gap: 4px; padding: 4px; margin: 12px 0 4px; border-radius: 14px; background: var(--bg); border: 1px solid var(--border); }
+.seg-btn {
+  flex: 1; font: inherit; font-weight: 800; font-size: 14px; padding: 9px 8px; border-radius: 10px; border: none;
+  background: none; color: var(--muted); cursor: pointer; transition: background .2s ease, color .2s ease;
+}
+.seg-btn.on { background: var(--card); color: var(--ink); box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+.seg-count { display: inline-block; min-width: 20px; padding: 1px 6px; border-radius: 99px; background: var(--coral); color: #fff; font-size: 12px; }
+.recipe-filters { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin: 10px -20px 0; padding: 0 20px; }
+.recipe-filters::-webkit-scrollbar { display: none; }
+.chip-btn.filter { flex: none; font-size: 13px; padding: 7px 13px; }
+.chip-btn.filter.on { background: var(--ink); color: var(--card); border-color: var(--ink); }
+.fav-empty .btn { margin-top: 14px; }
+.fav-none { text-align: center; padding: 20px 0; }
