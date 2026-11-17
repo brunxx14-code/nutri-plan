@@ -2079,7 +2079,7 @@ function renderCompra() {
                   <span class="item-emoji">${FOOD_EMOJI[it.foodId] || "🛒"}</span>
                   <div>
                     <div class="item-name">${it.name}</div>
-                    <div class="item-qty">${formatQty(it.qty, it.unit)}</div>
+                    <div class="item-qty">${formatQty(it.qty, it.unit, { buy: true })}</div>
                   </div>
                 </div>
                 <div class="item-cost">${it.cost.toFixed(2)} €</div>

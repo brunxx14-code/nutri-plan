@@ -267,8 +267,19 @@ function explainRecipe(recipe, info, profile, slotLabel) {
   return sentences;
 }
 
-function formatQty(qty, unit) {
-  if (unit === "ud") return `${Math.round(qty)} ud`;
+/* Unidades en cuartos: 0,25 de lechuga es "¼ ud", no "0 ud". En la lista de
+   la compra ({ buy: true }) se redondea hacia arriba: no se compra media lechuga. */
+const FRACTIONS = { 0: "", 1: "¼", 2: "½", 3: "¾" };
+function formatUnits(qty, buy) {
+  if (buy) return String(Math.max(1, Math.ceil(qty - 0.05)));
+  const quarters = Math.max(1, Math.round(qty * 4));
+  const whole = Math.floor(quarters / 4);
+  const frac = FRACTIONS[quarters % 4];
+  return whole && frac ? `${whole}${frac}` : whole ? String(whole) : frac;
+}
+
+function formatQty(qty, unit, { buy = false } = {}) {
+  if (unit === "ud") return `${formatUnits(qty, buy)} ud`;
   if (unit === "ml") return qty >= 1000 ? `${(qty / 1000).toFixed(2)} l` : `${Math.round(qty)} ml`;
   return qty >= 1000 ? `${(qty / 1000).toFixed(2)} kg` : `${Math.round(qty)} g`;
 }
