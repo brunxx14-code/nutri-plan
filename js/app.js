@@ -1516,26 +1516,26 @@ function renderPlanDays() {
         const off = i === today && offToday[slot.key];
         if (off) {
           return `
-          <div class="meal-card off-plan" data-day="${i}" data-slot="${slot.key}" data-off="1">
+          <div class="meal-card off-plan" role="button" tabindex="0" data-day="${i}" data-slot="${slot.key}" data-off="1">
             <div class="photo photo-thumb big off"><span class="photo-fallback" aria-hidden="true">${off.emoji}</span></div>
             <div class="meal-info">
               <div class="slot-label">${slot.label} · fuera del plan</div>
               <div class="recipe-name">${off.name}</div>
               <div class="kcal">${off.kcal} kcal</div>
             </div>
-            <div class="chevron-right">›</div>
+            <div class="chevron-right" aria-hidden="true">›</div>
           </div>`;
         }
         const info = getRecipeInfo(state.plan[i][slot.key]);
         return `
-          <div class="meal-card" data-day="${i}" data-slot="${slot.key}">
+          <div class="meal-card" role="button" tabindex="0" data-day="${i}" data-slot="${slot.key}">
             ${recipePhoto(info.recipe.id, { width: 160, className: `photo-thumb big ${slot.key}`, fallback: mealEmoji(slot.key) })}
             <div class="meal-info">
               <div class="slot-label">${slot.label}${isFavorite(info.recipe.id) ? ` <span class="fav-mark" aria-label="Favorita">❤️</span>` : ""}</div>
               <div class="recipe-name">${info.recipe.name}</div>
               <div class="kcal">${Math.round(info.kcal * factor)} kcal · ${(info.cost * factor).toFixed(2)} €</div>
             </div>
-            <div class="chevron-right">›</div>
+            <div class="chevron-right" aria-hidden="true">›</div>
           </div>`;
       }).join("")}
     </div>
@@ -1548,6 +1548,13 @@ function renderPlanDays() {
       const slotKey = card.dataset.slot;
       if (card.dataset.off) openOffPlanSheet(slotKey);
       else openRecipeSheet(day, slotKey);
+    });
+    // con teclado: Intro o espacio abren la comida, como un botón
+    card.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        card.click();
+      }
     });
   });
 }
