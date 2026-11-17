@@ -2124,11 +2124,15 @@ function renderCompra() {
   };
 
   el.querySelectorAll(".item-row").forEach((row) => {
+    actLikeButton(row);
+    row.setAttribute("role", "checkbox");
+    row.setAttribute("aria-checked", String(!!state.bought[row.dataset.food]));
     row.addEventListener("click", () => {
       const foodId = row.dataset.food;
       const newVal = !state.bought[foodId];
       state.bought[foodId] = newVal;
       row.classList.toggle("bought", newVal);
+      row.setAttribute("aria-checked", String(newVal));
       const circle = row.querySelector(".check-circle");
       circle.textContent = newVal ? "✓" : "";
       if (newVal) {
