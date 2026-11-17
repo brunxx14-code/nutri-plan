@@ -401,6 +401,120 @@ const RECIPES = [
     tags: ["vegetariano"],
     ingredients: [["platano", 120], ["leche_semi", 200], ["miel", 10]],
     steps: ["Bate el plátano con la leche y la miel hasta que quede cremoso."]
+  },
+  // Recetas añadidas: más variedad, sobre todo para dietas veganas
+  {
+    id: "porridge_cacahuete", name: "Porridge de avena con crema de cacahuete y plátano", mealType: "desayuno",
+    tags: ["vegano", "vegetariano", "economico"],
+    ingredients: [["avena", 60], ["platano", 100], ["crema_cacahuete", 15]],
+    steps: [
+      "Cuece la avena con 250 ml de agua y una pizca de sal durante 4-5 minutos, removiendo.",
+      "Cuando espese, retira del fuego y mezcla la mitad del plátano chafado.",
+      "Sirve con el resto del plátano en rodajas y la crema de cacahuete por encima."
+    ]
+  },
+  {
+    id: "revuelto_tomate", name: "Huevos revueltos con tomate y pan integral", mealType: "desayuno",
+    tags: ["vegetariano", "alto_proteina", "economico"],
+    ingredients: [["huevos", 3], ["tomate", 100], ["pan_integral", 60], ["aceite_oliva", 5]],
+    steps: [
+      "Trocea el tomate y cocínalo en la sartén con el aceite 3 minutos.",
+      "Añade los huevos batidos y remueve a fuego suave hasta que cuajen, unos 2 minutos.",
+      "Sirve con el pan integral tostado."
+    ]
+  },
+  {
+    id: "tofu_revuelto", name: "Tostada de tofu revuelto con espinacas", mealType: "desayuno",
+    tags: ["vegano", "vegetariano", "alto_proteina"],
+    ingredients: [["tofu", 150], ["espinacas", 60], ["pan_integral", 60], ["aceite_oliva", 5]],
+    steps: [
+      "Desmenuza el tofu con un tenedor.",
+      "Saltéalo con el aceite y las espinacas 4-5 minutos, con sal y pimienta.",
+      "Sírvelo sobre el pan integral tostado."
+    ]
+  },
+  {
+    id: "muslos_horno", name: "Contramuslos al horno con patata y pimiento", mealType: "principal",
+    tags: ["sin_gluten", "economico"],
+    ingredients: [["pollo_muslo", 180], ["patata", 250], ["pimiento", 100], ["cebolla", 50], ["aceite_oliva", 10]],
+    steps: [
+      "Precalienta el horno a 200°C.",
+      "Corta la patata, el pimiento y la cebolla, mézclalos con el aceite y sal en una bandeja.",
+      "Coloca los contramuslos encima y hornea 35-40 minutos, hasta que estén dorados."
+    ]
+  },
+  {
+    id: "lomo_quinoa", name: "Lomo a la plancha con quinoa y ensalada", mealType: "principal",
+    tags: ["sin_gluten", "alto_proteina"],
+    ingredients: [["lomo_cerdo", 150], ["quinoa", 70], ["lechuga", 0.25], ["tomate", 100], ["aceite_oliva", 10]],
+    steps: [
+      "Cuece la quinoa en el doble de agua 12-15 minutos.",
+      "Haz el lomo a la plancha 3 minutos por cada lado.",
+      "Sirve con la lechuga y el tomate aliñados con el aceite."
+    ]
+  },
+  {
+    id: "wok_pollo", name: "Wok de pollo con verduras y arroz", mealType: "principal",
+    tags: ["sin_gluten", "alto_proteina", "economico"],
+    ingredients: [["pollo_pechuga", 150], ["arroz", 70], ["pimiento", 80], ["calabacin", 80], ["zanahoria", 60], ["aceite_oliva", 10]],
+    steps: [
+      "Cuece el arroz según el envase.",
+      "Corta el pollo y las verduras en tiras finas.",
+      "Saltea el pollo con el aceite a fuego fuerte 4 minutos, añade las verduras y sigue 5 minutos más.",
+      "Sirve el salteado sobre el arroz."
+    ]
+  },
+  {
+    id: "ensalada_lentejas", name: "Ensalada templada de lentejas con verduras", mealType: "principal",
+    tags: ["vegano", "vegetariano", "sin_gluten", "economico"],
+    ingredients: [["lentejas", 80], ["pimiento", 60], ["tomate", 100], ["cebolla", 30], ["aceite_oliva", 10], ["limon", 0.5]],
+    steps: [
+      "Cuece las lentejas 20-25 minutos, o usa lentejas de bote bien escurridas.",
+      "Pica el pimiento, el tomate y la cebolla en dados pequeños.",
+      "Mezcla todo con el aceite, el zumo de limón y sal, y sirve templado."
+    ]
+  },
+  {
+    id: "tofu_boniato", name: "Tofu crujiente con boniato y brócoli", mealType: "principal",
+    tags: ["vegano", "vegetariano", "sin_gluten"],
+    ingredients: [["tofu", 180], ["boniato", 200], ["brocoli", 150], ["aceite_oliva", 10]],
+    steps: [
+      "Hornea el boniato en dados a 200°C durante 25 minutos.",
+      "Cuece el brócoli al vapor 5-6 minutos.",
+      "Dora el tofu en dados con el aceite 6-8 minutos, hasta que esté crujiente, y sirve todo junto."
+    ]
+  },
+  {
+    id: "merluza_papillote", name: "Merluza en papillote con verduras", mealType: "principal",
+    tags: ["sin_gluten", "alto_proteina"],
+    ingredients: [["merluza", 180], ["patata", 150], ["calabacin", 100], ["zanahoria", 80], ["cebolla", 40], ["aceite_oliva", 10]],
+    steps: [
+      "Precalienta el horno a 200°C.",
+      "Corta la patata y las verduras en láminas finas y ponlas sobre papel de horno con la merluza encima.",
+      "Riega con el aceite, sala, cierra el paquete y hornea 18-20 minutos."
+    ]
+  },
+  {
+    id: "pasta_bolonesa", name: "Pasta boloñesa casera", mealType: "principal",
+    tags: ["alto_proteina"],
+    ingredients: [["pasta", 80], ["ternera_picada", 120], ["tomate", 150], ["cebolla", 50], ["zanahoria", 40], ["aceite_oliva", 8]],
+    steps: [
+      "Sofríe la cebolla y la zanahoria picadas con el aceite 5 minutos.",
+      "Añade la carne y dórala; incorpora el tomate triturado y cocina 15 minutos.",
+      "Mientras, cuece la pasta según el envase y mézclala con la salsa."
+    ]
+  },
+  {
+    id: "tostada_cacahuete", name: "Tostada integral con crema de cacahuete y plátano", mealType: "merienda",
+    tags: ["vegano", "vegetariano", "economico"],
+    ingredients: [["pan_integral", 50], ["crema_cacahuete", 15], ["platano", 80]],
+    steps: ["Tuesta el pan, úntalo con la crema de cacahuete y cúbrelo con el plátano en rodajas."]
+  },
+  {
+    id: "queso_fresco_tomate", name: "Queso fresco batido con tomate y aceite", mealType: "merienda",
+    tags: ["vegetariano", "sin_gluten", "alto_proteina"],
+    ingredients: [["queso_fresco", 200], ["tomate", 120], ["aceite_oliva", 8]],
+    steps: ["Sirve el queso fresco con el tomate en dados, un chorrito de aceite y una pizca de sal."]
   }
 ];
 
