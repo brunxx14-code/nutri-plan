@@ -104,6 +104,8 @@ I18N.en = {
     "¡Objetivo de agua cumplido!": "Water goal reached!",
     "Instala NutriPlan en tu móvil para abrirla como una app más, incluso sin conexión.": "Install NutriPlan on your phone to open it like any other app, even offline.",
     "Instalar": "Install",
+    "Sin conexión: sigues con tu plan guardado": "You're offline: your saved plan still works",
+    "Conexión recuperada": "Back online",
     "Añádela a tu pantalla de inicio: en Safari pulsa": "Add it to your home screen: in Safari tap",
     "Compartir": "Share",
     "y luego": "and then",

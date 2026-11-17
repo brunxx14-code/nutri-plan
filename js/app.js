@@ -1010,6 +1010,11 @@ function burstConfetti() {
   setTimeout(() => layer.remove(), 1800);
 }
 
+/* Avisa cuando se pierde o vuelve la conexión: la app sigue funcionando con la
+   copia guardada, pero así no sorprende que no carguen fotos o súper cercanos. */
+window.addEventListener("offline", () => showToast("📴 Sin conexión: sigues con tu plan guardado"));
+window.addEventListener("online", () => showToast("📶 Conexión recuperada"));
+
 function showToast(text) {
   const old = document.querySelector(".toast");
   if (old) old.remove();
