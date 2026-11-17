@@ -39,7 +39,7 @@ function calcExerciseCaloriesPerDay(sports, weightKg) {
   if (!sports || !sports.length) return 0;
   let weeklyKcal = 0;
   for (const s of sports) {
-    const met = (SPORTS[s.type] && SPORTS[s.type].met) || 5;
+    const met = sportMet(s);
     const kcalPerSession = ((Math.max(met - 1, 0) * 3.5 * weightKg) / 200) * s.mins;
     weeklyKcal += kcalPerSession * s.freq;
   }
@@ -144,7 +144,7 @@ function explainTargets(profile, targets) {
 
   if (profile.sports && profile.sports.length) {
     const sportsList = profile.sports
-      .map((s) => `${(SPORTS[s.type] && SPORTS[s.type].label) || "deporte"} (${s.freq}×/semana, ${s.mins} min)`)
+      .map((s) => `${sportLabel(s)} (${s.freq}×/semana, ${s.mins} min)`)
       .join(", ");
     add(
       `Además nos has dicho que practicas ${sportsList}. Calculamos lo que quema cada sesión según su intensidad, sin contar lo que ya quemarías en reposo, y lo repartimos entre los 7 días: una media de ${targets.exerciseKcal} kcal/día extra (tu gasto total pasa a ser ${targets.tdee} kcal/día).`,

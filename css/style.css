@@ -207,6 +207,30 @@ input:focus, select:focus { outline: 2px solid var(--coral); outline-offset: 1px
 .sport-row .remove-sport { flex: none; width: 34px; height: 34px; border-radius: 10px; border: 1px solid var(--border); background: var(--card); color: var(--muted); cursor: pointer; font-size: 13px; }
 .sport-row-header { margin-bottom: 4px; }
 .sport-row-header .field-label { font-size: 10.5px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .02em; }
+.sport-pick {
+  display: flex; align-items: center; gap: 6px; min-width: 0; width: 100%; padding: 9px 10px;
+  border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--card); color: var(--ink);
+  font: inherit; font-size: 13px; font-weight: 600; text-align: left; cursor: pointer;
+}
+.sport-pick[aria-expanded="true"] { border-color: var(--green); }
+.sport-pick-emoji { flex: none; }
+.sport-pick-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sport-pick-caret { flex: none; color: var(--muted); }
+.sport-other { grid-column: 1 / -1; display: grid; grid-template-columns: 1.3fr 1fr; gap: 6px; }
+.sport-picker-panel {
+  grid-column: 1 / -1; border: 1px solid var(--border); border-radius: var(--radius-md);
+  background: var(--card); box-shadow: var(--shadow-card); padding: 8px;
+}
+.sport-picker-panel .sport-search { width: 100%; padding: 10px; font-size: 14px; }
+.sport-list { max-height: 280px; overflow-y: auto; margin-top: 6px; overscroll-behavior: contain; }
+.sport-group-title { font-size: 10.5px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .02em; padding: 8px 4px 4px; }
+.sport-group-items { display: flex; flex-wrap: wrap; gap: 6px; }
+.sport-option, .sport-empty {
+  border: 1px solid var(--border); background: var(--bg); color: var(--ink); border-radius: 999px;
+  padding: 7px 11px; font: inherit; font-size: 13px; cursor: pointer;
+}
+.sport-option[aria-selected="true"] { background: var(--green-light); border-color: var(--green); color: var(--green-dark); font-weight: 700; }
+.sport-empty { width: 100%; margin-top: 6px; border-radius: var(--radius-sm); text-align: left; font-weight: 600; }
 
 .wizard-form { padding-bottom: 8px; }
 .wizard-nav { display: flex; gap: 10px; padding-top: 6px; }
