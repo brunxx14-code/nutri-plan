@@ -660,6 +660,7 @@ function moveTabIndicator() {
 
 function enterApp() {
   document.getElementById("tab-bar").classList.remove("hidden");
+  useStreakFreezes();
   renderDashboard();
   renderPlan();
   renderCompra();
@@ -817,8 +818,9 @@ function currentStreak() {
   const iso = (x) => `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, "0")}-${String(x.getDate()).padStart(2, "0")}`;
   if (mealsDone(state.daily[iso(d)]) >= MEALS_FOR_STREAK) streak++;
   d.setDate(d.getDate() - 1);
-  while (mealsDone(state.daily[iso(d)]) >= MEALS_FOR_STREAK) {
-    streak++;
+  // un día salvado con protector no suma, pero tampoco corta la racha
+  while (dayKept(iso(d))) {
+    if (mealsDone(state.daily[iso(d)]) >= MEALS_FOR_STREAK) streak++;
     d.setDate(d.getDate() - 1);
   }
   return streak;
@@ -963,7 +965,7 @@ function showToast(text) {
 
 function renderStreakChip() {
   const streak = currentStreak();
-  return `<div class="streak-chip ${streak ? "active" : ""}" id="streak-chip">🔥 ${streak} ${streak === 1 ? "día" : "días"}</div>`;
+  return `<button type="button" class="streak-chip ${streak ? "active" : ""}" id="streak-chip">🔥 ${streak} ${streak === 1 ? "día" : "días"}${freezeChipHtml()}</button>`;
 }
 
 function renderTodayCard() {
