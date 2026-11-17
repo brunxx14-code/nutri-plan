@@ -1499,6 +1499,17 @@ function openSwapSheet(dayIdx, slotKey) {
 
 let sheetCloseTimer = null;
 
+/* La hoja se apunta en el historial: el botón «atrás» del móvil (o Esc)
+   la cierra en vez de salir de la app. */
+let sheetInHistory = false;   // hay una entrada nuestra en el historial
+let ignoreNextPop = false;    // el próximo popstate lo provocamos nosotros
+let repushAfterPop = false;   // se reabrió la hoja mientras volvíamos atrás
+
+function sheetIsOpen() {
+  const sheet = document.getElementById("recipe-sheet");
+  return !sheet.classList.contains("hidden") && !sheet.classList.contains("closing");
+}
+
 function openSheet() {
   clearTimeout(sheetCloseTimer);
   const sheet = document.getElementById("recipe-sheet");
@@ -1506,11 +1517,21 @@ function openSheet() {
   sheet.classList.remove("hidden", "closing");
   card.style.transform = "";
   card.scrollTop = 0;
+  if (ignoreNextPop) repushAfterPop = true;
+  else if (!sheetInHistory) {
+    try { history.pushState({ nutriSheet: true }, ""); sheetInHistory = true; } catch (e) { /* sin historial */ }
+  }
 }
 
-function closeSheet() {
+function closeSheet(fromHistory = false) {
   const sheet = document.getElementById("recipe-sheet");
   if (sheet.classList.contains("hidden")) return;
+  if (sheetInHistory && fromHistory !== true) {
+    sheetInHistory = false;
+    ignoreNextPop = true;
+    history.back();
+  }
+  if (fromHistory === true) sheetInHistory = false;
   sheet.classList.add("closing");
   sheetCloseTimer = setTimeout(() => {
     sheet.classList.add("hidden");
@@ -1518,6 +1539,24 @@ function closeSheet() {
     sheet.querySelector(".sheet-card").style.transform = "";
   }, prefersReducedMotion() ? 0 : 220);
 }
+
+window.addEventListener("popstate", () => {
+  if (ignoreNextPop) {
+    ignoreNextPop = false;
+    if (repushAfterPop) {
+      repushAfterPop = false;
+      if (sheetIsOpen()) {
+        try { history.pushState({ nutriSheet: true }, ""); sheetInHistory = true; } catch (e) { /* sin historial */ }
+      }
+    }
+    return;
+  }
+  if (sheetInHistory || sheetIsOpen()) closeSheet(true);
+});
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && sheetIsOpen()) closeSheet();
+});
 
 /* Arrastrar la hoja hacia abajo la cierra (si está arriba del todo). */
 function bindSheetSwipe() {
@@ -2064,10 +2103,10 @@ document.addEventListener("DOMContentLoaded", () => {
     renderCompra();
   });
 
-  document.getElementById("sheet-close").addEventListener("click", closeSheet);
+  document.getElementById("sheet-close").addEventListener("click", () => closeSheet());
   bindSheetSwipe();
   window.addEventListener("resize", moveTabIndicator);
-  document.getElementById("sheet-backdrop").addEventListener("click", closeSheet);
+  document.getElementById("sheet-backdrop").addEventListener("click", () => closeSheet());
 
   trackDailyOpen(isStandalone());
 
