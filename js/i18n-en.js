@@ -312,6 +312,21 @@ I18N.en = {
     "Ver mi plan →": "See my plan →",
     "¡Tu plan está listo! 🎉": "Your plan is ready! 🎉",
 
+    // Tu semana y compartir
+    "Tu semana": "Your week",
+    "Compartir mi semana": "Share my week",
+    "Invitar a un amigo": "Invite a friend",
+    "comidas": "meals", "vasos": "glasses", "racha": "streak", "nivel": "level",
+    "Mi semana": "My week",
+    "vasos de agua": "glasses of water",
+    "días de racha": "day streak",
+    "Crea tu plan gratis en": "Create your free plan at",
+    "Mi semana con NutriPlan 💪 Crea tu plan gratis:": "My week with NutriPlan 💪 Create your free plan:",
+    "Estoy usando NutriPlan: te hace un plan de comidas a tu medida y la lista de la compra con precios. Pruébala gratis:": "I'm using NutriPlan: it builds a meal plan made for you and a shopping list with prices. Try it free:",
+    "Imagen guardada, ¡compártela!": "Image saved, share it!",
+    "No se pudo compartir ahora": "Couldn't share right now",
+    "Enlace copiado, ¡pégalo donde quieras!": "Link copied, paste it anywhere!",
+
     // Perfil
     "Tu objetivo diario": "Your daily target",
     "kcal/día": "kcal/day",
@@ -411,6 +426,9 @@ I18N.en = {
     "Nv. {n}": "Lv. {n}",
     "{n} g proteína": "{n} g protein",
     "{n} platos": "{n} dishes",
+
+    "{a} de {b} días cumpliendo mi plan": "{a} of {b} days on my plan",
+    "/{n} días cumplidos": "/{n} days on plan",
 
     // Genéricas al final: solo se usan si no encaja ninguna más concreta
     // Fechas, cantidades y unidades

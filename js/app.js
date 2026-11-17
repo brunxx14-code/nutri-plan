@@ -104,6 +104,7 @@ function renderInformes() {
   const el = document.getElementById("informes-content");
 
   el.innerHTML = `
+    ${recapCardHtml()}
     <div class="report-hero photo-card" data-article="${featured.id}">
       ${photoHtml(ARTICLE_CATEGORY_PHOTOS[featured.category], { width: 600, className: "photo-cover", fallback: "📰" })}
       <div class="photo-card-text">
@@ -126,6 +127,7 @@ function renderInformes() {
   el.querySelectorAll("[data-article]").forEach((b) => {
     b.addEventListener("click", () => openArticleSheet(b.dataset.article));
   });
+  bindRecapCard(el);
 }
 
 function openArticleSheet(articleId) {
@@ -581,6 +583,7 @@ function showView(name) {
   void view.offsetWidth; // reinicia la animación de entrada
   view.classList.add(enter);
   currentView = name;
+  if (name === "informes" && state.plan) renderInformes(); // el resumen de la semana, al día
   document.querySelectorAll(".tab-btn").forEach((b) => b.classList.toggle("active", b.dataset.view === name));
   moveTabIndicator();
   document.getElementById("app-scroll").scrollTop = 0;

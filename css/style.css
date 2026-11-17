@@ -1130,3 +1130,30 @@ input:focus, select:focus { outline: 2px solid var(--coral); outline-offset: 1px
 @media (prefers-reduced-motion: reduce) {
   .view-enter-right, .view-enter-left, .challenge-card::after, .tour-orbit, .celebrate-emoji, .xp-float { animation: none; }
 }
+
+/* ---------- Tu semana (compartir) ---------- */
+.recap-card {
+  border-radius: var(--radius-lg); padding: 18px 16px 16px; margin-bottom: 16px; color: #fff;
+  background: linear-gradient(140deg, var(--coral-dark), var(--coral) 65%, #e8975a);
+  box-shadow: var(--shadow-float); animation: riseIn .45s ease both;
+}
+.recap-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.recap-kicker { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; }
+.recap-score { font-size: 13px; opacity: .92; }
+.recap-score b { font-size: 22px; }
+.recap-days { display: flex; justify-content: space-between; margin: 14px 0; }
+.recap-day { display: flex; flex-direction: column; align-items: center; gap: 4px; animation: popBig .45s ease both; }
+.recap-dot {
+  width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,.2);
+  display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px;
+}
+.recap-day.on .recap-dot { background: #fff; color: var(--coral-dark); }
+.recap-day.future .recap-dot { background: transparent; border: 2px dashed rgba(255,255,255,.4); }
+.recap-letter { font-size: 12px; font-weight: 700; opacity: .9; }
+.recap-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 14px; }
+.recap-stats div { background: rgba(255,255,255,.16); border-radius: 14px; padding: 9px 4px; text-align: center; }
+.recap-stats b { display: block; font-size: 18px; font-weight: 800; }
+.recap-stats span { font-size: 11px; opacity: .92; }
+.recap-actions { display: flex; flex-direction: column; gap: 8px; }
+.recap-actions .btn { background: #fff; color: var(--coral-dark); box-shadow: none; }
+.recap-actions .btn.ghost { background: transparent; color: #fff; border-color: rgba(255,255,255,.55); }
