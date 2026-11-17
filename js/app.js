@@ -130,6 +130,7 @@ function renderInformes() {
 
 function openArticleSheet(articleId) {
   const article = ARTICLES.find((a) => a.id === articleId);
+  engage.articleRead(articleId);
   const body = document.getElementById("sheet-body");
   body.innerHTML = `
     <span class="tag">${article.category}</span>
@@ -139,7 +140,7 @@ function openArticleSheet(articleId) {
       ${article.body.map((p) => `<p>${p}</p>`).join("")}
     </div>
   `;
-  document.getElementById("recipe-sheet").classList.remove("hidden");
+  openSheet();
 }
 
 // ---------- Suscripción (simulada) ----------
@@ -181,7 +182,7 @@ function openPaywallSheet(reason) {
     });
   });
 
-  document.getElementById("recipe-sheet").classList.remove("hidden");
+  openSheet();
 }
 
 function openPurchaseConfirm(planKey) {
@@ -566,14 +567,33 @@ function enterEditMode() {
 
 // ---------- Navegación ----------
 
+const TAB_ORDER = ["dashboard", "plan", "compra", "informes", "perfil"];
+let currentView = null;
+
 function showView(name) {
   document.querySelectorAll(".view").forEach((v) => v.classList.add("hidden"));
   const view = document.getElementById(`view-${name}`);
-  view.classList.remove("hidden", "view-enter");
+  // entre pestañas, la vista entra desde el lado hacia el que te mueves
+  const from = TAB_ORDER.indexOf(currentView);
+  const to = TAB_ORDER.indexOf(name);
+  const enter = from >= 0 && to >= 0 && from !== to ? (to > from ? "view-enter-right" : "view-enter-left") : "view-enter";
+  view.classList.remove("hidden", "view-enter", "view-enter-right", "view-enter-left");
   void view.offsetWidth; // reinicia la animación de entrada
-  view.classList.add("view-enter");
+  view.classList.add(enter);
+  currentView = name;
   document.querySelectorAll(".tab-btn").forEach((b) => b.classList.toggle("active", b.dataset.view === name));
+  moveTabIndicator();
   document.getElementById("app-scroll").scrollTop = 0;
+}
+
+function moveTabIndicator() {
+  const active = document.querySelector(".tab-btn.active");
+  const indicator = document.getElementById("tab-indicator");
+  if (!indicator) return;
+  indicator.classList.toggle("hidden", !active);
+  if (!active) return;
+  indicator.style.width = `${active.offsetWidth}px`;
+  indicator.style.transform = `translateX(${active.offsetLeft}px)`;
 }
 
 function enterApp() {
@@ -632,6 +652,7 @@ function renderDashboard() {
     <div class="chip-row">
       <div class="goal-chip">🎯 ${GOAL_LABELS[profile.goal]}</div>
       ${renderStreakChip()}
+      ${levelChipHtml()}
     </div>
     <div class="ring-card">
       <div class="ring-wrap">
@@ -659,6 +680,7 @@ function renderDashboard() {
       ${targets.exerciseKcal > 0 ? `<div class="ring-sport-note">🏃 +${targets.exerciseKcal} kcal/día de media por tu deporte, ya incluidas arriba</div>` : ""}
     </div>
     ${renderTodayCard()}
+    ${challengeCardHtml()}
     ${renderProgressCard()}
     ${budgetHtml}
     ${renderInstallCard()}
@@ -677,6 +699,7 @@ function renderDashboard() {
   `;
   el.querySelectorAll("[data-goto]").forEach((b) => b.addEventListener("click", () => showView(b.dataset.goto)));
   bindTodayCard();
+  bindLevelChip(el);
   bindProgressCard();
   bindInstallCard();
   document.getElementById("targets-why-toggle").addEventListener("click", () => {
@@ -989,6 +1012,7 @@ function bindTodayCard() {
         void btn.offsetWidth;
         btn.classList.add("pop");
         track("comida-marcada");
+        engage.mealEaten(slotKey, btn);
       }
       updateTodayProgress(false);
 
@@ -1024,6 +1048,7 @@ function bindTodayCard() {
       btn.classList.add("pop");
       document.getElementById("water-count").textContent = `${entry.water}/${goal} vasos`;
       track("agua");
+      engage.water(entry.water === n, entry.water === goal && n === goal, btn);
       if (entry.water === goal && n === goal) showToast("💧 ¡Objetivo de agua cumplido!");
     });
   });
@@ -1113,6 +1138,7 @@ function openOffPlanSheet(slotKey) {
     entry.eaten[slotKey] = true;
     saveState();
     track(`fuera-del-plan-${preset.id}`);
+    engage.offPlan();
     closeSheet();
     renderAll();
     const { perDay, remaining } = weekRebalance();
@@ -1130,7 +1156,7 @@ function openOffPlanSheet(slotKey) {
     showToast("↩️ Vuelto al plato del plan");
   });
 
-  document.getElementById("recipe-sheet").classList.remove("hidden");
+  openSheet();
 }
 
 // ---------- Progreso de peso ----------
@@ -1226,6 +1252,7 @@ function bindProgressCard() {
     state.profile.weightKg = kg;
     saveState();
     track("peso-registrado");
+    engage.weighed(e.target.querySelector("button"));
     renderAll();
   });
   const apply = document.getElementById("adjust-apply-btn");
@@ -1427,7 +1454,7 @@ function openRecipeSheet(dayIdx, slotKey) {
     </div>
   `;
   document.getElementById("swap-open-btn").addEventListener("click", () => openSwapSheet(dayIdx, slotKey));
-  document.getElementById("recipe-sheet").classList.remove("hidden");
+  openSheet();
 }
 
 const FOOD_ROLE_EMOJI = {
@@ -1460,6 +1487,7 @@ function openSwapSheet(dayIdx, slotKey) {
       state.plan[dayIdx][slotKey] = btn.dataset.recipe;
       saveState();
       track("plato-cambiado");
+      engage.swapped();
       renderPlanDays();
       renderDashboard();
       renderCompra();
@@ -1469,8 +1497,52 @@ function openSwapSheet(dayIdx, slotKey) {
   document.getElementById("swap-back-btn").addEventListener("click", () => openRecipeSheet(dayIdx, slotKey));
 }
 
+let sheetCloseTimer = null;
+
+function openSheet() {
+  clearTimeout(sheetCloseTimer);
+  const sheet = document.getElementById("recipe-sheet");
+  const card = sheet.querySelector(".sheet-card");
+  sheet.classList.remove("hidden", "closing");
+  card.style.transform = "";
+  card.scrollTop = 0;
+}
+
 function closeSheet() {
-  document.getElementById("recipe-sheet").classList.add("hidden");
+  const sheet = document.getElementById("recipe-sheet");
+  if (sheet.classList.contains("hidden")) return;
+  sheet.classList.add("closing");
+  sheetCloseTimer = setTimeout(() => {
+    sheet.classList.add("hidden");
+    sheet.classList.remove("closing");
+    sheet.querySelector(".sheet-card").style.transform = "";
+  }, prefersReducedMotion() ? 0 : 220);
+}
+
+/* Arrastrar la hoja hacia abajo la cierra (si está arriba del todo). */
+function bindSheetSwipe() {
+  const card = document.querySelector("#recipe-sheet .sheet-card");
+  let startY = null;
+  let dy = 0;
+  card.addEventListener("touchstart", (e) => {
+    startY = card.scrollTop <= 0 ? e.touches[0].clientY : null;
+    dy = 0;
+  }, { passive: true });
+  card.addEventListener("touchmove", (e) => {
+    if (startY === null) return;
+    dy = e.touches[0].clientY - startY;
+    if (dy > 0) {
+      card.style.transition = "none";
+      card.style.transform = `translateY(${dy}px)`;
+    }
+  }, { passive: true });
+  card.addEventListener("touchend", () => {
+    if (startY === null) return;
+    card.style.transition = "";
+    if (dy > 110) closeSheet();
+    else card.style.transform = "";
+    startY = null;
+  });
 }
 
 // ---------- Lista de la compra ----------
@@ -1784,6 +1856,7 @@ function renderCompra() {
         burstConfetti();
         showToast("🎉 ¡Compra completa! A cocinar");
         track("compra-completa");
+        engage.shoppingDone();
       } else if (secDone === items.length && !wasComplete) {
         showToast(`${(SECTION_STYLE[block.dataset.section] || {}).emoji || "✅"} ${block.dataset.section} completada`);
         setTimeout(() => {
@@ -1914,6 +1987,8 @@ function renderPerfil() {
       </div>
     `}
 
+    ${badgeShelfHtml()}
+
     <div class="pcard">
       <div class="section-kicker">🌐 Idioma</div>
       ${langPickerHtml()}
@@ -1968,6 +2043,7 @@ document.addEventListener("DOMContentLoaded", () => {
     track(previousGoal ? "perfil-editado" : "plan-generado");
     if (document.getElementById("tab-bar").classList.contains("hidden")) {
       enterApp();
+      showPlanReveal(() => showView("plan"));
     } else {
       renderAll();
       showView("dashboard");
@@ -1989,6 +2065,8 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   document.getElementById("sheet-close").addEventListener("click", closeSheet);
+  bindSheetSwipe();
+  window.addEventListener("resize", moveTabIndicator);
   document.getElementById("sheet-backdrop").addEventListener("click", closeSheet);
 
   trackDailyOpen(isStandalone());
@@ -1999,6 +2077,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setWizardMode("create");
     goToWizardStep(0);
     showView("onboarding");
+    if (!state.tourSeen) showTour();
   }
 
   let splashAlreadyShown = false;
