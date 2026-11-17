@@ -159,17 +159,17 @@ function drawRecapImage() {
   return canvas;
 }
 
-async function shareRecap(btn) {
-  track("compartir-semana");
-  btn.disabled = true;
+/* Comparte una imagen dibujada en un canvas; si el móvil no deja compartir
+   archivos, la descarga para que la suban ellos. */
+async function shareCanvas(btn, draw, filename, text) {
+  if (btn) btn.disabled = true;
   try {
     if (document.fonts && document.fonts.ready) await document.fonts.ready;
-    const canvas = drawRecapImage();
+    const canvas = draw();
     const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
-    const file = new File([blob], "mi-semana-nutriplan.png", { type: "image/png" });
-    const text = tr("Mi semana con NutriPlan 💪 Crea tu plan gratis:");
+    const file = new File([blob], filename, { type: "image/png" });
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      await navigator.share({ files: [file], text: `${text} ${APP_URL}` });
+      await navigator.share({ files: [file], text: `${text} ${inviteUrl()}` });
     } else {
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
@@ -181,24 +181,171 @@ async function shareRecap(btn) {
   } catch (e) {
     if (!e || e.name !== "AbortError") showToast("No se pudo compartir ahora");
   } finally {
-    btn.disabled = false;
+    if (btn) btn.disabled = false;
   }
 }
 
-async function inviteFriend() {
+async function shareRecap(btn) {
+  track("compartir-semana");
+  await shareCanvas(btn, drawRecapImage, "mi-semana-nutriplan.png", tr("Mi semana con NutriPlan 💪 Crea tu plan gratis:"));
+}
+
+// ---------- Logro para compartir ----------
+
+function drawBadgeImage(badge) {
+  const W = 1080, H = 1350;
+  const canvas = document.createElement("canvas");
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext("2d");
+  const font = (weight, size) => `${weight} ${size}px "Plus Jakarta Sans", system-ui, sans-serif`;
+  const bg = ctx.createLinearGradient(0, 0, W, H);
+  bg.addColorStop(0, "#93690f");
+  bg.addColorStop(0.55, "#c08a28");
+  bg.addColorStop(1, "#e0b45c");
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = "rgba(255,255,255,.1)";
+  ctx.beginPath(); ctx.arc(W / 2, 600, 330, 0, Math.PI * 2); ctx.fill();
+
+  ctx.fillStyle = "#fff";
+  ctx.textAlign = "left";
+  ctx.font = font(800, 44);
+  ctx.fillText("🥗 NutriPlan", 80, 130);
+  ctx.textAlign = "center";
+  ctx.font = font(700, 48);
+  ctx.globalAlpha = 0.9;
+  ctx.fillText(tr("¡Logro desbloqueado!"), W / 2, 260);
+  ctx.globalAlpha = 1;
+  ctx.font = font(400, 260);
+  ctx.fillText(badge.emoji, W / 2, 690);
+  ctx.font = font(800, 92);
+  ctx.fillText(tr(badge.name), W / 2, 900);
+  ctx.font = font(600, 44);
+  ctx.globalAlpha = 0.9;
+  ctx.fillText(tr(badge.desc), W / 2, 975);
+  ctx.globalAlpha = 1;
+  ctx.font = font(700, 36);
+  ctx.fillText(tr("Crea tu plan gratis en"), W / 2, H - 110);
+  ctx.font = font(800, 38);
+  ctx.fillText(APP_URL.replace(/^https?:\/\//, "").replace(/\/$/, ""), W / 2, H - 60);
+  return canvas;
+}
+
+async function shareBadge(badge, btn) {
+  track("compartir-logro");
+  await shareCanvas(btn, () => drawBadgeImage(badge), `logro-${badge.id}-nutriplan.png`, tr(`He conseguido el logro «${badge.name}» en NutriPlan 🏅 Crea tu plan gratis:`));
+}
+
+// ---------- Invitar a amigos ----------
+
+/* El enlace de invitación lleva tu nombre (si lo has puesto) para que tu
+   amigo vea quién le invita al abrirlo: ?de=Ana */
+const INVITE_PARAM = "de";
+const INVITE_NAME_MAX = 24;
+
+function cleanInviteName(name) {
+  return String(name || "").replace(/[<>"'&]/g, "").replace(/\s+/g, " ").trim().slice(0, INVITE_NAME_MAX);
+}
+
+function inviteUrl() {
+  const name = cleanInviteName(state.inviteName);
+  return name ? `${APP_URL}?${INVITE_PARAM}=${encodeURIComponent(name)}` : APP_URL;
+}
+
+function invitesSent() {
+  return (state.counters && state.counters.invites) || 0;
+}
+
+async function sendInvite() {
   track("invitar-amigo");
   const text = tr("Estoy usando NutriPlan: te hace un plan de comidas a tu medida y la lista de la compra con precios. Pruébala gratis:");
+  const url = inviteUrl();
+  let sent = false;
   try {
     if (navigator.share) {
-      await navigator.share({ title: "NutriPlan", text, url: APP_URL });
-      return;
+      await navigator.share({ title: "NutriPlan", text, url });
+    } else {
+      await navigator.clipboard.writeText(`${text} ${url}`);
+      showToast("🔗 Enlace copiado, ¡pégalo donde quieras!");
     }
-    await navigator.clipboard.writeText(`${text} ${APP_URL}`);
-    showToast("🔗 Enlace copiado, ¡pégalo donde quieras!");
+    sent = true;
   } catch (e) {
-    if (!e || e.name !== "AbortError") showToast(`🔗 ${APP_URL}`);
+    if (!e || e.name !== "AbortError") showToast(`🔗 ${url}`);
+  }
+  if (sent) {
+    state.counters.invites = invitesSent() + 1;
+    saveState();
+    if (typeof unlockBadge === "function") unlockBadge("embajador");
   }
 }
+
+/* Hoja para invitar: tu nombre (opcional) y el enlace, por WhatsApp o donde quieras. */
+function inviteFriend() {
+  track("invitar-abierto");
+  const body = document.getElementById("sheet-body");
+  const n = invitesSent();
+  body.innerHTML = `
+    <span class="tag">🎁 Invitar</span>
+    <h3>Cuídate con alguien</h3>
+    <p class="hint">Con un amigo es más fácil cumplir. NutriPlan es gratis para los dos y no hace falta registrarse.</p>
+    <label class="invite-name">
+      <span>Tu nombre (opcional), para que sepa que eres tú</span>
+      <input type="text" id="invite-name" maxlength="${INVITE_NAME_MAX}" autocomplete="given-name" placeholder="Ej.: Ana" value="${cleanInviteName(state.inviteName)}">
+    </label>
+    <div class="invite-actions">
+      <a class="btn block whatsapp-btn" id="invite-whatsapp" target="_blank" rel="noopener">💬 Invitar por WhatsApp</a>
+      <button type="button" class="btn ghost block" id="invite-other">📤 Otras apps o copiar enlace</button>
+    </div>
+    ${n ? `<p class="hint center">🙌 Has invitado ${n} ${n === 1 ? "vez" : "veces"}. ¡Gracias por correr la voz!</p>` : ""}
+  `;
+  const input = body.querySelector("#invite-name");
+  const wa = body.querySelector("#invite-whatsapp");
+  const text = () => `${tr("Estoy usando NutriPlan: te hace un plan de comidas a tu medida y la lista de la compra con precios. Pruébala gratis:")} ${inviteUrl()}`;
+  const sync = () => {
+    state.inviteName = cleanInviteName(input.value);
+    saveState();
+    wa.href = `https://wa.me/?text=${encodeURIComponent(text())}`;
+  };
+  input.addEventListener("input", sync);
+  sync();
+  wa.addEventListener("click", () => {
+    track("invitar-whatsapp");
+    state.counters.invites = invitesSent() + 1;
+    saveState();
+    if (typeof unlockBadge === "function") unlockBadge("embajador");
+  });
+  body.querySelector("#invite-other").addEventListener("click", sendInvite);
+  openSheet();
+}
+
+/* Quien llega por una invitación ve quién le invita en la bienvenida. */
+function inviterFromUrl() {
+  try {
+    return cleanInviteName(new URLSearchParams(location.search).get(INVITE_PARAM));
+  } catch (e) {
+    return "";
+  }
+}
+
+function showInviteWelcome() {
+  const name = inviterFromUrl();
+  if (!name || (state.profile && state.plan)) return;
+  if (!state.invitedBy) {
+    state.invitedBy = name;
+    saveState();
+    track("llegada-invitacion");
+  }
+  const view = document.getElementById("wizard-intro") || document.getElementById("view-onboarding");
+  if (!view || document.getElementById("invite-welcome")) return;
+  const banner = document.createElement("div");
+  banner.id = "invite-welcome";
+  banner.className = "invite-welcome";
+  banner.textContent = tr(`👋 ${name} te ha invitado a NutriPlan. Crea tu plan gratis en 1 minuto.`);
+  view.prepend(banner);
+}
+
+document.addEventListener("DOMContentLoaded", showInviteWelcome);
 
 // ---------- Compartir una receta ----------
 
@@ -216,7 +363,7 @@ function recipeShareText(recipeId, factor = 1) {
     `👩‍🍳 ${tr("Preparación")}:`,
     ...r.steps.map((s, i) => `${i + 1}. ${s}`),
     "",
-    `${tr("Receta de NutriPlan. Crea tu plan de comidas gratis:")} ${APP_URL}`,
+    `${tr("Receta de NutriPlan. Crea tu plan de comidas gratis:")} ${inviteUrl()}`,
   ];
   return lines.join("\n");
 }

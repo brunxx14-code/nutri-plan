@@ -510,6 +510,44 @@ input:focus, select:focus { outline: 2px solid var(--coral); outline-offset: 1px
 .adjust-box p { margin: 0 0 12px; font-size: 14px; color: var(--muted); }
 .adjust-actions, .install-actions { display: flex; gap: 8px; justify-content: flex-end; }
 
+.progress-open-btn { margin-top: 12px; }
+
+/* ---------- Mi progreso (hoja) ---------- */
+.pchart { margin: 8px 0 4px; }
+.pchart svg { width: 100%; height: 120px; display: block; overflow: visible; }
+.pchart-area { fill: var(--green-light); }
+.pchart-line { fill: none; stroke: var(--green); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.pchart-dot { fill: var(--card); stroke: var(--green); stroke-width: 2; vector-effect: non-scaling-stroke; }
+.pchart-dot.last { fill: var(--green); }
+.pchart-axis { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--muted); margin-top: 4px; }
+.pchart-axis b { color: var(--ink); }
+.whtr { display: flex; flex-direction: column; gap: 4px; border-radius: var(--radius-md); padding: 12px 14px; margin-top: 10px; font-size: 14px; }
+.whtr span { color: var(--muted); font-size: 13px; line-height: 1.4; }
+.whtr-ok { background: var(--green-light); }
+.whtr-warn { background: var(--amber-light); }
+.whtr-high { background: var(--red-light); }
+.hint.center { text-align: center; }
+#share-progress { margin-top: 16px; }
+
+/* ---------- Invitar ---------- */
+.invite-name { display: flex; flex-direction: column; gap: 6px; margin: 14px 0; font-size: 13px; color: var(--muted); }
+.invite-actions { display: flex; flex-direction: column; gap: 8px; }
+.whatsapp-btn { background: #1f9e55; text-align: center; text-decoration: none; }
+.invite-welcome {
+  background: var(--green-light); color: var(--green-dark); font-weight: 700; font-size: 14px;
+  border-radius: var(--radius-md); padding: 12px 14px; margin: 0 0 14px; text-align: center;
+}
+.celebrate-share { margin-top: 8px; }
+
+/* ---------- Avales de nutricionistas ---------- */
+.endorsement { margin: 10px 0 0; }
+.endorsement blockquote { margin: 0 0 10px; font-size: 14px; line-height: 1.45; }
+.endorsement figcaption { display: flex; align-items: center; gap: 10px; }
+.endorsement img, .endorsement-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: var(--green-light); display: grid; place-items: center; }
+.endorsement figcaption span { display: flex; flex-direction: column; }
+.endorsement small { color: var(--muted); font-size: 12px; }
+.endorsements.compact { margin-top: 14px; text-align: left; }
+
 /* ---------- Instalar como app ---------- */
 .install-card {
   background: var(--card); border-radius: var(--radius-lg); box-shadow: var(--shadow-card);

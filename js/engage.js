@@ -26,6 +26,8 @@ const BADGES = [
   { id: "sincero", emoji: "🙌", name: "Sin trampas", desc: "Anota una comida fuera del plan" },
   { id: "sibarita", emoji: "❤️", name: "Sibarita", desc: "Guarda 3 recetas favoritas" },
   { id: "retador", emoji: "🎯", name: "Retador", desc: "Supera 3 retos del día" },
+  { id: "cinta_metrica", emoji: "📏", name: "Cinta métrica", desc: "Mide tu cintura" },
+  { id: "embajador", emoji: "🎁", name: "Embajador", desc: "Invita a un amigo" },
 ];
 
 /* Un reto distinto cada día; progress() devuelve [hecho, objetivo]. */
@@ -131,6 +133,7 @@ function nextCelebration() {
         <div class="celebrate-title">${item.badge.name}</div>
         <p class="celebrate-sub">${item.badge.desc}</p>
         <button type="button" class="btn block">Genial</button>
+        <button type="button" class="btn ghost block celebrate-share" data-share-badge="${item.badge.id}">📤 Compartir logro</button>
       </div>`;
   document.getElementById("app-shell").appendChild(el);
   burstConfetti();
@@ -140,8 +143,17 @@ function nextCelebration() {
     el.classList.add("hide");
     setTimeout(() => { el.remove(); nextCelebration(); }, 300);
   };
+  const timer = setTimeout(close, item.type === "level" ? 5000 : 3500);
+  const shareBtn = el.querySelector("[data-share-badge]");
+  if (shareBtn) {
+    shareBtn.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      clearTimeout(timer);
+      await shareBadge(item.badge, shareBtn);
+      close();
+    });
+  }
   el.addEventListener("click", close);
-  setTimeout(close, item.type === "level" ? 5000 : 3500);
 }
 
 // ---------- Nivel en el resumen ----------
