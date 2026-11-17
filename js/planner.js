@@ -280,12 +280,20 @@ function formatUnits(qty, buy) {
 
 /* Euros con dos decimales: coma en español (0,72 €), punto en inglés (0.72 €). */
 function euro(n) {
-  const s = Number(n).toFixed(2);
+  return localDecimal(Number(n).toFixed(2));
+}
+
+function localDecimal(s) {
   return typeof currentLang === "undefined" || currentLang === "es" ? s.replace(".", ",") : s;
+}
+
+/* Kilos y litros con hasta dos decimales, sin ceros de más: 1,5 kg, 1,25 l. */
+function bigUnit(n) {
+  return localDecimal(String(Number(n.toFixed(2))));
 }
 
 function formatQty(qty, unit, { buy = false } = {}) {
   if (unit === "ud") return `${formatUnits(qty, buy)} ud`;
-  if (unit === "ml") return qty >= 1000 ? `${(qty / 1000).toFixed(2)} l` : `${Math.round(qty)} ml`;
-  return qty >= 1000 ? `${(qty / 1000).toFixed(2)} kg` : `${Math.round(qty)} g`;
+  if (unit === "ml") return qty >= 1000 ? `${bigUnit(qty / 1000)} l` : `${Math.round(qty)} ml`;
+  return qty >= 1000 ? `${bigUnit(qty / 1000)} kg` : `${Math.round(qty)} g`;
 }
