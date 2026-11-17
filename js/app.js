@@ -1135,7 +1135,7 @@ function renderTodayCard() {
       <div class="water-row">
         <div class="today-bar-label"><span>💧 Agua</span><span id="water-count">${entry.water}/${glasses} vasos</span></div>
         <div class="water-glasses">
-          ${Array.from({ length: glasses }, (_, i) => `<button type="button" class="glass ${i < entry.water ? "full" : ""}" data-glass="${i + 1}" aria-label="${i + 1} vasos"></button>`).join("")}
+          ${Array.from({ length: glasses }, (_, i) => `<button type="button" class="glass ${i < entry.water ? "full" : ""}" data-glass="${i + 1}" aria-label="${i === 0 ? "1 vaso" : `${i + 1} vasos`}" aria-pressed="${i < entry.water}"></button>`).join("")}
         </div>
       </div>
     </div>`;
@@ -1223,7 +1223,11 @@ function bindTodayCard() {
       saveState();
       buzz(8);
       const goal = waterGoalGlasses();
-      card.querySelectorAll("[data-glass]").forEach((g) => g.classList.toggle("full", Number(g.dataset.glass) <= entry.water));
+      card.querySelectorAll("[data-glass]").forEach((g) => {
+        const full = Number(g.dataset.glass) <= entry.water;
+        g.classList.toggle("full", full);
+        g.setAttribute("aria-pressed", String(full)); // el lector de pantalla dice si el vaso está lleno
+      });
       btn.classList.remove("pop");
       void btn.offsetWidth;
       btn.classList.add("pop");

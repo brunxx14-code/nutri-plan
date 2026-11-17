@@ -107,6 +107,7 @@ I18N.en = {
     "Sin conexión: sigues con tu plan guardado": "You're offline: your saved plan still works",
     "Conexión recuperada": "Back online",
     "Secciones": "Sections",
+    "1 vaso": "1 glass",
     "Añádela a tu pantalla de inicio: en Safari pulsa": "Add it to your home screen: in Safari tap",
     "Compartir": "Share",
     "y luego": "and then",
