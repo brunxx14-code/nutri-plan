@@ -16,6 +16,7 @@ const APP_SHELL = [
   "js/i18n-en.js",
   "js/app.js",
   "js/engage.js",
+  "js/eatout.js",
   "js/share.js",
   "js/cook.js",
   "js/favorites.js",
