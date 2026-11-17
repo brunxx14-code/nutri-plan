@@ -10,6 +10,7 @@ const APP_SHELL = [
   "js/analytics.js",
   "js/photos.js",
   "js/data.js",
+  "js/fridge.js",
   "js/nutrition.js",
   "js/planner.js",
   "js/i18n.js",
