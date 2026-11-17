@@ -469,7 +469,6 @@ I18N.en = {
   },
 
   templates: {
-    "Añadir \"{x}\" como otro deporte": "Add \"{x}\" as another sport",
     // Bienvenida y racha
     "Lo siguiente · {slot}": "Up next · {slot}",
     "Llevas {n} días seguidos. ¡No rompas la racha!": "{n} days in a row. Don't break the streak!",
@@ -514,6 +513,7 @@ I18N.en = {
     "Multiplicando por tu nivel de actividad diaria ({act}) obtenemos {n} kcal/día: lo que quemas en un día normal sin contar el deporte.": "Multiplying by your daily activity level ({act}) gives {n} kcal/day: what you burn on a normal day without counting sport.",
     "Además nos has dicho que practicas {sports}. Calculamos lo que quema cada sesión según su intensidad, sin contar lo que ya quemarías en reposo, y lo repartimos entre los 7 días: una media de {n} kcal/día extra (tu gasto total pasa a ser {t} kcal/día).": "You also told us you do {sports}. We estimate what each session burns from its intensity, without counting what you'd burn at rest anyway, and spread it over the 7 days: an average of {n} extra kcal/day (your total expenditure becomes {t} kcal/day).",
     "{sport} ({f}×/semana, {m} min)": "{sport} ({f}×/week, {m} min)",
+    "Añadir \"{x}\" como otro deporte": "Add \"{x}\" as another sport",
     "Para perder grasa te proponemos {n} kcal/día, unas {d} kcal por debajo de tu gasto. Es un déficit moderado, pensado para bajar entre un 0,5 % y un 1 % de tu peso por semana: los estudios ven que a ese ritmo se pierde grasa conservando mucho mejor el músculo que con dietas agresivas.": "To lose fat we suggest {n} kcal/day, about {d} kcal below what you burn. It's a moderate deficit, aimed at losing 0.5% to 1% of your weight per week: studies show that at this pace you lose fat while keeping far more muscle than with aggressive diets.",
     "Para ganar músculo te proponemos {n} kcal/día, unas {d} kcal por encima de tu gasto. Es un superávit moderado, pensado para subir entre un 0,25 % y un 0,5 % de tu peso por semana: comer mucho más no hace crecer más el músculo, solo añade grasa.": "To build muscle we suggest {n} kcal/day, about {d} kcal above what you burn. It's a moderate surplus, aimed at gaining 0.25% to 0.5% of your weight per week: eating much more doesn't build more muscle, it just adds fat.",
     "Para mantener tu peso actual, el objetivo es comer aproximadamente lo mismo que gastas: {n} kcal/día.": "To keep your current weight, the goal is to eat roughly what you burn: {n} kcal/day.",
