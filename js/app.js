@@ -848,11 +848,32 @@ function renderDashboard() {
 }
 
 function renderAll() {
+  renderedDay = todayIso();
   renderDashboard();
   renderPlan();
   renderCompra();
   renderPerfil();
 }
+
+/* Si la app se queda abierta de un día para otro (p. ej. instalada en el
+   móvil), al volver a ella se pasa al día nuevo: comidas, agua y racha de hoy,
+   y el Plan en el día de hoy. */
+let renderedDay = todayIso();
+
+function refreshIfNewDay() {
+  if (todayIso() === renderedDay) return;
+  if (!state.profile || !state.plan) { renderedDay = todayIso(); return; }
+  const a = document.activeElement;
+  if (a && a.matches && a.matches("input, textarea, select")) return; // no molestar mientras escribe
+  selectedDay = todayPlanIndex();
+  renderAll();
+  if (currentView === "informes") renderInformes();
+}
+
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") refreshIfNewDay();
+});
+setInterval(refreshIfNewDay, 60000);
 
 // ---------- Hoy: comidas hechas, agua y racha ----------
 
