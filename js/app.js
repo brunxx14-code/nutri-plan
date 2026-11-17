@@ -104,6 +104,8 @@ function renderInformes() {
   const el = document.getElementById("informes-content");
 
   el.innerHTML = `
+    ${recapCardHtml()}
+    ${calendarCardHtml()}
     <div class="report-hero photo-card" data-article="${featured.id}">
       ${photoHtml(ARTICLE_CATEGORY_PHOTOS[featured.category], { width: 600, className: "photo-cover", fallback: "📰" })}
       <div class="photo-card-text">
@@ -126,6 +128,8 @@ function renderInformes() {
   el.querySelectorAll("[data-article]").forEach((b) => {
     b.addEventListener("click", () => openArticleSheet(b.dataset.article));
   });
+  bindRecapCard(el);
+  bindCalendarCard(el);
 }
 
 function openArticleSheet(articleId) {
@@ -262,6 +266,63 @@ function nextMealSlot(entry) {
   const pending = order.filter((k) => !entry.eaten[k]);
   if (!pending.length) return null;
   return pending.find((k) => order.indexOf(k) >= start) || pending[pending.length - 1];
+}
+
+/* Tarjeta "Ahora toca": la siguiente comida con acceso directo a cocinarla
+   o marcarla, para que abrir la app lleve a hacer algo. */
+const UP_NEXT_HINT = { desayuno: "Empieza el día con energía", comida: "La comida fuerte del día", merienda: "Un picoteo que suma", cena: "Cierra el día bien" };
+
+function upNextCardHtml() {
+  const slotKey = nextMealSlot(dailyEntry());
+  if (!slotKey) return `<div id="up-next" class="up-next-empty"></div>`;
+  const slot = MEAL_SLOTS.find((s) => s.key === slotKey);
+  const dayIdx = todayPlanIndex();
+  const info = getRecipeInfo(state.plan[dayIdx][slotKey]);
+  const factor = dayFactor(dayIdx);
+  return `
+    <div class="up-next" id="up-next" data-slot="${slotKey}">
+      <button type="button" class="up-next-main" data-upnext-open>
+        ${recipePhoto(info.recipe.id, { width: 160, className: `photo-thumb big ${slotKey}`, fallback: mealEmoji(slotKey) })}
+        <span class="up-next-text">
+          <span class="up-next-kicker">⏰ Ahora toca · ${slot.label}</span>
+          <span class="up-next-name">${info.recipe.name}</span>
+          <span class="up-next-meta">${Math.round(info.kcal * factor)} kcal · <span>${UP_NEXT_HINT[slotKey]}</span></span>
+        </span>
+      </button>
+      <div class="up-next-actions">
+        <button type="button" class="btn small" data-upnext-cook>👩‍🍳 Cocinar</button>
+        <button type="button" class="btn secondary small" data-upnext-done>✓ Ya la hice</button>
+      </div>
+    </div>`;
+}
+
+function bindUpNextCard(root) {
+  const card = root.querySelector("#up-next");
+  if (!card || !card.dataset.slot) return;
+  const slotKey = card.dataset.slot;
+  card.querySelector("[data-upnext-open]").addEventListener("click", () => openRecipeSheet(todayPlanIndex(), slotKey));
+  card.querySelector("[data-upnext-cook]").addEventListener("click", () => openCookMode(todayPlanIndex(), slotKey));
+  card.querySelector("[data-upnext-done]").addEventListener("click", () => {
+    const btn = document.querySelector(`#dashboard-content [data-eat="${slotKey}"]`);
+    if (btn) btn.click();
+  });
+}
+
+/* Tras marcar una comida, la tarjeta pasa a la siguiente con una transición. */
+function refreshUpNext() {
+  const old = document.getElementById("up-next");
+  if (!old) return;
+  const next = nextMealSlot(dailyEntry());
+  if ((old.dataset.slot || null) === next) return;
+  old.classList.add("leaving");
+  setTimeout(() => {
+    const cur = document.getElementById("up-next");
+    if (!cur) return;
+    cur.outerHTML = upNextCardHtml();
+    const fresh = document.getElementById("up-next");
+    fresh.classList.add("entering");
+    bindUpNextCard(fresh.parentNode);
+  }, prefersReducedMotion() ? 0 : 260);
 }
 
 function welcomeMessage(entry) {
@@ -524,6 +585,42 @@ function fillFormFromProfile(form, profile) {
   });
 }
 
+/* Mientras rellenas el formulario ves tus calorías y macros al momento:
+   el plan empieza a ser tuyo antes de terminar. */
+const wizardPreviewShown = {};
+
+function tweenNumber(el, to) {
+  const from = Number(el.textContent) || 0;
+  if (from === to) return;
+  if (prefersReducedMotion()) { el.textContent = to; return; }
+  const start = performance.now();
+  const step = (now) => {
+    const t = Math.min((now - start) / 450, 1);
+    el.textContent = Math.round(from + (to - from) * (1 - Math.pow(1 - t, 3)));
+    if (t < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
+function updateWizardPreview() {
+  const box = document.getElementById("wizard-preview");
+  const form = document.getElementById("onboarding-form");
+  if (!box || !form) return;
+  const p = readProfileFromForm(form);
+  const ok = p.age >= 14 && p.age <= 90 && p.weightKg >= 30 && p.weightKg <= 300 && p.heightCm >= 120 && p.heightCm <= 230;
+  box.classList.toggle("hidden", !ok);
+  if (!ok) return;
+  const t = calcTargets(p);
+  if (!wizardPreviewShown.done) {
+    wizardPreviewShown.done = true;
+    track("vista-previa-calorias");
+  }
+  tweenNumber(document.getElementById("wp-kcal"), Math.round(t.calories));
+  tweenNumber(document.getElementById("wp-prot"), Math.round(t.protein));
+  tweenNumber(document.getElementById("wp-carbs"), Math.round(t.carbs));
+  tweenNumber(document.getElementById("wp-fat"), Math.round(t.fat));
+}
+
 function setWizardMode(mode) {
   wizardMode = mode;
   document.getElementById("wizard-intro").classList.toggle("hidden", mode === "edit");
@@ -532,6 +629,7 @@ function setWizardMode(mode) {
 
 function goToWizardStep(step) {
   wizardStep = step;
+  requestAnimationFrame(updateWizardPreview);
   syncChoiceCards();
   document.querySelectorAll(".wizard-step").forEach((el) => {
     el.classList.toggle("active", Number(el.dataset.step) === step);
@@ -581,6 +679,7 @@ function showView(name) {
   void view.offsetWidth; // reinicia la animación de entrada
   view.classList.add(enter);
   currentView = name;
+  if (name === "informes" && state.plan) renderInformes(); // el resumen de la semana, al día
   document.querySelectorAll(".tab-btn").forEach((b) => b.classList.toggle("active", b.dataset.view === name));
   moveTabIndicator();
   document.getElementById("app-scroll").scrollTop = 0;
@@ -598,6 +697,7 @@ function moveTabIndicator() {
 
 function enterApp() {
   document.getElementById("tab-bar").classList.remove("hidden");
+  useStreakFreezes();
   renderDashboard();
   renderPlan();
   renderCompra();
@@ -654,6 +754,7 @@ function renderDashboard() {
       ${renderStreakChip()}
       ${levelChipHtml()}
     </div>
+    ${upNextCardHtml()}
     <div class="ring-card">
       <div class="ring-wrap">
         <svg class="ring-svg" viewBox="0 0 160 160">
@@ -684,6 +785,7 @@ function renderDashboard() {
     ${renderProgressCard()}
     ${budgetHtml}
     ${renderInstallCard()}
+    ${tipCardHtml()}
     ${renderReportTeaser()}
     <div class="why-card" id="targets-why-card">
       <button class="why-toggle" id="targets-why-toggle" type="button">
@@ -698,6 +800,8 @@ function renderDashboard() {
     </div>
   `;
   el.querySelectorAll("[data-goto]").forEach((b) => b.addEventListener("click", () => showView(b.dataset.goto)));
+  bindUpNextCard(el);
+  bindTipCard(el);
   bindTodayCard();
   bindLevelChip(el);
   bindProgressCard();
@@ -753,8 +857,9 @@ function currentStreak() {
   const iso = (x) => `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, "0")}-${String(x.getDate()).padStart(2, "0")}`;
   if (mealsDone(state.daily[iso(d)]) >= MEALS_FOR_STREAK) streak++;
   d.setDate(d.getDate() - 1);
-  while (mealsDone(state.daily[iso(d)]) >= MEALS_FOR_STREAK) {
-    streak++;
+  // un día salvado con protector no suma, pero tampoco corta la racha
+  while (dayKept(iso(d))) {
+    if (mealsDone(state.daily[iso(d)]) >= MEALS_FOR_STREAK) streak++;
     d.setDate(d.getDate() - 1);
   }
   return streak;
@@ -899,7 +1004,7 @@ function showToast(text) {
 
 function renderStreakChip() {
   const streak = currentStreak();
-  return `<div class="streak-chip ${streak ? "active" : ""}" id="streak-chip">🔥 ${streak} ${streak === 1 ? "día" : "días"}</div>`;
+  return `<button type="button" class="streak-chip ${streak ? "active" : ""}" id="streak-chip">🔥 ${streak} ${streak === 1 ? "día" : "días"}${freezeChipHtml()}</button>`;
 }
 
 function renderTodayCard() {
@@ -1015,6 +1120,7 @@ function bindTodayCard() {
         engage.mealEaten(slotKey, btn);
       }
       updateTodayProgress(false);
+      refreshUpNext();
 
       const nowComplete = mealsDone(entry) >= MEALS_FOR_STREAK;
       document.getElementById("streak-chip").outerHTML = renderStreakChip();
@@ -1388,7 +1494,7 @@ function renderPlanDays() {
           <div class="meal-card" data-day="${i}" data-slot="${slot.key}">
             ${recipePhoto(info.recipe.id, { width: 160, className: `photo-thumb big ${slot.key}`, fallback: mealEmoji(slot.key) })}
             <div class="meal-info">
-              <div class="slot-label">${slot.label}</div>
+              <div class="slot-label">${slot.label}${isFavorite(info.recipe.id) ? ` <span class="fav-mark" aria-label="Favorita">❤️</span>` : ""}</div>
               <div class="recipe-name">${info.recipe.name}</div>
               <div class="kcal">${Math.round(info.kcal * factor)} kcal · ${(info.cost * factor).toFixed(2)} €</div>
             </div>
@@ -1423,6 +1529,8 @@ function openRecipeSheet(dayIdx, slotKey) {
   track("receta-vista");
   body.innerHTML = `
     ${recipePhoto(r.id, { width: 700, className: "photo-hero", fallback: mealEmoji(slotKey) })}
+    ${favButtonHtml(r.id)}
+    ${shareButtonHtml(r.id)}
     <h3>${r.name}</h3>
     <div class="modal-tags">${r.tags.map((t) => `<span class="tag ${TAG_COLOR_CLASS[t] || ""}">${t.replace("_", " ")}</span>`).join("")}</div>
     <div class="macro-tiles">
@@ -1432,6 +1540,7 @@ function openRecipeSheet(dayIdx, slotKey) {
       <div class="macro-tile fat"><b>${Math.round(info.fat * factor)} g</b><span>🥑 grasa</span></div>
       <div class="macro-tile cost"><b>${(info.cost * factor).toFixed(2)} €</b><span>🛒 coste</span></div>
     </div>
+    <button type="button" class="btn block cook-open-btn" id="cook-open-btn">👩‍🍳 Cocinar paso a paso</button>
     <button type="button" class="btn secondary block swap-open-btn" id="swap-open-btn">🔄 Cambiar por otro plato</button>
     <div class="why-block why-short"><p>💡 ${whySentences[0]}</p></div>
     <div class="sheet-section">
@@ -1454,6 +1563,9 @@ function openRecipeSheet(dayIdx, slotKey) {
     </div>
   `;
   document.getElementById("swap-open-btn").addEventListener("click", () => openSwapSheet(dayIdx, slotKey));
+  document.getElementById("cook-open-btn").addEventListener("click", () => openCookMode(dayIdx, slotKey));
+  bindFavButtons(body);
+  bindShareRecipe(body, factor);
   openSheet();
 }
 
@@ -1466,7 +1578,8 @@ function openSwapSheet(dayIdx, slotKey) {
   const slotLabel = MEAL_SLOTS.find((s) => s.key === slotKey).label;
   const currentId = state.plan[dayIdx][slotKey];
   const factor = dayFactor(dayIdx);
-  const options = swapAlternatives(currentId, state.profile);
+  const options = swapAlternatives(currentId, state.profile)
+    .sort((a, b) => isFavorite(b.recipe.id) - isFavorite(a.recipe.id));
   const body = document.getElementById("sheet-body");
   body.innerHTML = `
     <span class="tag">${slotLabel} · ${DAYS[dayIdx]}</span>
@@ -1476,7 +1589,7 @@ function openSwapSheet(dayIdx, slotKey) {
       ${options.map((info) => `
         <button type="button" class="swap-option" data-recipe="${info.recipe.id}">
           ${recipePhoto(info.recipe.id, { width: 120, className: "photo-thumb", fallback: mealEmoji(slotKey) })}
-          <span class="swap-name">${info.recipe.name}</span>
+          <span class="swap-name">${isFavorite(info.recipe.id) ? "❤️ " : ""}${info.recipe.name}</span>
           <span class="swap-meta">${Math.round(info.prot * factor)} g prot · ${(info.cost * factor).toFixed(2)} €</span>
         </button>`).join("")}
     </div>` : `<p class="hint">No hay otros platos de este tipo que encajen con tu dieta y tus gustos.</p>`}
@@ -1934,8 +2047,41 @@ function langPickerHtml() {
     </button>`).join("")}</div>`;
 }
 
+const THEME_KEY = "nutriplan_theme";
+const THEMES = { auto: { emoji: "📱", label: "Auto" }, light: { emoji: "☀️", label: "Claro" }, dark: { emoji: "🌙", label: "Oscuro" } };
+
+function currentTheme() {
+  try { return localStorage.getItem(THEME_KEY) || "auto"; } catch (e) { return "auto"; }
+}
+
+function applyTheme(theme) {
+  const root = document.documentElement;
+  if (theme === "auto") delete root.dataset.theme;
+  else root.dataset.theme = theme;
+  try { localStorage.setItem(THEME_KEY, theme); } catch (e) { /* seguimos sin guardar */ }
+}
+
+function themePickerHtml() {
+  const current = currentTheme();
+  return `<div class="lang-picker theme-picker">${Object.entries(THEMES).map(([key, t]) => `
+    <button type="button" class="lang-btn ${key === current ? "selected" : ""}" data-theme-choice="${key}">
+      <span class="lang-flag">${t.emoji}</span>${t.label}
+    </button>`).join("")}</div>`;
+}
+
+function bindThemePicker(root) {
+  root.querySelectorAll("[data-theme-choice]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      applyTheme(btn.dataset.themeChoice);
+      track(`tema-${btn.dataset.themeChoice}`);
+      root.querySelectorAll("[data-theme-choice]").forEach((b) => b.classList.toggle("selected", b === btn));
+      buzz(8);
+    });
+  });
+}
+
 function bindLangPicker(root) {
-  root.querySelectorAll(".lang-btn").forEach((btn) => {
+  root.querySelectorAll(".lang-btn[data-lang]").forEach((btn) => {
     btn.addEventListener("click", () => {
       if (btn.dataset.lang === currentLang) return;
       track(`idioma-${btn.dataset.lang}`);
@@ -2031,6 +2177,8 @@ function renderPerfil() {
     <div class="pcard">
       <div class="section-kicker">🌐 Idioma</div>
       ${langPickerHtml()}
+      <div class="section-kicker theme-kicker">🎨 Apariencia</div>
+      ${themePickerHtml()}
     </div>
 
     <button class="btn secondary block edit-profile-spacing" id="edit-profile-btn" type="button">✏️ Editar mis datos</button>
@@ -2038,6 +2186,7 @@ function renderPerfil() {
   `;
   document.getElementById("edit-profile-btn").addEventListener("click", enterEditMode);
   bindLangPicker(el);
+  bindThemePicker(el);
   if (isPremium()) {
     document.getElementById("cancel-sub-btn").addEventListener("click", cancelSubscription);
   } else {
@@ -2065,6 +2214,8 @@ document.addEventListener("DOMContentLoaded", () => {
     showView("perfil");
   });
 
+  ["input", "change", "click"].forEach((ev) => form.addEventListener(ev, () => requestAnimationFrame(updateWizardPreview)));
+
   form.addEventListener("submit", (e) => {
     e.preventDefault();
     if (!validateStep(3)) return;
@@ -2076,7 +2227,7 @@ document.addEventListener("DOMContentLoaded", () => {
       state.adjustDecisionAt = null;
     }
     logWeight(state.profile.weightKg);
-    state.plan = generateWeeklyPlan(state.profile, currentTargets().calories);
+    state.plan = generateWeeklyPlan(state.profile, currentTargets().calories, favorites());
     state.bought = {};
     saveState();
     track(previousGoal ? "perfil-editado" : "plan-generado");
@@ -2093,8 +2244,9 @@ document.addEventListener("DOMContentLoaded", () => {
     btn.addEventListener("click", () => showView(btn.dataset.view));
   });
 
+  document.getElementById("favorites-btn").addEventListener("click", () => openFavoritesSheet());
   document.getElementById("regenerate-btn").addEventListener("click", () => {
-    state.plan = generateWeeklyPlan(state.profile, currentTargets().calories);
+    state.plan = generateWeeklyPlan(state.profile, currentTargets().calories, favorites());
     state.bought = {};
     saveState();
     track("plan-regenerado");

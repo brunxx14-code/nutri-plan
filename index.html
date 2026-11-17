@@ -10,6 +10,10 @@
 <link rel="stylesheet" href="css/style.css">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#d9583a">
+<script>
+  /* Aplica el tema guardado antes de pintar, para que no parpadee */
+  try { var t = localStorage.getItem("nutriplan_theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
 <meta name="description" content="Plan semanal de comidas y lista de la compra ajustados a tu objetivo físico y tu presupuesto.">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -118,6 +122,18 @@
 
       </form>
 
+      <div class="wizard-preview hidden" id="wizard-preview" aria-live="polite">
+        <div class="wp-main">
+          <span class="wp-label">Tu objetivo diario</span>
+          <span class="wp-kcal"><b id="wp-kcal">0</b> kcal</span>
+        </div>
+        <div class="wp-macros">
+          <span>🍗 <b id="wp-prot">0</b> g</span>
+          <span>🌾 <b id="wp-carbs">0</b> g</span>
+          <span>🥑 <b id="wp-fat">0</b> g</span>
+        </div>
+      </div>
+
       <div class="wizard-nav">
         <button id="wizard-back" type="button" class="btn ghost">Atrás</button>
         <button id="wizard-next" type="button" class="btn">Siguiente</button>
@@ -143,7 +159,10 @@
           <div class="eyebrow">Esta semana</div>
           <h2>Tu plan</h2>
         </div>
-        <button id="regenerate-btn" class="icon-btn" aria-label="Regenerar plan">🔄</button>
+        <div class="header-btns">
+          <button id="favorites-btn" class="icon-btn" aria-label="Tus recetas">❤️</button>
+          <button id="regenerate-btn" class="icon-btn" aria-label="Regenerar plan">🔄</button>
+        </div>
       </div>
       <div class="day-tabs" id="day-tabs"></div>
       <div id="plan-content"></div>
@@ -228,5 +247,11 @@
 <script src="js/i18n-en.js"></script>
 <script src="js/app.js"></script>
 <script src="js/engage.js"></script>
+<script src="js/share.js"></script>
+<script src="js/cook.js"></script>
+<script src="js/favorites.js"></script>
+<script src="js/calendar.js"></script>
+<script src="js/freeze.js"></script>
+<script src="js/tips.js"></script>
 </body>
 </html>
