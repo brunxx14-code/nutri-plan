@@ -685,6 +685,25 @@ function showView(name) {
   document.getElementById("app-scroll").scrollTop = 0;
 }
 
+/* Desde la barra de pestañas: cada pestaña recuerda hasta dónde bajaste, y
+   tocar la pestaña en la que ya estás sube arriba con suavidad. */
+const tabScroll = {};
+
+function openTab(name) {
+  const scroller = document.getElementById("app-scroll");
+  if (name === currentView) {
+    if (scroller.scrollTop > 0) {
+      scroller.scrollTo({ top: 0, behavior: prefersReducedMotion() ? "auto" : "smooth" });
+      buzz(6);
+    }
+    return;
+  }
+  if (currentView) tabScroll[currentView] = scroller.scrollTop;
+  showView(name);
+  const saved = tabScroll[name] || 0;
+  if (saved) scroller.scrollTop = Math.min(saved, scroller.scrollHeight - scroller.clientHeight);
+}
+
 function moveTabIndicator() {
   const active = document.querySelector(".tab-btn.active");
   const indicator = document.getElementById("tab-indicator");
@@ -2251,7 +2270,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   document.querySelectorAll(".tab-btn").forEach((btn) => {
-    btn.addEventListener("click", () => showView(btn.dataset.view));
+    btn.addEventListener("click", () => openTab(btn.dataset.view));
   });
 
   document.getElementById("favorites-btn").addEventListener("click", () => openFavoritesSheet());
