@@ -1391,7 +1391,7 @@ function renderPlanDays() {
           <div class="meal-card" data-day="${i}" data-slot="${slot.key}">
             ${recipePhoto(info.recipe.id, { width: 160, className: `photo-thumb big ${slot.key}`, fallback: mealEmoji(slot.key) })}
             <div class="meal-info">
-              <div class="slot-label">${slot.label}</div>
+              <div class="slot-label">${slot.label}${isFavorite(info.recipe.id) ? ` <span class="fav-mark" aria-label="Favorita">❤️</span>` : ""}</div>
               <div class="recipe-name">${info.recipe.name}</div>
               <div class="kcal">${Math.round(info.kcal * factor)} kcal · ${(info.cost * factor).toFixed(2)} €</div>
             </div>
@@ -1426,6 +1426,7 @@ function openRecipeSheet(dayIdx, slotKey) {
   track("receta-vista");
   body.innerHTML = `
     ${recipePhoto(r.id, { width: 700, className: "photo-hero", fallback: mealEmoji(slotKey) })}
+    ${favButtonHtml(r.id)}
     <h3>${r.name}</h3>
     <div class="modal-tags">${r.tags.map((t) => `<span class="tag ${TAG_COLOR_CLASS[t] || ""}">${t.replace("_", " ")}</span>`).join("")}</div>
     <div class="macro-tiles">
@@ -1459,6 +1460,7 @@ function openRecipeSheet(dayIdx, slotKey) {
   `;
   document.getElementById("swap-open-btn").addEventListener("click", () => openSwapSheet(dayIdx, slotKey));
   document.getElementById("cook-open-btn").addEventListener("click", () => openCookMode(dayIdx, slotKey));
+  bindFavButtons(body);
   openSheet();
 }
 
@@ -1471,7 +1473,8 @@ function openSwapSheet(dayIdx, slotKey) {
   const slotLabel = MEAL_SLOTS.find((s) => s.key === slotKey).label;
   const currentId = state.plan[dayIdx][slotKey];
   const factor = dayFactor(dayIdx);
-  const options = swapAlternatives(currentId, state.profile);
+  const options = swapAlternatives(currentId, state.profile)
+    .sort((a, b) => isFavorite(b.recipe.id) - isFavorite(a.recipe.id));
   const body = document.getElementById("sheet-body");
   body.innerHTML = `
     <span class="tag">${slotLabel} · ${DAYS[dayIdx]}</span>
@@ -1481,7 +1484,7 @@ function openSwapSheet(dayIdx, slotKey) {
       ${options.map((info) => `
         <button type="button" class="swap-option" data-recipe="${info.recipe.id}">
           ${recipePhoto(info.recipe.id, { width: 120, className: "photo-thumb", fallback: mealEmoji(slotKey) })}
-          <span class="swap-name">${info.recipe.name}</span>
+          <span class="swap-name">${isFavorite(info.recipe.id) ? "❤️ " : ""}${info.recipe.name}</span>
           <span class="swap-meta">${Math.round(info.prot * factor)} g prot · ${(info.cost * factor).toFixed(2)} €</span>
         </button>`).join("")}
     </div>` : `<p class="hint">No hay otros platos de este tipo que encajen con tu dieta y tus gustos.</p>`}
@@ -2078,7 +2081,7 @@ document.addEventListener("DOMContentLoaded", () => {
       state.adjustDecisionAt = null;
     }
     logWeight(state.profile.weightKg);
-    state.plan = generateWeeklyPlan(state.profile, currentTargets().calories);
+    state.plan = generateWeeklyPlan(state.profile, currentTargets().calories, favorites());
     state.bought = {};
     saveState();
     track(previousGoal ? "perfil-editado" : "plan-generado");
@@ -2095,8 +2098,9 @@ document.addEventListener("DOMContentLoaded", () => {
     btn.addEventListener("click", () => showView(btn.dataset.view));
   });
 
+  document.getElementById("favorites-btn").addEventListener("click", openFavoritesSheet);
   document.getElementById("regenerate-btn").addEventListener("click", () => {
-    state.plan = generateWeeklyPlan(state.profile, currentTargets().calories);
+    state.plan = generateWeeklyPlan(state.profile, currentTargets().calories, favorites());
     state.bought = {};
     saveState();
     track("plan-regenerado");

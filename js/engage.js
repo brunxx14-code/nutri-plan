@@ -24,6 +24,7 @@ const BADGES = [
   { id: "lector", emoji: "📚", name: "Curioso", desc: "Lee 3 informes" },
   { id: "explorador", emoji: "🧭", name: "Explorador", desc: "Cambia 3 platos del plan" },
   { id: "sincero", emoji: "🙌", name: "Sin trampas", desc: "Anota una comida fuera del plan" },
+  { id: "sibarita", emoji: "❤️", name: "Sibarita", desc: "Guarda 3 recetas favoritas" },
   { id: "retador", emoji: "🎯", name: "Retador", desc: "Supera 3 retos del día" },
 ];
 

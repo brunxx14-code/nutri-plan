@@ -95,7 +95,7 @@ function recipePool(profile, mealType) {
   return RECIPES.filter((r) => r.mealType === mealType && matchesProfile(r, profile)).map((r) => r.id);
 }
 
-function generateWeeklyPlan(profile, targetKcal) {
+function generateWeeklyPlan(profile, targetKcal, favorites = []) {
   const poolByType = { desayuno: [], principal: [], merienda: [] };
   for (const recipe of RECIPES) {
     if (matchesProfile(recipe, profile)) poolByType[recipe.mealType].push(recipe.id);
@@ -109,6 +109,12 @@ function generateWeeklyPlan(profile, targetKcal) {
     if (poolByType[type].length === 0) {
       poolByType[type] = RECIPES.filter((r) => r.mealType === type).map((r) => r.id);
     }
+  }
+
+  // las favoritas cuentan doble: salen más a menudo sin repetir el plan entero
+  for (const type of Object.keys(poolByType)) {
+    const favs = poolByType[type].filter((id) => favorites.includes(id));
+    if (favs.length < poolByType[type].length) poolByType[type] = [...poolByType[type], ...favs];
   }
 
   const plan = DAYS.map(() => ({}));
