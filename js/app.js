@@ -585,6 +585,42 @@ function fillFormFromProfile(form, profile) {
   });
 }
 
+/* Mientras rellenas el formulario ves tus calorías y macros al momento:
+   el plan empieza a ser tuyo antes de terminar. */
+const wizardPreviewShown = {};
+
+function tweenNumber(el, to) {
+  const from = Number(el.textContent) || 0;
+  if (from === to) return;
+  if (prefersReducedMotion()) { el.textContent = to; return; }
+  const start = performance.now();
+  const step = (now) => {
+    const t = Math.min((now - start) / 450, 1);
+    el.textContent = Math.round(from + (to - from) * (1 - Math.pow(1 - t, 3)));
+    if (t < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
+function updateWizardPreview() {
+  const box = document.getElementById("wizard-preview");
+  const form = document.getElementById("onboarding-form");
+  if (!box || !form) return;
+  const p = readProfileFromForm(form);
+  const ok = p.age >= 14 && p.age <= 90 && p.weightKg >= 30 && p.weightKg <= 300 && p.heightCm >= 120 && p.heightCm <= 230;
+  box.classList.toggle("hidden", !ok);
+  if (!ok) return;
+  const t = calcTargets(p);
+  if (!wizardPreviewShown.done) {
+    wizardPreviewShown.done = true;
+    track("vista-previa-calorias");
+  }
+  tweenNumber(document.getElementById("wp-kcal"), Math.round(t.calories));
+  tweenNumber(document.getElementById("wp-prot"), Math.round(t.protein));
+  tweenNumber(document.getElementById("wp-carbs"), Math.round(t.carbs));
+  tweenNumber(document.getElementById("wp-fat"), Math.round(t.fat));
+}
+
 function setWizardMode(mode) {
   wizardMode = mode;
   document.getElementById("wizard-intro").classList.toggle("hidden", mode === "edit");
@@ -593,6 +629,7 @@ function setWizardMode(mode) {
 
 function goToWizardStep(step) {
   wizardStep = step;
+  requestAnimationFrame(updateWizardPreview);
   syncChoiceCards();
   document.querySelectorAll(".wizard-step").forEach((el) => {
     el.classList.toggle("active", Number(el.dataset.step) === step);
@@ -2135,6 +2172,8 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("wizard-cancel").addEventListener("click", () => {
     showView("perfil");
   });
+
+  ["input", "change", "click"].forEach((ev) => form.addEventListener(ev, () => requestAnimationFrame(updateWizardPreview)));
 
   form.addEventListener("submit", (e) => {
     e.preventDefault();
