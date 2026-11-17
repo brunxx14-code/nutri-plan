@@ -1307,8 +1307,12 @@ function renderProgressCard() {
   const suggestion = suggestCalorieAdjustment(state.profile, log);
   const coolingDown = state.adjustDecisionAt && daysBetween(state.adjustDecisionAt, todayIso()) < ADJUST_COOLDOWN_DAYS;
 
+  const recomp = recompositionInsight(state.profile, suggestion);
+
   let adviceHtml;
-  if (suggestion && suggestion.status !== "ok" && !coolingDown) {
+  if (recomp) {
+    adviceHtml = `<p class="hint">✅ ${recomp}</p>`;
+  } else if (suggestion && suggestion.status !== "ok" && !coolingDown) {
     adviceHtml = `
       <div class="adjust-box">
         <div class="adjust-title">Ajuste recomendado: ${suggestion.kcal > 0 ? "+" : ""}${suggestion.kcal} kcal/día</div>
@@ -1342,6 +1346,7 @@ function renderProgressCard() {
         <button type="submit" class="btn small">Guardar</button>
       </form>
       ${adviceHtml}
+      ${progressEntryButtonHtml()}
     </div>`;
 }
 
@@ -1361,6 +1366,7 @@ function bindProgressCard() {
     engage.weighed(e.target.querySelector("button"));
     renderAll();
   });
+  bindProgressEntryButton();
   const apply = document.getElementById("adjust-apply-btn");
   if (apply) {
     apply.addEventListener("click", () => {
@@ -2141,6 +2147,8 @@ function renderPerfil() {
       <div class="section-kicker theme-kicker">🎨 Apariencia</div>
       ${themePickerHtml()}
     </div>
+
+    ${endorsementsHtml()}
 
     <button class="btn secondary block edit-profile-spacing" id="edit-profile-btn" type="button">✏️ Editar mis datos</button>
     <p class="hint privacy-note">🔒 Tus datos se quedan en tu móvil. Solo contamos de forma anónima qué funciones se usan.</p>
