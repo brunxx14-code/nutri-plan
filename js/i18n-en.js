@@ -375,6 +375,9 @@ I18N.en = {
     "Cierra el día bien": "End the day well",
     "Cocinar": "Cook",
     "Ya la hice": "Done it",
+    "Recomendadas": "Recommended", "Más proteína": "Most protein", "Más baratas": "Cheapest", "Menos kcal": "Fewest kcal",
+    "Busca por plato o ingrediente": "Search by dish or ingredient",
+    "No hay recetas que coincidan con tu búsqueda.": "No recipes match your search.",
     // Perfil
     "Tu objetivo diario": "Your daily target",
     "kcal/día": "kcal/day",

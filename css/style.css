@@ -1360,3 +1360,11 @@ input:focus, select:focus { outline: 2px solid var(--coral); outline-offset: 1px
 .up-next-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
 .up-next-actions .btn { width: 100%; }
 @media (prefers-reduced-motion: reduce) { .up-next, .up-next.entering { transition: none; animation: none; } }
+.recipe-search {
+  display: flex; flex-direction: row; align-items: center; gap: 8px; margin-top: 12px; padding: 0 14px;
+  border-radius: 14px; background: var(--bg); border: 1px solid var(--border);
+}
+.recipe-search input { flex: 1; border: none; background: none; padding: 12px 0; font: inherit; color: var(--ink); outline: none; min-width: 0; }
+.recipe-search:focus-within { border-color: var(--coral); }
+.recipe-filters.sorts { margin-top: 8px; }
+.chip-btn.filter.sort.on { background: var(--coral); border-color: var(--coral); color: #fff; }
