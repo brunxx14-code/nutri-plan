@@ -446,6 +446,8 @@ input:focus, select:focus { outline: 2px solid var(--coral); outline-offset: 1px
 @keyframes fadeBg { from { opacity: 0; } to { opacity: 1; } }
 .sheet.closing .sheet-card { animation: sheetdown .22s ease-in forwards; }
 .sheet.closing .sheet-backdrop { animation: fadeBg .22s ease reverse forwards; }
+.sheet.closing.dragged .sheet-backdrop { animation: fadeOutBg .22s ease forwards; }
+@keyframes fadeOutBg { to { opacity: 0; } }
 @keyframes sheetdown { to { transform: translateY(100%); } }
 .sheet-handle { width: 36px; height: 4px; background: var(--border); border-radius: 999px; margin: 6px auto 14px; }
 .sheet-close { position: absolute; top: 12px; right: 16px; }

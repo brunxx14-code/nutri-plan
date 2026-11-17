@@ -1720,7 +1720,8 @@ function openSheet() {
   const card = sheet.querySelector(".sheet-card");
   const wasClosed = sheet.classList.contains("hidden") || sheet.classList.contains("closing");
   if (wasClosed && !sheet.contains(document.activeElement)) sheetOpener = document.activeElement;
-  sheet.classList.remove("hidden", "closing");
+  sheet.classList.remove("hidden", "closing", "dragged");
+  sheet.querySelector(".sheet-backdrop").style.opacity = "";
   card.style.transform = "";
   card.scrollTop = 0;
   try { document.getElementById("sheet-close").focus({ preventScroll: true }); } catch (e) { /* sin foco */ }
@@ -1742,8 +1743,9 @@ function closeSheet(fromHistory = false) {
   sheet.classList.add("closing");
   sheetCloseTimer = setTimeout(() => {
     sheet.classList.add("hidden");
-    sheet.classList.remove("closing");
+    sheet.classList.remove("closing", "dragged");
     sheet.querySelector(".sheet-card").style.transform = "";
+    sheet.querySelector(".sheet-backdrop").style.opacity = "";
     const opener = sheetOpener;
     sheetOpener = null;
     // solo si sigue en pantalla y nadie ha movido el foco a otro sitio
@@ -1804,7 +1806,9 @@ function trapSheetFocus(e) {
 
 /* Arrastrar la hoja hacia abajo la cierra (si está arriba del todo). */
 function bindSheetSwipe() {
-  const card = document.querySelector("#recipe-sheet .sheet-card");
+  const sheet = document.getElementById("recipe-sheet");
+  const card = sheet.querySelector(".sheet-card");
+  const backdrop = sheet.querySelector(".sheet-backdrop");
   let startY = null;
   let dy = 0;
   card.addEventListener("touchstart", (e) => {
@@ -1817,13 +1821,22 @@ function bindSheetSwipe() {
     if (dy > 0) {
       card.style.transition = "none";
       card.style.transform = `translateY(${dy}px)`;
+      // el fondo se aclara a medida que bajas la hoja
+      backdrop.style.transition = "none";
+      backdrop.style.opacity = String(1 - Math.min(dy / 500, 0.6));
     }
   }, { passive: true });
   card.addEventListener("touchend", () => {
     if (startY === null) return;
     card.style.transition = "";
-    if (dy > 110) closeSheet();
-    else card.style.transform = "";
+    backdrop.style.transition = "opacity .25s ease";
+    if (dy > 110) {
+      sheet.classList.add("dragged"); // cierra desde donde está, sin volver a oscurecerse
+      closeSheet();
+    } else {
+      card.style.transform = "";
+      backdrop.style.opacity = "";
+    }
     startY = null;
   });
 }
