@@ -1368,3 +1368,9 @@ input:focus, select:focus { outline: 2px solid var(--coral); outline-offset: 1px
 .recipe-search:focus-within { border-color: var(--coral); }
 .recipe-filters.sorts { margin-top: 8px; }
 .chip-btn.filter.sort.on { background: var(--coral); border-color: var(--coral); color: #fff; }
+
+/* ---------- Protector de racha ---------- */
+button.streak-chip { font: inherit; border: none; cursor: pointer; }
+.freeze-count { margin-left: 6px; padding-left: 6px; border-left: 1px solid currentColor; opacity: .85; font-size: .92em; }
+.cal-day.frozen { background: color-mix(in srgb, #4aa3df 35%, var(--card)); }
+.cal-day.frozen::after { content: "🧊"; position: absolute; bottom: 1px; right: 2px; font-size: 9px; }

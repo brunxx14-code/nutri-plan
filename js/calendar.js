@@ -30,7 +30,7 @@ function calendarMonth(offset) {
     const done = mealsDone(entry);
     const future = iso > today;
     if (!future && done >= MEALS_FOR_STREAK) { onPlan++; run++; best = Math.max(best, run); } else if (!future && iso !== today) run = 0;
-    cells.push({ d, iso, done, future, today: iso === today, water: (entry && entry.water) || 0, off: entry && entry.offPlan ? Object.keys(entry.offPlan).length : 0 });
+    cells.push({ d, iso, done, future, today: iso === today, frozen: !!(entry && entry.frozen), water: (entry && entry.water) || 0, off: entry && entry.offPlan ? Object.keys(entry.offPlan).length : 0 });
   }
   return { first, lead, cells, onPlan, best };
 }
@@ -51,7 +51,7 @@ function calendarCardHtml() {
         ${DAYS.map((_, i) => `<span class="cal-wd">${dayInitial(i)}</span>`).join("")}
         ${"<span></span>".repeat(m.lead)}
         ${m.cells.map((c, i) => `
-          <button type="button" class="cal-day lvl-${c.future ? "f" : c.done} ${c.today ? "today" : ""}" data-iso="${c.iso}" ${c.future ? "disabled" : ""} style="animation-delay:${i * 0.012}s">
+          <button type="button" class="cal-day lvl-${c.future ? "f" : c.done} ${c.today ? "today" : ""} ${c.frozen ? "frozen" : ""}" data-iso="${c.iso}" ${c.future ? "disabled" : ""} style="animation-delay:${i * 0.012}s">
             <span>${c.d}</span>${c.off ? '<i class="cal-off" aria-hidden="true"></i>' : ""}
           </button>`).join("")}
       </div>
@@ -91,7 +91,8 @@ function bindCalendarCard(root) {
         <b class="cal-date">${label}</b>
         <span>🍽️ ${mealsDone(entry)}/${MEAL_SLOTS.length} comidas</span>
         <span>💧 ${(entry && entry.water) || 0} vasos</span>
-        ${off ? `<span>🍔 ${off} fuera del plan</span>` : ""}`;
+        ${off ? `<span>🍔 ${off} fuera del plan</span>` : ""}
+        ${entry && entry.frozen ? "<span>🧊 Racha salvada con un protector</span>" : ""}`;
     });
   });
 }

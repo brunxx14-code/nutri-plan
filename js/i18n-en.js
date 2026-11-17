@@ -378,6 +378,11 @@ I18N.en = {
     "Recomendadas": "Recommended", "Más proteína": "Most protein", "Más baratas": "Cheapest", "Menos kcal": "Fewest kcal",
     "Busca por plato o ingrediente": "Search by dish or ingredient",
     "No hay recetas que coincidan con tu búsqueda.": "No recipes match your search.",
+    // Protector de racha
+    "Protectores de racha": "Streak freezes",
+    "Sube de nivel para ganar un protector de racha": "Level up to earn a streak freeze",
+    "1 protector de racha": "1 streak freeze",
+    "Racha salvada con un protector": "Streak saved with a freeze",
     // Perfil
     "Tu objetivo diario": "Your daily target",
     "kcal/día": "kcal/day",
@@ -489,6 +494,9 @@ I18N.en = {
     "{n} recetas que encajan con tu dieta. Guarda las que te gusten con el corazón.": "{n} recipes that fit your diet. Save the ones you like with the heart.",
     "{n} fuera del plan": "{n} off plan",
     "Ahora toca · {slot}": "Up next · {slot}",
+    "Protector usado: tu racha de {n} días sigue viva": "Freeze used: your {n}-day streak is still alive",
+    "Tienes {n} protector de racha: si un día fallas, salvan tu racha": "You have {n} streak freeze: if you miss a day, it saves your streak",
+    "Tienes {n} protectores de racha: si un día fallas, salvan tu racha": "You have {n} streak freezes: if you miss a day, they save your streak",
     // Genéricas al final: solo se usan si no encaja ninguna más concreta
     // Fechas, cantidades y unidades
     "{n} ud": "{n} pcs",

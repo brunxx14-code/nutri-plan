@@ -75,6 +75,7 @@ function reward(kind, anchor) {
   if (after.idx > before) {
     track(`nivel-${after.idx + 1}`);
     queueCelebration({ type: "level", ...after });
+    if (grantStreakFreeze()) setTimeout(() => showToast("🧊 +1 protector de racha"), 1200);
   }
 }
 
