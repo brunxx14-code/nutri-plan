@@ -32,6 +32,11 @@ const SOURCES = {
   ducrot: { label: "Ducrot 2017", title: "Ducrot P et al. Meal planning is associated with food variety, diet quality and body weight status in a large sample of French adults. Int J Behav Nutr Phys Act, 2017.", url: "https://doi.org/10.1186/s12966-017-0461-7" },
   dansinger: { label: "Dansinger 2005", title: "Dansinger ML et al. Comparison of the Atkins, Ornish, Weight Watchers, and Zone diets for weight loss and heart disease risk reduction. JAMA, 2005.", url: "https://doi.org/10.1001/jama.293.1.43" },
   lally: { label: "Lally 2010", title: "Lally P et al. How are habits formed: modelling habit formation in the real world. Eur J Soc Psychol, 2010.", url: "https://doi.org/10.1002/ejsp.674" },
+  eu_allergens: { label: "Reglamento UE 1169/2011", title: "Reglamento (UE) 1169/2011 sobre la información alimentaria facilitada al consumidor, anexo II: sustancias que causan alergias o intolerancias.", url: "https://eur-lex.europa.eu/legal-content/ES/TXT/?uri=CELEX:32011R1169" },
+  eu_gluten: { label: "Reglamento UE 828/2014", title: "Reglamento de Ejecución (UE) 828/2014 sobre la información a los consumidores de la ausencia o presencia reducida de gluten en los alimentos.", url: "https://eur-lex.europa.eu/legal-content/ES/TXT/?uri=CELEX:32014R0828" },
+  efsa_lactose: { label: "EFSA lactosa 2010", title: "EFSA. Scientific Opinion on lactose thresholds in lactose intolerance and galactosaemia. EFSA Journal, 2010.", url: "https://doi.org/10.2903/j.efsa.2010.1777" },
+  mariotti: { label: "Mariotti 2019", title: "Mariotti F, Gardner CD. Dietary protein and amino acids in vegetarian diets: a review. Nutrients, 2019.", url: "https://doi.org/10.3390/nu11112661" },
+  hevia: { label: "Hevia-Larraín 2021", title: "Hevia-Larraín V et al. High-protein plant-based diet versus a protein-matched omnivorous diet to support resistance training adaptations. Sports Med, 2021.", url: "https://doi.org/10.1007/s40279-021-01434-9" },
   usda: { label: "USDA FoodData Central", title: "Departamento de Agricultura de EE. UU. FoodData Central: composición de alimentos.", url: "https://fdc.nal.usda.gov/" },
 };
 
@@ -235,6 +240,11 @@ const FOODS = {
   crema_cacahuete: { name: "Crema de cacahuete",        section: "Despensa", unit: "g", price: 0.90, kcal: 588, prot: 25, carbs: 20, fat: 50,  cat: "grasa_saludable" },
   tofu:            { name: "Tofu firme",                section: "Despensa", unit: "g", price: 0.45, kcal: 144, prot: 17, carbs: 2.8, fat: 8.7, cat: "proteina_magra" },
   soja_texturizada:{ name: "Soja texturizada",          section: "Despensa", unit: "g", price: 0.80, kcal: 330, prot: 50, carbs: 18, fat: 1.5, cat: "legumbre" },
+  tempeh:          { name: "Tempeh",                    section: "Despensa", unit: "g", price: 1.25, kcal: 192, prot: 20, carbs: 7.6, fat: 10.8, cat: "proteina_magra" },
+  seitan:          { name: "Seitán",                    section: "Despensa", unit: "g", price: 0.88, kcal: 140, prot: 24, carbs: 5, fat: 2, cat: "proteina_magra" },
+  edamame:         { name: "Edamame congelado",         section: "Despensa", unit: "g", price: 0.50, kcal: 121, prot: 11.9, carbs: 8.9, fat: 5.2, cat: "legumbre" },
+  bebida_soja:     { name: "Bebida de soja sin azúcar", section: "Lácteos y huevos", unit: "ml", price: 0.11, kcal: 33, prot: 2.9, carbs: 1.7, fat: 1.6, cat: "proteina_magra" },
+  harina_garbanzo: { name: "Harina de garbanzo",        section: "Despensa", unit: "g", price: 0.40, kcal: 387, prot: 22, carbs: 58, fat: 6.7, cat: "legumbre" },
   miel:            { name: "Miel",                      section: "Despensa", unit: "g", price: 0.80, kcal: 304, prot: 0.3, carbs: 82, fat: 0,   cat: "condimento" },
 
   // Frutería
@@ -281,7 +291,7 @@ const RECIPES = [
   },
   {
     id: "yogur_manzana", name: "Yogur griego con manzana y almendras", mealType: "desayuno",
-    tags: ["vegetariano"],
+    tags: ["vegetariano", "sin_gluten"],
     ingredients: [["yogur_griego", 2], ["manzana", 150], ["almendras", 20]],
     steps: [
       "Corta la manzana en dados pequeños.",
@@ -411,7 +421,7 @@ const RECIPES = [
   },
   {
     id: "ensalada_garbanzos", name: "Ensalada de garbanzos, aguacate y queso fresco", mealType: "principal",
-    tags: ["vegetariano"],
+    tags: ["vegetariano", "sin_gluten"],
     ingredients: [["garbanzos", 150], ["aguacate", 1], ["queso_fresco", 100], ["tomate", 100], ["lechuga", 1]],
     steps: [
       "Mezcla los garbanzos escurridos con la lechuga y el tomate troceados.",
@@ -422,25 +432,25 @@ const RECIPES = [
 
   {
     id: "yogur_miel_almendras", name: "Yogur natural con miel y almendras", mealType: "merienda",
-    tags: ["vegetariano"],
+    tags: ["vegetariano", "sin_gluten"],
     ingredients: [["yogur_natural", 1], ["miel", 10], ["almendras", 10]],
     steps: ["Mezcla el yogur con la miel y corona con las almendras."]
   },
   {
     id: "manzana_cacahuete", name: "Manzana con crema de cacahuete", mealType: "merienda",
-    tags: ["vegano", "vegetariano", "economico"],
+    tags: ["vegano", "vegetariano", "economico", "sin_gluten"],
     ingredients: [["manzana", 150], ["crema_cacahuete", 20]],
     steps: ["Corta la manzana en gajos y acompaña con la crema de cacahuete para untar."]
   },
   {
     id: "queso_almendras", name: "Queso curado con almendras", mealType: "merienda",
-    tags: ["vegetariano"],
+    tags: ["vegetariano", "sin_gluten"],
     ingredients: [["queso_curado", 40], ["almendras", 15]],
     steps: ["Sirve el queso en dados junto con las almendras."]
   },
   {
     id: "batido_platano", name: "Batido de plátano y leche", mealType: "merienda",
-    tags: ["vegetariano"],
+    tags: ["vegetariano", "sin_gluten"],
     ingredients: [["platano", 120], ["leche_semi", 200], ["miel", 10]],
     steps: ["Bate el plátano con la leche y la miel hasta que quede cremoso."]
   },
@@ -624,8 +634,200 @@ const RECIPES = [
     tags: ["vegano", "vegetariano", "sin_gluten"],
     ingredients: [["yogur_soja", 2], ["almendras", 10]],
     steps: ["Sirve los yogures de soja con las almendras troceadas por encima."]
+  },
+  // Recetas sin gluten y con pocos alérgenos, para que haya plan aunque
+  // marques varias alergias a la vez (sobre todo en el desayuno).
+  {
+    id: "tortilla_garbanzo", name: "Tortilla de harina de garbanzo con espinacas", mealType: "desayuno",
+    tags: ["vegano", "vegetariano", "sin_gluten", "economico"],
+    ingredients: [["harina_garbanzo", 60], ["espinacas", 80], ["tomate", 80], ["aceite_oliva", 5]],
+    steps: [
+      "Mezcla la harina de garbanzo con 100 ml de agua y una pizca de sal hasta tener una masa sin grumos.",
+      "Saltea las espinacas con el aceite, vierte la masa por encima y cuaja 3-4 minutos por cada lado.",
+      "Sirve con el tomate en rodajas."
+    ]
+  },
+  {
+    id: "revuelto_tofu", name: "Revuelto de tofu con espinacas y patata", mealType: "desayuno",
+    tags: ["vegano", "vegetariano", "sin_gluten", "alto_proteina"],
+    ingredients: [["tofu", 150], ["espinacas", 60], ["patata", 150], ["aceite_oliva", 5]],
+    steps: [
+      "Corta la patata en dados pequeños y hazla en la sartén con el aceite, tapada, 10-12 minutos.",
+      "Desmenuza el tofu con un tenedor y añádelo con las espinacas y una pizca de sal y cúrcuma.",
+      "Remueve 3-4 minutos hasta que el tofu se caliente y las espinacas reduzcan."
+    ]
+  },
+  {
+    id: "huevos_boniato", name: "Huevos revueltos con boniato y aguacate", mealType: "desayuno",
+    tags: ["vegetariano", "sin_gluten"],
+    ingredients: [["huevos", 2], ["boniato", 150], ["aguacate", 0.5]],
+    steps: [
+      "Cuece el boniato en dados 5 minutos en el microondas tapado, o 10 minutos en agua hirviendo.",
+      "Haz los huevos revueltos en una sartén antiadherente a fuego suave.",
+      "Sirve con el boniato y el aguacate en láminas."
+    ]
+  },
+  {
+    id: "quinoa_fruta", name: "Quinoa con manzana, plátano y canela", mealType: "desayuno",
+    tags: ["vegano", "vegetariano", "sin_gluten", "economico"],
+    ingredients: [["quinoa", 50], ["manzana", 100], ["platano", 80]],
+    steps: [
+      "Lava la quinoa y cuécela 12-15 minutos en el doble de agua (puedes dejarla hecha la noche anterior).",
+      "Añade la manzana en dados, el plátano en rodajas y canela al gusto."
+    ]
+  },
+  {
+    id: "hummus_zanahoria", name: "Hummus casero con palitos de zanahoria", mealType: "merienda",
+    tags: ["vegano", "vegetariano", "sin_gluten", "economico"],
+    ingredients: [["garbanzos", 150], ["aceite_oliva", 8], ["limon", 0.5], ["ajo", 0.5], ["zanahoria", 120]],
+    steps: [
+      "Tritura los garbanzos escurridos con el aceite, el zumo de limón, el ajo, sal y un chorrito de agua hasta que quede cremoso.",
+      "Corta la zanahoria en bastones y úsalos para mojar."
+    ]
+  },
+  {
+    id: "huevos_duros_tomate", name: "Huevos duros con tomate y aceite", mealType: "merienda",
+    tags: ["vegetariano", "sin_gluten", "alto_proteina", "economico"],
+    ingredients: [["huevos", 2], ["tomate", 150], ["aceite_oliva", 3]],
+    steps: [
+      "Cuece los huevos 10 minutos, enfríalos en agua y pélalos.",
+      "Sirve con el tomate en rodajas, un hilo de aceite y sal."
+    ]  },
+  // Recetas veganas con mucha proteína: con las de antes, un plan vegano para
+  // perder grasa no llegaba a la proteína del día (ISSN 2017).
+  {
+    id: "tostada_tofu", name: "Tostadas con revuelto de tofu y tomate", mealType: "desayuno",
+    tags: ["vegano", "vegetariano", "alto_proteina", "economico"],
+    ingredients: [["tofu", 150], ["pan_integral", 60], ["tomate", 80], ["aceite_oliva", 3]],
+    steps: [
+      "Desmenuza el tofu y saltéalo 3-4 minutos con el aceite, sal y una pizca de cúrcuma.",
+      "Tuesta el pan, pon el tomate en rodajas y el revuelto por encima."
+    ]
+  },
+  {
+    id: "avena_bebida_soja", name: "Avena con bebida de soja, plátano y cacahuete", mealType: "desayuno",
+    tags: ["vegano", "vegetariano", "economico"],
+    ingredients: [["avena", 50], ["bebida_soja", 300], ["platano", 80], ["crema_cacahuete", 10]],
+    steps: [
+      "Cuece la avena en la bebida de soja 3-4 minutos, removiendo, hasta que espese.",
+      "Sirve con el plátano en rodajas y la crema de cacahuete por encima."
+    ]
+  },
+  {
+    id: "tempeh_brocoli", name: "Tempeh salteado con brócoli y arroz", mealType: "principal",
+    tags: ["vegano", "vegetariano", "sin_gluten", "alto_proteina"],
+    ingredients: [["tempeh", 120], ["arroz", 60], ["brocoli", 150], ["ajo", 1], ["aceite_oliva", 5]],
+    steps: [
+      "Cuece el arroz 15-18 minutos en agua con sal.",
+      "Corta el tempeh en dados y dóralo con el aceite y el ajo picado 5 minutos.",
+      "Añade el brócoli en ramilletes con un chorrito de agua, tapa y cocina 5 minutos más. Sirve con el arroz."
+    ]
+  },
+  {
+    id: "seitan_patata", name: "Seitán a la plancha con pimiento y patata", mealType: "principal",
+    tags: ["vegano", "vegetariano", "alto_proteina"],
+    ingredients: [["seitan", 150], ["pimiento", 100], ["patata", 200], ["aceite_oliva", 8]],
+    steps: [
+      "Cuece la patata en dados 12 minutos (o 6 minutos en el microondas tapada).",
+      "Haz el pimiento en tiras a la plancha con la mitad del aceite.",
+      "Marca el seitán en filetes 2-3 minutos por lado con el resto del aceite y sirve todo junto."
+    ]
+  },
+  {
+    id: "curry_garbanzo_tofu", name: "Curry de garbanzos y tofu con espinacas", mealType: "principal",
+    tags: ["vegano", "vegetariano", "sin_gluten", "alto_proteina", "economico"],
+    ingredients: [["garbanzos", 150], ["tofu", 120], ["espinacas", 80], ["tomate", 150], ["cebolla", 50], ["aceite_oliva", 5]],
+    steps: [
+      "Sofríe la cebolla picada con el aceite y una cucharadita de curry en polvo.",
+      "Añade el tomate triturado y el tofu en dados; cocina 8 minutos.",
+      "Incorpora los garbanzos escurridos y las espinacas y deja 3 minutos más."
+    ]
+  },
+  {
+    id: "soja_arroz_pimiento", name: "Arroz con soja texturizada y pimiento", mealType: "principal",
+    tags: ["vegano", "vegetariano", "sin_gluten", "alto_proteina", "economico"],
+    ingredients: [["soja_texturizada", 50], ["arroz", 60], ["pimiento", 100], ["tomate", 150], ["cebolla", 50], ["aceite_oliva", 5]],
+    steps: [
+      "Hidrata la soja texturizada 10 minutos en agua caliente y escúrrela.",
+      "Sofríe la cebolla y el pimiento con el aceite, añade la soja y el tomate y cocina 10 minutos.",
+      "Sirve con el arroz cocido."
+    ]
+  },
+  {
+    id: "edamame_quinoa", name: "Bol de quinoa con edamame y zanahoria", mealType: "principal",
+    tags: ["vegano", "vegetariano", "sin_gluten"],
+    ingredients: [["quinoa", 60], ["edamame", 150], ["zanahoria", 80], ["aguacate", 0.33], ["limon", 0.5]],
+    steps: [
+      "Cuece la quinoa 12-15 minutos y el edamame 4 minutos en agua hirviendo.",
+      "Ralla la zanahoria y corta el aguacate en dados.",
+      "Junta todo en un bol y aliña con zumo de limón y sal."
+    ]
+  },
+  {
+    id: "edamame_sal", name: "Edamame con sal y limón", mealType: "merienda",
+    tags: ["vegano", "vegetariano", "sin_gluten", "alto_proteina", "economico"],
+    ingredients: [["edamame", 150], ["limon", 0.25]],
+    steps: ["Cuece el edamame 4 minutos en agua hirviendo, escúrrelo y aliña con sal y unas gotas de limón."]
+  },
+  {
+    id: "batido_soja_platano", name: "Batido de bebida de soja y plátano", mealType: "merienda",
+    tags: ["vegano", "vegetariano", "sin_gluten", "economico"],
+    ingredients: [["bebida_soja", 300], ["platano", 100]],
+    steps: ["Tritura el plátano con la bebida de soja bien fría hasta que quede cremoso."]  },
+  {
+    id: "lentejas_seitan", name: "Lentejas estofadas con seitán", mealType: "principal",
+    tags: ["vegano", "vegetariano", "alto_proteina", "economico"],
+    ingredients: [["lentejas", 70], ["seitan", 80], ["zanahoria", 80], ["tomate", 100], ["cebolla", 50], ["aceite_oliva", 5]],
+    steps: [
+      "Sofríe la cebolla y la zanahoria picadas con el aceite, añade el tomate y el seitán en dados.",
+      "Incorpora las lentejas lavadas y agua hasta cubrir el doble; cuece 30-35 minutos a fuego suave (o usa lentejas de bote y 10 minutos)."
+    ]
+  },
+  {
+    id: "bocadillo_seitan", name: "Bocadillo integral de seitán y pimiento", mealType: "merienda",
+    tags: ["vegano", "vegetariano", "alto_proteina"],
+    ingredients: [["pan_integral", 60], ["seitan", 80], ["pimiento", 60], ["aceite_oliva", 3]],
+    steps: ["Marca el seitán en tiras con el pimiento y el aceite 3-4 minutos y rellena el pan."]
   }
 ];
+
+/* Alérgenos e intolerancias. Seguimos la lista de alérgenos de declaración
+   obligatoria en la UE (Reglamento 1169/2011, anexo II). Son una exclusión
+   estricta: a diferencia de los alimentos que no te gustan, el plan NUNCA los
+   relaja aunque queden pocas recetas. La avena cuenta como gluten salvo que
+   el envase diga "sin gluten" (Reglamento 828/2014). Para la intolerancia a
+   la lactosa quitamos leche, yogures y quesos frescos, pero no el queso
+   curado: casi no tiene lactosa y la EFSA (2010) ve tolerables hasta 12 g
+   de lactosa en una toma. */
+const ALLERGENS = {
+  gluten:       { label: "Gluten (celiaquía)", short: "gluten", emoji: "🌾", refs: ["eu_allergens", "eu_gluten"] },
+  leche:        { label: "Alergia a la leche", short: "leche", emoji: "🥛", refs: ["eu_allergens"] },
+  lactosa:      { label: "Intolerancia a la lactosa", short: "lactosa", emoji: "🧀", refs: ["efsa_lactose"] },
+  huevo:        { label: "Huevo", short: "huevo", emoji: "🥚", refs: ["eu_allergens"] },
+  pescado:      { label: "Pescado", short: "pescado", emoji: "🐟", refs: ["eu_allergens"] },
+  marisco:      { label: "Marisco", short: "marisco", emoji: "🦐", refs: ["eu_allergens"] },
+  frutos_secos: { label: "Frutos secos", short: "frutos secos", emoji: "🌰", refs: ["eu_allergens"] },
+  cacahuete:    { label: "Cacahuete", short: "cacahuete", emoji: "🥜", refs: ["eu_allergens"] },
+  soja:         { label: "Soja", short: "soja", emoji: "🫘", refs: ["eu_allergens"] },
+};
+
+/* Qué alérgenos lleva cada alimento del catálogo (los que no salen aquí no
+   llevan ninguno de la lista). */
+const FOOD_ALLERGENS = {
+  pasta: ["gluten"], avena: ["gluten"], pan_integral: ["gluten"],
+  leche_semi: ["leche", "lactosa"], yogur_griego: ["leche", "lactosa"], yogur_natural: ["leche", "lactosa"],
+  queso_fresco: ["leche", "lactosa"], queso_curado: ["leche"],
+  huevos: ["huevo"], claras_huevo: ["huevo"],
+  salmon: ["pescado"], merluza: ["pescado"], atun_lata: ["pescado"], gambas: ["marisco"],
+  almendras: ["frutos_secos"], crema_cacahuete: ["cacahuete"],
+  tofu: ["soja"], soja_texturizada: ["soja"], yogur_soja: ["soja"],
+  tempeh: ["soja"], edamame: ["soja"], bebida_soja: ["soja"], seitan: ["gluten"],
+};
+
+/* Dietas además de vegetariana y vegana. "Sin cerdo" y "halal" quitan el
+   cerdo; en halal además recordamos comprar la carne con sello halal, porque
+   eso depende de cómo se ha sacrificado el animal y no del alimento. */
+const PORK_FOODS = ["lomo_cerdo"];
 
 /* Cadenas de supermercado con un índice de precio aproximado respecto a
    Mercadona (1.00), a partir de las comparativas anuales de precios de cesta
@@ -659,7 +861,7 @@ const FOOD_EMOJI = {
   salmon: "🐟", merluza: "🐟", gambas: "🦐", atun_lata: "🥫",
   huevos: "🥚", leche_semi: "🥛", yogur_griego: "🥣", yogur_natural: "🥣", queso_fresco: "🧀", queso_curado: "🧀", claras_huevo: "🥚", yogur_soja: "🥣",
   arroz: "🍚", pasta: "🍝", avena: "🌾", quinoa: "🌾", lentejas: "🫘", garbanzos: "🫘", pan_integral: "🍞",
-  aceite_oliva: "🫒", almendras: "🌰", crema_cacahuete: "🥜", tofu: "⬜", soja_texturizada: "🫘", miel: "🍯",
+  aceite_oliva: "🫒", almendras: "🌰", crema_cacahuete: "🥜", tofu: "⬜", soja_texturizada: "🫘", harina_garbanzo: "🫘", tempeh: "🟫", seitan: "🥩", edamame: "🫛", bebida_soja: "🥛", miel: "🍯",
   platano: "🍌", manzana: "🍎", aguacate: "🥑", tomate: "🍅", brocoli: "🥦", espinacas: "🥬", pimiento: "🫑",
   cebolla: "🧅", limon: "🍋", ajo: "🧄", lechuga: "🥬", calabacin: "🥒", zanahoria: "🥕", patata: "🥔", boniato: "🍠",
 };

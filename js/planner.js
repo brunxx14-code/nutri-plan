@@ -32,13 +32,36 @@ function getRecipeInfo(recipeId) {
   return RECIPE_CACHE[recipeId];
 }
 
+function recipeFoodIds(recipe) {
+  return recipe.ingredients.map(([id]) => id);
+}
+
+/* Alérgenos que lleva una receta, sin repetir, en el orden de ALLERGENS. */
+function recipeAllergens(recipe) {
+  const found = new Set();
+  for (const id of recipeFoodIds(recipe)) for (const a of FOOD_ALLERGENS[id] || []) found.add(a);
+  return Object.keys(ALLERGENS).filter((a) => found.has(a));
+}
+
+function isAllergenSafe(recipe, allergies) {
+  if (!allergies || !allergies.length) return true;
+  return !recipeAllergens(recipe).some((a) => allergies.includes(a));
+}
+
+function fitsDiet(recipe, dietType) {
+  if (dietType === "vegetariano" || dietType === "vegano") return recipe.tags.includes(dietType);
+  if (dietType === "sin_cerdo" || dietType === "halal") {
+    return !recipeFoodIds(recipe).some((id) => PORK_FOODS.includes(id));
+  }
+  return true;
+}
+
 function matchesProfile(recipe, profile) {
-  const { dietType, dislikes } = profile;
-  if (dietType === "vegetariano" && !recipe.tags.includes("vegetariano")) return false;
-  if (dietType === "vegano" && !recipe.tags.includes("vegano")) return false;
+  const { dietType, dislikes, allergies } = profile;
+  if (!fitsDiet(recipe, dietType)) return false;
+  if (!isAllergenSafe(recipe, allergies)) return false;
   if (dislikes && dislikes.length) {
-    const ingredientIds = recipe.ingredients.map(([id]) => id);
-    if (ingredientIds.some((id) => dislikes.includes(id))) return false;
+    if (recipeFoodIds(recipe).some((id) => dislikes.includes(id))) return false;
   }
   return true;
 }
@@ -100,15 +123,14 @@ function generateWeeklyPlan(profile, targetKcal, favorites = []) {
   for (const recipe of RECIPES) {
     if (matchesProfile(recipe, profile)) poolByType[recipe.mealType].push(recipe.id);
   }
-  // Si las restricciones dejan algún hueco vacío, relajamos los "dislikes" para no bloquear la app.
+  // Si las restricciones dejan algún hueco vacío, relajamos primero los
+  // "dislikes" y después la dieta, pero las alergias nunca: son de seguridad.
   for (const type of Object.keys(poolByType)) {
+    const safe = RECIPES.filter((r) => r.mealType === type && isAllergenSafe(r, profile.allergies));
     if (poolByType[type].length === 0) {
-      poolByType[type] = RECIPES.filter((r) => r.mealType === type &&
-        (profile.dietType === "omnivoro" || r.tags.includes(profile.dietType))).map((r) => r.id);
+      poolByType[type] = safe.filter((r) => fitsDiet(r, profile.dietType)).map((r) => r.id);
     }
-    if (poolByType[type].length === 0) {
-      poolByType[type] = RECIPES.filter((r) => r.mealType === type).map((r) => r.id);
-    }
+    if (poolByType[type].length === 0) poolByType[type] = safe.map((r) => r.id);
   }
 
   // las favoritas cuentan doble: salen más a menudo sin repetir el plan entero
@@ -282,6 +304,15 @@ function swapAlternatives(recipeId, profile, limit = 5) {
     .map((a) => a.info);
 }
 
+/* Un extra de proteína que esta persona pueda tomar según su dieta y alergias. */
+function proteinSide(profile) {
+  const allergies = profile.allergies || [];
+  const noDairy = profile.dietType === "vegano" || allergies.includes("leche") || allergies.includes("lactosa");
+  if (!noDairy) return "un yogur o un vaso de leche";
+  if (!allergies.includes("soja")) return "un yogur de soja o un vaso de bebida de soja";
+  return "una ración de legumbre";
+}
+
 /* Explica por qué esta receta encaja en el plan de esta persona, con las
    fuentes que lo respaldan. Devuelve una lista de { text, refs }.
    factor = cuánto se ha escalado la ración para ese día. */
@@ -312,7 +343,7 @@ function explainRecipe(recipe, info, profile, slotLabel, factor = 1) {
     if (prot >= dose * 0.8) {
       add(`Con ${prot} g llegas a la cantidad de proteína por comida (unos ${dose} g para ti) que mejor aprovecha el músculo.`, ["schoenfeld_aragon"]);
     } else if (profile.goal !== "mantener") {
-      add(`Para aprovechar mejor la proteína conviene llegar a unos ${dose} g por comida; si te apetece, acompáñalo de un yogur o un vaso de leche.`, ["schoenfeld_aragon"]);
+      add(`Para aprovechar mejor la proteína conviene llegar a unos ${dose} g por comida; si te apetece, acompáñalo de ${proteinSide(profile)}.`, ["schoenfeld_aragon"]);
     }
   }
 
@@ -328,6 +359,10 @@ function explainRecipe(recipe, info, profile, slotLabel, factor = 1) {
   if (mainIngredient) {
     const role = FOOD_ROLES[mainIngredient.food.cat];
     add(`${mainIngredient.food.name} es tu ${role.label.toLowerCase()} principal aquí: ${role.why.toLowerCase()}`, role.refs);
+  }
+
+  if (profile.dietType === "vegano" && recipe.mealType === "principal") {
+    add("La proteína vegetal se aprovecha un poco peor, pero mezclando legumbres, soja y cereales durante el día y llegando a tu proteína diaria se gana músculo igual que con proteína animal.", ["mariotti", "hevia"]);
   }
 
   const hasVeg = recipe.ingredients.some(([id]) => ["verdura", "legumbre", "fruta"].includes(FOODS[id].cat));
