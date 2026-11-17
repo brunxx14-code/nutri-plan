@@ -1677,13 +1677,20 @@ function sheetIsOpen() {
   return !sheet.classList.contains("hidden") && !sheet.classList.contains("closing");
 }
 
+/* Foco: al abrir la hoja pasa a la ✕ y al cerrarla vuelve a lo que la abrió,
+   así quien usa teclado o lector de pantalla no se queda perdido detrás. */
+let sheetOpener = null;
+
 function openSheet() {
   clearTimeout(sheetCloseTimer);
   const sheet = document.getElementById("recipe-sheet");
   const card = sheet.querySelector(".sheet-card");
+  const wasClosed = sheet.classList.contains("hidden") || sheet.classList.contains("closing");
+  if (wasClosed && !sheet.contains(document.activeElement)) sheetOpener = document.activeElement;
   sheet.classList.remove("hidden", "closing");
   card.style.transform = "";
   card.scrollTop = 0;
+  try { document.getElementById("sheet-close").focus({ preventScroll: true }); } catch (e) { /* sin foco */ }
   if (ignoreNextPop) repushAfterPop = true;
   else if (!sheetInHistory) {
     try { history.pushState({ nutriSheet: true }, ""); sheetInHistory = true; } catch (e) { /* sin historial */ }
@@ -1704,6 +1711,13 @@ function closeSheet(fromHistory = false) {
     sheet.classList.add("hidden");
     sheet.classList.remove("closing");
     sheet.querySelector(".sheet-card").style.transform = "";
+    const opener = sheetOpener;
+    sheetOpener = null;
+    // solo si sigue en pantalla y nadie ha movido el foco a otro sitio
+    if (opener && opener.isConnected && opener.offsetParent && opener !== document.body &&
+        (sheet.contains(document.activeElement) || document.activeElement === document.body)) {
+      try { opener.focus({ preventScroll: true }); } catch (e) { /* sin foco */ }
+    }
   }, prefersReducedMotion() ? 0 : 220);
 }
 
