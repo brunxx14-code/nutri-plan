@@ -1340,3 +1340,23 @@ input:focus, select:focus { outline: 2px solid var(--coral); outline-offset: 1px
 .cal-stats b { font-size: 22px; font-weight: 800; }
 .cal-stats span { font-size: 12.5px; color: var(--muted); font-weight: 600; }
 @media (prefers-reduced-motion: reduce) { .cal-day { animation: none; } }
+
+/* ---------- Ahora toca ---------- */
+.up-next {
+  background: var(--card); border: 1px solid var(--border); border-radius: 24px; padding: 14px; margin-bottom: 16px;
+  box-shadow: 0 6px 20px rgba(0,0,0,.05); position: relative; overflow: hidden;
+  transition: opacity .26s ease, transform .26s ease;
+}
+.up-next::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: linear-gradient(var(--coral), var(--amber)); }
+.up-next.leaving { opacity: 0; transform: translateX(-30px); }
+.up-next.entering { animation: up-next-in .35s cubic-bezier(.2,.8,.2,1); }
+@keyframes up-next-in { from { opacity: 0; transform: translateX(30px); } }
+.up-next-main { display: flex; gap: 12px; align-items: center; width: 100%; background: none; border: none; padding: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.up-next-main .photo-thumb { flex: none; width: 64px; height: 64px; border-radius: 16px; }
+.up-next-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.up-next-kicker { font-size: 12px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--coral); }
+.up-next-name { font-weight: 800; font-size: 16px; line-height: 1.25; }
+.up-next-meta { font-size: 13px; color: var(--muted); }
+.up-next-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+.up-next-actions .btn { width: 100%; }
+@media (prefers-reduced-motion: reduce) { .up-next, .up-next.entering { transition: none; animation: none; } }

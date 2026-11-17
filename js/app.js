@@ -268,6 +268,63 @@ function nextMealSlot(entry) {
   return pending.find((k) => order.indexOf(k) >= start) || pending[pending.length - 1];
 }
 
+/* Tarjeta "Ahora toca": la siguiente comida con acceso directo a cocinarla
+   o marcarla, para que abrir la app lleve a hacer algo. */
+const UP_NEXT_HINT = { desayuno: "Empieza el día con energía", comida: "La comida fuerte del día", merienda: "Un picoteo que suma", cena: "Cierra el día bien" };
+
+function upNextCardHtml() {
+  const slotKey = nextMealSlot(dailyEntry());
+  if (!slotKey) return `<div id="up-next" class="up-next-empty"></div>`;
+  const slot = MEAL_SLOTS.find((s) => s.key === slotKey);
+  const dayIdx = todayPlanIndex();
+  const info = getRecipeInfo(state.plan[dayIdx][slotKey]);
+  const factor = dayFactor(dayIdx);
+  return `
+    <div class="up-next" id="up-next" data-slot="${slotKey}">
+      <button type="button" class="up-next-main" data-upnext-open>
+        ${recipePhoto(info.recipe.id, { width: 160, className: `photo-thumb big ${slotKey}`, fallback: mealEmoji(slotKey) })}
+        <span class="up-next-text">
+          <span class="up-next-kicker">⏰ Ahora toca · ${slot.label}</span>
+          <span class="up-next-name">${info.recipe.name}</span>
+          <span class="up-next-meta">${Math.round(info.kcal * factor)} kcal · <span>${UP_NEXT_HINT[slotKey]}</span></span>
+        </span>
+      </button>
+      <div class="up-next-actions">
+        <button type="button" class="btn small" data-upnext-cook>👩‍🍳 Cocinar</button>
+        <button type="button" class="btn secondary small" data-upnext-done>✓ Ya la hice</button>
+      </div>
+    </div>`;
+}
+
+function bindUpNextCard(root) {
+  const card = root.querySelector("#up-next");
+  if (!card || !card.dataset.slot) return;
+  const slotKey = card.dataset.slot;
+  card.querySelector("[data-upnext-open]").addEventListener("click", () => openRecipeSheet(todayPlanIndex(), slotKey));
+  card.querySelector("[data-upnext-cook]").addEventListener("click", () => openCookMode(todayPlanIndex(), slotKey));
+  card.querySelector("[data-upnext-done]").addEventListener("click", () => {
+    const btn = document.querySelector(`#dashboard-content [data-eat="${slotKey}"]`);
+    if (btn) btn.click();
+  });
+}
+
+/* Tras marcar una comida, la tarjeta pasa a la siguiente con una transición. */
+function refreshUpNext() {
+  const old = document.getElementById("up-next");
+  if (!old) return;
+  const next = nextMealSlot(dailyEntry());
+  if ((old.dataset.slot || null) === next) return;
+  old.classList.add("leaving");
+  setTimeout(() => {
+    const cur = document.getElementById("up-next");
+    if (!cur) return;
+    cur.outerHTML = upNextCardHtml();
+    const fresh = document.getElementById("up-next");
+    fresh.classList.add("entering");
+    bindUpNextCard(fresh.parentNode);
+  }, prefersReducedMotion() ? 0 : 260);
+}
+
 function welcomeMessage(entry) {
   const streak = currentStreak();
   const done = mealsDone(entry);
@@ -659,6 +716,7 @@ function renderDashboard() {
       ${renderStreakChip()}
       ${levelChipHtml()}
     </div>
+    ${upNextCardHtml()}
     <div class="ring-card">
       <div class="ring-wrap">
         <svg class="ring-svg" viewBox="0 0 160 160">
@@ -703,6 +761,7 @@ function renderDashboard() {
     </div>
   `;
   el.querySelectorAll("[data-goto]").forEach((b) => b.addEventListener("click", () => showView(b.dataset.goto)));
+  bindUpNextCard(el);
   bindTodayCard();
   bindLevelChip(el);
   bindProgressCard();
@@ -1020,6 +1079,7 @@ function bindTodayCard() {
         engage.mealEaten(slotKey, btn);
       }
       updateTodayProgress(false);
+      refreshUpNext();
 
       const nowComplete = mealsDone(entry) >= MEALS_FOR_STREAK;
       document.getElementById("streak-chip").outerHTML = renderStreakChip();
