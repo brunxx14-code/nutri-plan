@@ -1491,6 +1491,7 @@ function openRecipeSheet(dayIdx, slotKey) {
   body.innerHTML = `
     ${recipePhoto(r.id, { width: 700, className: "photo-hero", fallback: mealEmoji(slotKey) })}
     ${favButtonHtml(r.id)}
+    ${shareButtonHtml(r.id)}
     <h3>${r.name}</h3>
     <div class="modal-tags">${r.tags.map((t) => `<span class="tag ${TAG_COLOR_CLASS[t] || ""}">${t.replace("_", " ")}</span>`).join("")}</div>
     <div class="macro-tiles">
@@ -1525,6 +1526,7 @@ function openRecipeSheet(dayIdx, slotKey) {
   document.getElementById("swap-open-btn").addEventListener("click", () => openSwapSheet(dayIdx, slotKey));
   document.getElementById("cook-open-btn").addEventListener("click", () => openCookMode(dayIdx, slotKey));
   bindFavButtons(body);
+  bindShareRecipe(body, factor);
   openSheet();
 }
 
