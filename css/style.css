@@ -1379,3 +1379,18 @@ button.streak-chip { font: inherit; border: none; cursor: pointer; }
   border: none; background: rgba(255,255,255,.92); font-size: 17px; line-height: 1; cursor: pointer;
   box-shadow: 0 4px 14px rgba(0,0,0,.12);
 }
+
+/* ---------- Vista previa en el formulario ---------- */
+.wizard-preview {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+  margin: 4px 0 12px; padding: 12px 16px; border-radius: 18px; position: sticky; bottom: 10px; z-index: 3;
+  box-shadow: 0 8px 24px rgba(0,0,0,.12); border: 1px solid color-mix(in srgb, var(--coral) 25%, transparent);
+  background: var(--coral-light); color: var(--coral-dark); animation: riseIn .35s ease both;
+}
+.wizard-preview.hidden { display: none; }
+.wp-main { display: flex; flex-direction: column; }
+.wp-label { font-size: 11.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; opacity: .8; }
+.wp-kcal { font-size: 15px; font-weight: 700; }
+.wp-kcal b { font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.wp-macros { display: flex; gap: 10px; font-size: 13px; font-weight: 700; }
+.wp-macros b { font-variant-numeric: tabular-nums; }

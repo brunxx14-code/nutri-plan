@@ -387,6 +387,7 @@ I18N.en = {
     "Receta copiada, ¡pégala donde quieras!": "Recipe copied, paste it anywhere!",
     "Receta de NutriPlan. Crea tu plan de comidas gratis:": "Recipe from NutriPlan. Create your free meal plan:",
     "proteína": "protein",
+    "Tu objetivo diario": "Your daily target",
     // Perfil
     "Tu objetivo diario": "Your daily target",
     "kcal/día": "kcal/day",
