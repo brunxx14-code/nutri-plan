@@ -368,6 +368,13 @@ I18N.en = {
     "Menos": "Less", "Más": "More",
     "Toca un día para ver el detalle": "Tap a day to see the details",
     "días cumplidos": "days on plan", "mejor racha": "best streak",
+    // Ahora toca
+    "Empieza el día con energía": "Start the day with energy",
+    "La comida fuerte del día": "The main meal of the day",
+    "Un picoteo que suma": "A snack that counts",
+    "Cierra el día bien": "End the day well",
+    "Cocinar": "Cook",
+    "Ya la hice": "Done it",
     // Perfil
     "Tu objetivo diario": "Your daily target",
     "kcal/día": "kcal/day",
@@ -478,6 +485,7 @@ I18N.en = {
     "¡Tiempo! Paso {n} listo": "Time's up! Step {n} done",
     "{n} recetas que encajan con tu dieta. Guarda las que te gusten con el corazón.": "{n} recipes that fit your diet. Save the ones you like with the heart.",
     "{n} fuera del plan": "{n} off plan",
+    "Ahora toca · {slot}": "Up next · {slot}",
     // Genéricas al final: solo se usan si no encaja ninguna más concreta
     // Fechas, cantidades y unidades
     "{n} ud": "{n} pcs",
