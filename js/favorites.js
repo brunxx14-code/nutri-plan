@@ -75,19 +75,59 @@ function recipeListItemHtml(info, today, factor) {
     </div>`;
 }
 
-let recipesSheetView = { tab: "fav", filter: "all" };
+let recipesSheetView = { tab: "fav", filter: "all", sort: "rec", query: "" };
+
+const RECIPE_SORTS = [
+  { key: "rec", label: "✨ Recomendadas" },
+  { key: "prot", label: "💪 Más proteína" },
+  { key: "cost", label: "💶 Más baratas" },
+  { key: "kcal", label: "🔥 Menos kcal" },
+];
+
+function normalizeText(t) {
+  return t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+/* Busca en el nombre de la receta y en sus ingredientes. */
+function recipeMatches(recipe, query) {
+  if (!query) return true;
+  const words = normalizeText(query).split(/\s+/).filter(Boolean);
+  const haystack = normalizeText([recipe.name, ...recipe.ingredients.map(([id]) => FOODS[id].name)].join(" "));
+  return words.every((w) => haystack.includes(w));
+}
+
+function recipesForView() {
+  const { tab, filter, sort, query } = recipesSheetView;
+  const list = RECIPES.filter((r) => matchesProfile(r, state.profile))
+    .filter((r) => tab !== "fav" || isFavorite(r.id))
+    .filter((r) => filter === "all" || r.mealType === filter)
+    .filter((r) => tab !== "all" || recipeMatches(r, query))
+    .map((r) => getRecipeInfo(r.id));
+  const by = {
+    prot: (a, b) => b.prot / b.kcal - a.prot / a.kcal,
+    cost: (a, b) => a.cost - b.cost,
+    kcal: (a, b) => a.kcal - b.kcal,
+  }[sort];
+  if (tab === "all" && by) list.sort(by);
+  return list;
+}
+
+function recipesResultsHtml(list, today, factor) {
+  const { tab, query } = recipesSheetView;
+  if (!list.length) return `<p class="hint fav-none">${tab === "all" && query ? "No hay recetas que coincidan con tu búsqueda." : "No hay recetas de este tipo."}</p>`;
+  return `
+    ${tab === "fav" ? `<p class="hint">Salen más a menudo cuando regeneras el plan. También puedes ponerlas hoy mismo.</p>` : `<p class="hint">${list.length} recetas que encajan con tu dieta. Guarda las que te gusten con el corazón.</p>`}
+    <div class="fav-list">${list.map((info) => recipeListItemHtml(info, today, factor)).join("")}</div>`;
+}
 
 function openFavoritesSheet(view) {
   if (view) recipesSheetView = { ...recipesSheetView, ...view };
-  const { tab, filter } = recipesSheetView;
+  const { tab, filter, sort, query } = recipesSheetView;
   track(tab === "fav" ? "favoritas-vistas" : "recetario-visto");
   const today = todayPlanIndex();
   const factor = dayFactor(today);
-  const fitting = RECIPES.filter((r) => matchesProfile(r, state.profile));
-  const favCount = fitting.filter((r) => isFavorite(r.id)).length;
-  const list = (tab === "fav" ? fitting.filter((r) => isFavorite(r.id)) : fitting)
-    .filter((r) => filter === "all" || r.mealType === filter)
-    .map((r) => getRecipeInfo(r.id));
+  const favCount = RECIPES.filter((r) => matchesProfile(r, state.profile) && isFavorite(r.id)).length;
+  const list = recipesForView();
   const body = document.getElementById("sheet-body");
   body.innerHTML = `
     <h3>📖 Tus recetas</h3>
@@ -95,31 +135,60 @@ function openFavoritesSheet(view) {
       <button type="button" role="tab" class="seg-btn ${tab === "fav" ? "on" : ""}" data-tab="fav" aria-selected="${tab === "fav"}">❤️ Favoritas${favCount ? ` <span class="seg-count">${favCount}</span>` : ""}</button>
       <button type="button" role="tab" class="seg-btn ${tab === "all" ? "on" : ""}" data-tab="all" aria-selected="${tab === "all"}">📖 Recetario</button>
     </div>
+    ${tab === "all" ? `
+      <label class="recipe-search">
+        <span aria-hidden="true">🔍</span>
+        <input type="search" id="recipe-search" placeholder="Busca por plato o ingrediente" value="${query.replace(/"/g, "&quot;")}" autocomplete="off">
+      </label>` : ""}
     ${tab === "all" || favCount ? `<div class="recipe-filters">
       ${RECIPE_FILTERS.map((f) => `<button type="button" class="chip-btn filter ${f.key === filter ? "on" : ""}" data-filter="${f.key}">${f.label}</button>`).join("")}
     </div>` : ""}
-    ${list.length ? `
-      ${tab === "fav" ? `<p class="hint">Salen más a menudo cuando regeneras el plan. También puedes ponerlas hoy mismo.</p>` : `<p class="hint">${list.length} recetas que encajan con tu dieta. Guarda las que te gusten con el corazón.</p>`}
-      <div class="fav-list">${list.map((info) => recipeListItemHtml(info, today, factor)).join("")}</div>` : tab === "fav" && !favCount ? `
+    ${tab === "all" ? `<div class="recipe-filters sorts">
+      ${RECIPE_SORTS.map((o) => `<button type="button" class="chip-btn filter sort ${o.key === sort ? "on" : ""}" data-sort="${o.key}">${o.label}</button>`).join("")}
+    </div>` : ""}
+    ${tab === "fav" && !favCount ? `
       <div class="fav-empty">
         <div class="fav-empty-heart">🤍</div>
         <p>Aún no tienes favoritas. Toca el corazón de cualquier receta para guardarla aquí.</p>
         <button type="button" class="btn secondary" data-tab="all">📖 Ver el recetario</button>
-      </div>` : `<p class="hint fav-none">No hay recetas de este tipo.</p>`}
+      </div>` : `<div id="recipes-results">${recipesResultsHtml(list, today, factor)}</div>`}
   `;
+  bindRecipeResults(body, today);
+  body.querySelectorAll("[data-sort]").forEach((btn) => btn.addEventListener("click", () => {
+    buzz(6);
+    openFavoritesSheet({ sort: btn.dataset.sort });
+  }));
+  const search = body.querySelector("#recipe-search");
+  if (search) {
+    let timer = null;
+    search.addEventListener("input", () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        recipesSheetView.query = search.value.trim();
+        const box = body.querySelector("#recipes-results");
+        box.innerHTML = recipesResultsHtml(recipesForView(), today, dayFactor(today));
+        bindRecipeResults(box, today);
+      }, 120);
+    });
+    search.addEventListener("change", () => { if (search.value.trim()) track("receta-buscada"); });
+  }
   body.querySelectorAll("[data-tab]").forEach((btn) => btn.addEventListener("click", () => {
     buzz(6);
-    openFavoritesSheet({ tab: btn.dataset.tab, filter: "all" });
+    openFavoritesSheet({ tab: btn.dataset.tab, filter: "all", query: "" });
   }));
   body.querySelectorAll("[data-filter]").forEach((btn) => btn.addEventListener("click", () => {
     buzz(6);
     openFavoritesSheet({ filter: btn.dataset.filter });
   }));
-  bindFavButtons(body, () => {
+  openSheet();
+}
+
+function bindRecipeResults(root, today) {
+  bindFavButtons(root, () => {
     if (recipesSheetView.tab === "fav") openFavoritesSheet();
-    else updateFavCount(body);
+    else updateFavCount(document.getElementById("sheet-body"));
   });
-  body.querySelectorAll("[data-put]").forEach((btn) => {
+  root.querySelectorAll("[data-put]").forEach((btn) => {
     btn.addEventListener("click", () => {
       state.plan[today][btn.dataset.slot] = btn.dataset.put;
       saveState();
@@ -132,7 +201,6 @@ function openFavoritesSheet(view) {
       openRecipeSheet(today, btn.dataset.slot);
     });
   });
-  openSheet();
 }
 
 function updateFavCount(body) {
