@@ -64,7 +64,7 @@ function recipeListItemHtml(info, today, factor) {
       ${recipePhoto(info.recipe.id, { width: 120, className: "photo-thumb", fallback: mealEmoji(slots[0].key) })}
       <div class="fav-info">
         <span class="fav-name">${info.recipe.name}</span>
-        <span class="fav-meta">${Math.round(info.kcal * factor)} kcal · ${Math.round(info.prot * factor)} g prot · ${(info.cost * factor).toFixed(2)} €</span>
+        <span class="fav-meta">${Math.round(info.kcal * factor)} kcal · ${Math.round(info.prot * factor)} g prot · ${euro(info.cost * factor)} €</span>
         <div class="fav-actions">
           ${slots.map((s) => state.plan[today][s.key] === info.recipe.id
             ? `<span class="fav-today">✓ En tu ${s.label.toLowerCase()} de hoy</span>`

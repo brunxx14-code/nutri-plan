@@ -278,6 +278,12 @@ function formatUnits(qty, buy) {
   return whole && frac ? `${whole}${frac}` : whole ? String(whole) : frac;
 }
 
+/* Euros con dos decimales: coma en español (0,72 €), punto en inglés (0.72 €). */
+function euro(n) {
+  const s = Number(n).toFixed(2);
+  return typeof currentLang === "undefined" || currentLang === "es" ? s.replace(".", ",") : s;
+}
+
 function formatQty(qty, unit, { buy = false } = {}) {
   if (unit === "ud") return `${formatUnits(qty, buy)} ud`;
   if (unit === "ml") return qty >= 1000 ? `${(qty / 1000).toFixed(2)} l` : `${Math.round(qty)} ml`;

@@ -768,11 +768,11 @@ function renderDashboard() {
     budgetHtml = `
       <div class="budget-banner ${ok ? "ok" : "warn"}">
         ${ok
-          ? `🛒 <b>${grandTotal.toFixed(2)} €</b> esta semana · ✅ dentro de tus ${profile.weeklyBudget} €`
-          : `🛒 <b>${grandTotal.toFixed(2)} €</b> esta semana · ⚠️ ${Math.abs(diff).toFixed(2)} € por encima, prueba 🔄 en Plan`}
+          ? `🛒 <b>${euro(grandTotal)} €</b> esta semana · ✅ dentro de tus ${profile.weeklyBudget} €`
+          : `🛒 <b>${euro(grandTotal)} €</b> esta semana · ⚠️ ${euro(Math.abs(diff))} € por encima, prueba 🔄 en Plan`}
       </div>`;
   } else {
-    budgetHtml = `<div class="budget-banner ok">🛒 <b>${grandTotal.toFixed(2)} €</b> de compra esta semana</div>`;
+    budgetHtml = `<div class="budget-banner ok">🛒 <b>${euro(grandTotal)} €</b> de compra esta semana</div>`;
   }
 
   el.innerHTML = `
@@ -1586,7 +1586,7 @@ function renderPlanDays() {
             <div class="meal-info">
               <div class="slot-label">${slot.label}${isFavorite(info.recipe.id) ? ` <span class="fav-mark" aria-label="Favorita">❤️</span>` : ""}</div>
               <div class="recipe-name">${info.recipe.name}</div>
-              <div class="kcal">${Math.round(info.kcal * factor)} kcal · ${(info.cost * factor).toFixed(2)} €</div>
+              <div class="kcal">${Math.round(info.kcal * factor)} kcal · ${euro(info.cost * factor)} €</div>
             </div>
             <div class="chevron-right" aria-hidden="true">›</div>
           </div>`;
@@ -1629,7 +1629,7 @@ function openRecipeSheet(dayIdx, slotKey) {
       <div class="macro-tile prot"><b>${Math.round(info.prot * factor)} g</b><span>🍗 prot</span></div>
       <div class="macro-tile carbs"><b>${Math.round(info.carbs * factor)} g</b><span>🌾 carbs</span></div>
       <div class="macro-tile fat"><b>${Math.round(info.fat * factor)} g</b><span>🥑 grasa</span></div>
-      <div class="macro-tile cost"><b>${(info.cost * factor).toFixed(2)} €</b><span>🛒 coste</span></div>
+      <div class="macro-tile cost"><b>${euro(info.cost * factor)} €</b><span>🛒 coste</span></div>
     </div>
     <button type="button" class="btn block cook-open-btn" id="cook-open-btn">👩‍🍳 Cocinar paso a paso</button>
     <button type="button" class="btn secondary block swap-open-btn" id="swap-open-btn">🔄 Cambiar por otro plato</button>
@@ -1681,7 +1681,7 @@ function openSwapSheet(dayIdx, slotKey) {
         <button type="button" class="swap-option" data-recipe="${info.recipe.id}">
           ${recipePhoto(info.recipe.id, { width: 120, className: "photo-thumb", fallback: mealEmoji(slotKey) })}
           <span class="swap-name">${isFavorite(info.recipe.id) ? "❤️ " : ""}${info.recipe.name}</span>
-          <span class="swap-meta">${Math.round(info.prot * factor)} g prot · ${(info.cost * factor).toFixed(2)} €</span>
+          <span class="swap-meta">${Math.round(info.prot * factor)} g prot · ${euro(info.cost * factor)} €</span>
         </button>`).join("")}
     </div>` : `<p class="hint">No hay otros platos de este tipo que encajen con tu dieta y tus gustos.</p>`}
     <button type="button" class="btn ghost block" id="swap-back-btn">Volver a la receta</button>
@@ -1983,7 +1983,7 @@ function renderStoreCard() {
             <span class="store-logo">${s.name.charAt(0)}</span>
             <span class="store-name">${s.name}</span>
             <span class="store-dist">${formatDistance(s.dist)}</span>
-            <span class="store-price">${(base * s.index).toFixed(2)} €</span>
+            <span class="store-price">${euro(base * s.index)} €</span>
           </button>`).join("")}
       </div>
       <p class="hint">Precio aproximado de tu lista según la cadena: no son precios en tiempo real.</p>
@@ -2020,8 +2020,8 @@ function compraProgressHtml(done, total, grandTotal) {
       </div>
       <div class="cart-hero-text">
         <span class="cart-count"><b id="cart-done">${done}</b>/${total} en el carro</span>
-        <span class="cart-total"><b id="cart-total" data-value="${grandTotal.toFixed(2)}">${grandTotal.toFixed(2)}</b> €</span>
-        ${budget ? `<span class="cart-budget ${grandTotal <= budget ? "ok" : "warn"}">${grandTotal <= budget ? `✅ ${(budget - grandTotal).toFixed(2)} € por debajo de tu presupuesto` : `⚠️ ${(grandTotal - budget).toFixed(2)} € por encima de tu presupuesto`}</span>` : ""}
+        <span class="cart-total"><b id="cart-total" data-value="${grandTotal.toFixed(2)}">${euro(grandTotal)}</b> €</span>
+        ${budget ? `<span class="cart-budget ${grandTotal <= budget ? "ok" : "warn"}">${grandTotal <= budget ? `✅ ${euro(budget - grandTotal)} € por debajo de tu presupuesto` : `⚠️ ${euro(grandTotal - budget)} € por encima de tu presupuesto`}</span>` : ""}
       </div>
     </div>`;
 }
@@ -2039,7 +2039,7 @@ function renderCompra() {
       <div class="locked-card">
         <div class="locked-icon">🔒</div>
         <h3>Tu lista ya está lista</h3>
-        <p>${itemCount} artículos de ${sections.length} secciones, por un total estimado de <b>${grandTotal.toFixed(2)} €</b>.</p>
+        <p>${itemCount} artículos de ${sections.length} secciones, por un total estimado de <b>${euro(grandTotal)} €</b>.</p>
         <p class="hint">Desbloquéala con Premium para ver cada producto, su cantidad y su precio, listo para llevar al súper.</p>
         <button type="button" class="btn block" id="unlock-compra-btn">Desbloquear con Premium</button>
       </div>
@@ -2064,7 +2064,7 @@ function renderCompra() {
           <span class="section-emoji">${style.emoji}</span>
           <span class="section-head-text">
             <span class="section-name">${section}</span>
-            <span class="section-sub"><span class="sec-done">${secDone}</span>/${items.length} · ${subtotal.toFixed(2)} €</span>
+            <span class="section-sub"><span class="sec-done">${secDone}</span>/${items.length} · ${euro(subtotal)} €</span>
           </span>
           <span class="section-check">✓</span>
           <span class="section-caret">⌄</span>
@@ -2082,7 +2082,7 @@ function renderCompra() {
                     <div class="item-qty">${formatQty(it.qty, it.unit, { buy: true })}</div>
                   </div>
                 </div>
-                <div class="item-cost">${it.cost.toFixed(2)} €</div>
+                <div class="item-cost">${euro(it.cost)} €</div>
                 <div class="check-circle">${isBought ? "✓" : ""}</div>
               </div>`;
           }).join("")}
@@ -2096,7 +2096,7 @@ function renderCompra() {
   bindStoreCard(el);
   const totalEl = document.getElementById("cart-total");
   animateCountUp(totalEl, Math.round(grandTotal), { duration: 600 });
-  setTimeout(() => { totalEl.textContent = grandTotal.toFixed(2); }, 650);
+  setTimeout(() => { totalEl.textContent = euro(grandTotal); }, 650);
 
   el.querySelectorAll(".section-head").forEach((head) => {
     head.addEventListener("click", () => {

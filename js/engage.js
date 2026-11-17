@@ -392,7 +392,7 @@ function showPlanReveal(onDone) {
     { emoji: "🔥", text: "Calculando tus calorías", value: `${targets.calories} kcal/día` },
     { emoji: "🍗", text: "Repartiendo tus macros", value: `${targets.protein} g proteína` },
     { emoji: "🍽️", text: "Eligiendo tus comidas", value: `${meals} platos` },
-    { emoji: "🛒", text: "Preparando tu compra", value: `${grandTotal.toFixed(2)} €` },
+    { emoji: "🛒", text: "Preparando tu compra", value: `${euro(grandTotal)} €` },
   ];
   const el = document.createElement("div");
   el.id = "plan-reveal";
