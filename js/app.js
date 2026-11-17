@@ -10,7 +10,7 @@ if (!("adjustDecisionAt" in state)) state.adjustDecisionAt = null;
 if (!state.daily || typeof state.daily !== "object") state.daily = {};
 let wizardStep = 0;
 let wizardMode = "create"; // 'create' | 'edit'
-let selectedDay = 0;
+let selectedDay = todayPlanIndex(); // el Plan se abre en el día de hoy
 
 const PLANS = {
   semanal: { label: "Semanal", price: 2.49, period: "semana", periodShort: "/sem" },
@@ -681,6 +681,7 @@ function showView(name) {
   view.classList.add(enter);
   currentView = name;
   if (name === "informes" && state.plan) renderInformes(); // el resumen de la semana, al día
+  if (name === "plan") centerActiveDay();
   document.querySelectorAll(".tab-btn").forEach((b) => {
     const on = b.dataset.view === name;
     b.classList.toggle("active", on);
@@ -1502,9 +1503,20 @@ function mealEmoji(slotKey) {
   return { desayuno: "☀️", comida: "🍽️", cena: "🌙", merienda: "🍎" }[slotKey] || "🍽️";
 }
 
+/* Si el día elegido queda fuera de la fila de días (p. ej. el domingo en un
+   móvil estrecho), la fila se desplaza hasta él. */
+function centerActiveDay() {
+  const dayTabs = document.getElementById("day-tabs");
+  const pill = dayTabs && dayTabs.querySelector(".day-pill.active");
+  if (!pill || dayTabs.scrollWidth <= dayTabs.clientWidth) return;
+  dayTabs.scrollLeft = pill.offsetLeft - dayTabs.offsetLeft - (dayTabs.clientWidth - pill.offsetWidth) / 2;
+}
+
 function renderPlan() {
   const dayTabs = document.getElementById("day-tabs");
-  dayTabs.innerHTML = DAYS.map((d, i) => `<button type="button" class="day-pill ${i === selectedDay ? "active" : ""}" data-day="${i}">${d.slice(0, 3)}</button>`).join("");
+  const today = todayPlanIndex();
+  dayTabs.innerHTML = DAYS.map((d, i) => `<button type="button" class="day-pill ${i === selectedDay ? "active" : ""} ${i === today ? "today" : ""}" data-day="${i}"${i === today ? ` aria-label="${d} (hoy)"` : ""}>${d.slice(0, 3)}</button>`).join("");
+  centerActiveDay();
   dayTabs.querySelectorAll(".day-pill").forEach((btn) => {
     btn.addEventListener("click", () => {
       selectedDay = Number(btn.dataset.day);

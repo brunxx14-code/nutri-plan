@@ -336,6 +336,11 @@ input:focus, select:focus { outline: 2px solid var(--coral); outline-offset: 1px
   font-size: 12.5px; font-weight: 600; padding: 8px 13px; border-radius: 999px; cursor: pointer; font-family: inherit;
 }
 .day-pill.active { background: var(--coral); color: #fff; border-color: var(--coral); }
+/* un puntito bajo el día de hoy, para ubicarte de un vistazo */
+.day-pill.today { position: relative; color: var(--ink); }
+.day-pill.today::after { content: ""; position: absolute; left: 50%; bottom: 3px; width: 4px; height: 4px; margin-left: -2px; border-radius: 50%; background: var(--coral); }
+.day-pill.today.active { color: #fff; }
+.day-pill.today.active::after { background: #fff; }
 
 .day-panel { display: none; flex-direction: column; gap: 10px; }
 .day-panel.active { display: flex; animation: fadein .2s ease; }

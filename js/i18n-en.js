@@ -433,6 +433,7 @@ I18N.en = {
   },
 
   templates: {
+    "{d} (hoy)": "{d} (today)",
     // Bienvenida y racha
     "Lo siguiente · {slot}": "Up next · {slot}",
     "Llevas {n} días seguidos. ¡No rompas la racha!": "{n} days in a row. Don't break the streak!",
