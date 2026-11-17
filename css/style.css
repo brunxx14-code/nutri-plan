@@ -194,7 +194,7 @@ input:focus, select:focus { outline: 2px solid var(--coral); outline-offset: 1px
 
 .dislikes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; max-height: 240px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 10px; background: var(--card); }
 .dislikes-grid label { flex-direction: row; align-items: center; gap: 8px; font-size: 13px; font-weight: 400; padding: 4px; }
-.dislikes-grid input { width: 16px; height: 16px; padding: 0; }
+.dislikes-grid input { width: 16px; height: 16px; padding: 0; min-height: 0; margin: 0; appearance: auto; -webkit-appearance: checkbox; accent-color: var(--coral); flex: none; }
 
 /* ---------- Deporte (en el wizard) ---------- */
 .sport-hint { margin-top: -4px; margin-bottom: 10px; }
@@ -1423,3 +1423,8 @@ button.streak-chip { font: inherit; border: none; cursor: pointer; }
 .src-ref:hover { text-decoration: underline; }
 .why-recipe p { margin: 10px 0 4px; }
 .why-recipe .src-links { margin-top: 0; }
+
+/* Alérgenos de cada receta */
+.allergen-line { font-size: 13px; color: var(--red); margin: -6px 0 10px; }
+.allergen-line.ok { color: var(--green-dark); }
+.allergies-grid { max-height: none; margin-bottom: 14px; }

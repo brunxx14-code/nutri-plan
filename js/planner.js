@@ -32,13 +32,36 @@ function getRecipeInfo(recipeId) {
   return RECIPE_CACHE[recipeId];
 }
 
+function recipeFoodIds(recipe) {
+  return recipe.ingredients.map(([id]) => id);
+}
+
+/* Alérgenos que lleva una receta, sin repetir, en el orden de ALLERGENS. */
+function recipeAllergens(recipe) {
+  const found = new Set();
+  for (const id of recipeFoodIds(recipe)) for (const a of FOOD_ALLERGENS[id] || []) found.add(a);
+  return Object.keys(ALLERGENS).filter((a) => found.has(a));
+}
+
+function isAllergenSafe(recipe, allergies) {
+  if (!allergies || !allergies.length) return true;
+  return !recipeAllergens(recipe).some((a) => allergies.includes(a));
+}
+
+function fitsDiet(recipe, dietType) {
+  if (dietType === "vegetariano" || dietType === "vegano") return recipe.tags.includes(dietType);
+  if (dietType === "sin_cerdo" || dietType === "halal") {
+    return !recipeFoodIds(recipe).some((id) => PORK_FOODS.includes(id));
+  }
+  return true;
+}
+
 function matchesProfile(recipe, profile) {
-  const { dietType, dislikes } = profile;
-  if (dietType === "vegetariano" && !recipe.tags.includes("vegetariano")) return false;
-  if (dietType === "vegano" && !recipe.tags.includes("vegano")) return false;
+  const { dietType, dislikes, allergies } = profile;
+  if (!fitsDiet(recipe, dietType)) return false;
+  if (!isAllergenSafe(recipe, allergies)) return false;
   if (dislikes && dislikes.length) {
-    const ingredientIds = recipe.ingredients.map(([id]) => id);
-    if (ingredientIds.some((id) => dislikes.includes(id))) return false;
+    if (recipeFoodIds(recipe).some((id) => dislikes.includes(id))) return false;
   }
   return true;
 }
@@ -100,15 +123,14 @@ function generateWeeklyPlan(profile, targetKcal, favorites = []) {
   for (const recipe of RECIPES) {
     if (matchesProfile(recipe, profile)) poolByType[recipe.mealType].push(recipe.id);
   }
-  // Si las restricciones dejan algún hueco vacío, relajamos los "dislikes" para no bloquear la app.
+  // Si las restricciones dejan algún hueco vacío, relajamos primero los
+  // "dislikes" y después la dieta, pero las alergias nunca: son de seguridad.
   for (const type of Object.keys(poolByType)) {
+    const safe = RECIPES.filter((r) => r.mealType === type && isAllergenSafe(r, profile.allergies));
     if (poolByType[type].length === 0) {
-      poolByType[type] = RECIPES.filter((r) => r.mealType === type &&
-        (profile.dietType === "omnivoro" || r.tags.includes(profile.dietType))).map((r) => r.id);
+      poolByType[type] = safe.filter((r) => fitsDiet(r, profile.dietType)).map((r) => r.id);
     }
-    if (poolByType[type].length === 0) {
-      poolByType[type] = RECIPES.filter((r) => r.mealType === type).map((r) => r.id);
-    }
+    if (poolByType[type].length === 0) poolByType[type] = safe.map((r) => r.id);
   }
 
   // las favoritas cuentan doble: salen más a menudo sin repetir el plan entero

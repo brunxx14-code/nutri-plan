@@ -397,6 +397,21 @@ function populateSelect(selectEl, labelsObj, defaultKey) {
   }
 }
 
+function buildAllergiesGrid() {
+  const grid = document.getElementById("allergies-grid");
+  grid.innerHTML = "";
+  for (const [id, a] of Object.entries(ALLERGENS)) {
+    const label = document.createElement("label");
+    const input = document.createElement("input");
+    input.type = "checkbox";
+    input.value = id;
+    input.name = "allergies";
+    label.appendChild(input);
+    label.appendChild(document.createTextNode(`${a.emoji} ${a.label}`));
+    grid.appendChild(label);
+  }
+}
+
 function buildDislikesGrid() {
   const grid = document.getElementById("dislikes-grid");
   grid.innerHTML = "";
@@ -490,7 +505,10 @@ function initOnboardingForm() {
     omnivoro: { emoji: "🍗", title: "De todo" },
     vegetariano: { emoji: "🥚", title: "Vegetariano" },
     vegano: { emoji: "🌱", title: "Vegano" },
+    sin_cerdo: { emoji: "🚫", title: "Sin cerdo" },
+    halal: { emoji: "☪️", title: "Halal" },
   }, "three");
+  buildAllergiesGrid();
   buildDislikesGrid();
   const introLang = document.getElementById("intro-lang");
   introLang.innerHTML = langPickerHtml();
@@ -560,6 +578,7 @@ function readProfileFromForm(form) {
     goal: fd.get("goal"),
     dietType: fd.get("dietType"),
     dislikes,
+    allergies: fd.getAll("allergies"),
     sports: readSportsFromForm(),
     weeklyBudget: weeklyBudget ? Number(weeklyBudget) : null,
   };
@@ -583,6 +602,9 @@ function fillFormFromProfile(form, profile) {
   }
   form.querySelectorAll('input[name="dislikes"]').forEach((cb) => {
     cb.checked = profile.dislikes.includes(cb.value);
+  });
+  form.querySelectorAll('input[name="allergies"]').forEach((cb) => {
+    cb.checked = (profile.allergies || []).includes(cb.value);
   });
 }
 
@@ -1520,6 +1542,21 @@ const TAG_COLOR_CLASS = {
   vegetariano: "", vegano: "", alto_proteina: "tag-rose", sin_gluten: "tag-amber", economico: "tag-purple",
 };
 
+/* Como en las etiquetas de la UE: qué alérgenos lleva el plato. En halal,
+   recordatorio de comprar la carne con sello. */
+function allergenLineHtml(recipe) {
+  const list = recipeAllergens(recipe);
+  const parts = [];
+  parts.push(list.length
+    ? `<p class="allergen-line">⚠️ Contiene: ${list.map((a) => `<span>${ALLERGENS[a].short}</span>`).join(", ")}</p>`
+    : `<p class="allergen-line ok">✅ Sin alérgenos principales</p>`);
+  const hasMeat = recipe.ingredients.some(([id]) => FOODS[id].section === "Carnicería");
+  if (state.profile && state.profile.dietType === "halal" && hasMeat) {
+    parts.push(`<p class="allergen-line">☪️ Usa carne con sello halal</p>`);
+  }
+  return parts.join("");
+}
+
 function openRecipeSheet(dayIdx, slotKey) {
   const slotLabel = MEAL_SLOTS.find((s) => s.key === slotKey).label;
   const info = getRecipeInfo(state.plan[dayIdx][slotKey]);
@@ -1534,6 +1571,7 @@ function openRecipeSheet(dayIdx, slotKey) {
     ${shareButtonHtml(r.id)}
     <h3>${r.name}</h3>
     <div class="modal-tags">${r.tags.map((t) => `<span class="tag ${TAG_COLOR_CLASS[t] || ""}">${t.replace("_", " ")}</span>`).join("")}</div>
+    ${allergenLineHtml(r)}
     <div class="macro-tiles">
       <div class="macro-tile kcal"><b>${Math.round(info.kcal * factor)}</b><span>🔥 kcal</span></div>
       <div class="macro-tile prot"><b>${Math.round(info.prot * factor)} g</b><span>🍗 prot</span></div>
@@ -1997,6 +2035,8 @@ const DIET_INFO = {
   omnivoro: { emoji: "🍗", label: "Como de todo" },
   vegetariano: { emoji: "🥚", label: "Vegetariano" },
   vegano: { emoji: "🌱", label: "Vegano" },
+  sin_cerdo: { emoji: "🚫", label: "Sin cerdo" },
+  halal: { emoji: "☪️", label: "Halal" },
 };
 
 function bmiInfo(p) {
@@ -2116,6 +2156,11 @@ function renderPerfil() {
       <div class="pduo">
         <div class="pduo-tile"><span>${diet.emoji}</span><b>${diet.label}</b><small>Dieta</small></div>
         <div class="pduo-tile"><span>🛒</span><b>${p.weeklyBudget ? `${p.weeklyBudget} €` : "Libre"}</b><small>Presupuesto/semana</small></div>
+      </div>
+      ${p.dietType === "halal" ? `<div class="pline muted">☪️ Sin cerdo en ninguna receta. Compra la carne con sello halal.</div>` : ""}
+      <div class="pline muted">⚠️ Alergias e intolerancias</div>
+      <div class="chip-wrap">
+        ${(p.allergies || []).length ? p.allergies.map((id) => `<span class="avoid-chip">${ALLERGENS[id].emoji} ${ALLERGENS[id].label}</span>`).join("") : `<span class="avoid-chip none">Ninguna</span>`}
       </div>
       <div class="pline muted">🚫 Evitamos</div>
       <div class="chip-wrap">

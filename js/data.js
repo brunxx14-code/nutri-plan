@@ -32,6 +32,9 @@ const SOURCES = {
   ducrot: { label: "Ducrot 2017", title: "Ducrot P et al. Meal planning is associated with food variety, diet quality and body weight status in a large sample of French adults. Int J Behav Nutr Phys Act, 2017.", url: "https://doi.org/10.1186/s12966-017-0461-7" },
   dansinger: { label: "Dansinger 2005", title: "Dansinger ML et al. Comparison of the Atkins, Ornish, Weight Watchers, and Zone diets for weight loss and heart disease risk reduction. JAMA, 2005.", url: "https://doi.org/10.1001/jama.293.1.43" },
   lally: { label: "Lally 2010", title: "Lally P et al. How are habits formed: modelling habit formation in the real world. Eur J Soc Psychol, 2010.", url: "https://doi.org/10.1002/ejsp.674" },
+  eu_allergens: { label: "Reglamento UE 1169/2011", title: "Reglamento (UE) 1169/2011 sobre la información alimentaria facilitada al consumidor, anexo II: sustancias que causan alergias o intolerancias.", url: "https://eur-lex.europa.eu/legal-content/ES/TXT/?uri=CELEX:32011R1169" },
+  eu_gluten: { label: "Reglamento UE 828/2014", title: "Reglamento de Ejecución (UE) 828/2014 sobre la información a los consumidores de la ausencia o presencia reducida de gluten en los alimentos.", url: "https://eur-lex.europa.eu/legal-content/ES/TXT/?uri=CELEX:32014R0828" },
+  efsa_lactose: { label: "EFSA lactosa 2010", title: "EFSA. Scientific Opinion on lactose thresholds in lactose intolerance and galactosaemia. EFSA Journal, 2010.", url: "https://doi.org/10.2903/j.efsa.2010.1777" },
   usda: { label: "USDA FoodData Central", title: "Departamento de Agricultura de EE. UU. FoodData Central: composición de alimentos.", url: "https://fdc.nal.usda.gov/" },
 };
 
@@ -235,6 +238,7 @@ const FOODS = {
   crema_cacahuete: { name: "Crema de cacahuete",        section: "Despensa", unit: "g", price: 0.90, kcal: 588, prot: 25, carbs: 20, fat: 50,  cat: "grasa_saludable" },
   tofu:            { name: "Tofu firme",                section: "Despensa", unit: "g", price: 0.45, kcal: 144, prot: 17, carbs: 2.8, fat: 8.7, cat: "proteina_magra" },
   soja_texturizada:{ name: "Soja texturizada",          section: "Despensa", unit: "g", price: 0.80, kcal: 330, prot: 50, carbs: 18, fat: 1.5, cat: "legumbre" },
+  harina_garbanzo: { name: "Harina de garbanzo",        section: "Despensa", unit: "g", price: 0.40, kcal: 387, prot: 22, carbs: 58, fat: 6.7, cat: "legumbre" },
   miel:            { name: "Miel",                      section: "Despensa", unit: "g", price: 0.80, kcal: 304, prot: 0.3, carbs: 82, fat: 0,   cat: "condimento" },
 
   // Frutería
@@ -281,7 +285,7 @@ const RECIPES = [
   },
   {
     id: "yogur_manzana", name: "Yogur griego con manzana y almendras", mealType: "desayuno",
-    tags: ["vegetariano"],
+    tags: ["vegetariano", "sin_gluten"],
     ingredients: [["yogur_griego", 2], ["manzana", 150], ["almendras", 20]],
     steps: [
       "Corta la manzana en dados pequeños.",
@@ -411,7 +415,7 @@ const RECIPES = [
   },
   {
     id: "ensalada_garbanzos", name: "Ensalada de garbanzos, aguacate y queso fresco", mealType: "principal",
-    tags: ["vegetariano"],
+    tags: ["vegetariano", "sin_gluten"],
     ingredients: [["garbanzos", 150], ["aguacate", 1], ["queso_fresco", 100], ["tomate", 100], ["lechuga", 1]],
     steps: [
       "Mezcla los garbanzos escurridos con la lechuga y el tomate troceados.",
@@ -422,25 +426,25 @@ const RECIPES = [
 
   {
     id: "yogur_miel_almendras", name: "Yogur natural con miel y almendras", mealType: "merienda",
-    tags: ["vegetariano"],
+    tags: ["vegetariano", "sin_gluten"],
     ingredients: [["yogur_natural", 1], ["miel", 10], ["almendras", 10]],
     steps: ["Mezcla el yogur con la miel y corona con las almendras."]
   },
   {
     id: "manzana_cacahuete", name: "Manzana con crema de cacahuete", mealType: "merienda",
-    tags: ["vegano", "vegetariano", "economico"],
+    tags: ["vegano", "vegetariano", "economico", "sin_gluten"],
     ingredients: [["manzana", 150], ["crema_cacahuete", 20]],
     steps: ["Corta la manzana en gajos y acompaña con la crema de cacahuete para untar."]
   },
   {
     id: "queso_almendras", name: "Queso curado con almendras", mealType: "merienda",
-    tags: ["vegetariano"],
+    tags: ["vegetariano", "sin_gluten"],
     ingredients: [["queso_curado", 40], ["almendras", 15]],
     steps: ["Sirve el queso en dados junto con las almendras."]
   },
   {
     id: "batido_platano", name: "Batido de plátano y leche", mealType: "merienda",
-    tags: ["vegetariano"],
+    tags: ["vegetariano", "sin_gluten"],
     ingredients: [["platano", 120], ["leche_semi", 200], ["miel", 10]],
     steps: ["Bate el plátano con la leche y la miel hasta que quede cremoso."]
   },
@@ -624,8 +628,104 @@ const RECIPES = [
     tags: ["vegano", "vegetariano", "sin_gluten"],
     ingredients: [["yogur_soja", 2], ["almendras", 10]],
     steps: ["Sirve los yogures de soja con las almendras troceadas por encima."]
+  },
+  // Recetas sin gluten y con pocos alérgenos, para que haya plan aunque
+  // marques varias alergias a la vez (sobre todo en el desayuno).
+  {
+    id: "tortilla_garbanzo", name: "Tortilla de harina de garbanzo con espinacas", mealType: "desayuno",
+    tags: ["vegano", "vegetariano", "sin_gluten", "economico"],
+    ingredients: [["harina_garbanzo", 60], ["espinacas", 80], ["tomate", 80], ["aceite_oliva", 5]],
+    steps: [
+      "Mezcla la harina de garbanzo con 100 ml de agua y una pizca de sal hasta tener una masa sin grumos.",
+      "Saltea las espinacas con el aceite, vierte la masa por encima y cuaja 3-4 minutos por cada lado.",
+      "Sirve con el tomate en rodajas."
+    ]
+  },
+  {
+    id: "revuelto_tofu", name: "Revuelto de tofu con espinacas y patata", mealType: "desayuno",
+    tags: ["vegano", "vegetariano", "sin_gluten", "alto_proteina"],
+    ingredients: [["tofu", 150], ["espinacas", 60], ["patata", 150], ["aceite_oliva", 5]],
+    steps: [
+      "Corta la patata en dados pequeños y hazla en la sartén con el aceite, tapada, 10-12 minutos.",
+      "Desmenuza el tofu con un tenedor y añádelo con las espinacas y una pizca de sal y cúrcuma.",
+      "Remueve 3-4 minutos hasta que el tofu se caliente y las espinacas reduzcan."
+    ]
+  },
+  {
+    id: "huevos_boniato", name: "Huevos revueltos con boniato y aguacate", mealType: "desayuno",
+    tags: ["vegetariano", "sin_gluten"],
+    ingredients: [["huevos", 2], ["boniato", 150], ["aguacate", 0.5]],
+    steps: [
+      "Cuece el boniato en dados 5 minutos en el microondas tapado, o 10 minutos en agua hirviendo.",
+      "Haz los huevos revueltos en una sartén antiadherente a fuego suave.",
+      "Sirve con el boniato y el aguacate en láminas."
+    ]
+  },
+  {
+    id: "quinoa_fruta", name: "Quinoa con manzana, plátano y canela", mealType: "desayuno",
+    tags: ["vegano", "vegetariano", "sin_gluten", "economico"],
+    ingredients: [["quinoa", 50], ["manzana", 100], ["platano", 80]],
+    steps: [
+      "Lava la quinoa y cuécela 12-15 minutos en el doble de agua (puedes dejarla hecha la noche anterior).",
+      "Añade la manzana en dados, el plátano en rodajas y canela al gusto."
+    ]
+  },
+  {
+    id: "hummus_zanahoria", name: "Hummus casero con palitos de zanahoria", mealType: "merienda",
+    tags: ["vegano", "vegetariano", "sin_gluten", "economico"],
+    ingredients: [["garbanzos", 150], ["aceite_oliva", 8], ["limon", 0.5], ["ajo", 0.5], ["zanahoria", 120]],
+    steps: [
+      "Tritura los garbanzos escurridos con el aceite, el zumo de limón, el ajo, sal y un chorrito de agua hasta que quede cremoso.",
+      "Corta la zanahoria en bastones y úsalos para mojar."
+    ]
+  },
+  {
+    id: "huevos_duros_tomate", name: "Huevos duros con tomate y aceite", mealType: "merienda",
+    tags: ["vegetariano", "sin_gluten", "alto_proteina", "economico"],
+    ingredients: [["huevos", 2], ["tomate", 150], ["aceite_oliva", 3]],
+    steps: [
+      "Cuece los huevos 10 minutos, enfríalos en agua y pélalos.",
+      "Sirve con el tomate en rodajas, un hilo de aceite y sal."
+    ]
   }
 ];
+
+/* Alérgenos e intolerancias. Seguimos la lista de alérgenos de declaración
+   obligatoria en la UE (Reglamento 1169/2011, anexo II). Son una exclusión
+   estricta: a diferencia de los alimentos que no te gustan, el plan NUNCA los
+   relaja aunque queden pocas recetas. La avena cuenta como gluten salvo que
+   el envase diga "sin gluten" (Reglamento 828/2014). Para la intolerancia a
+   la lactosa quitamos leche, yogures y quesos frescos, pero no el queso
+   curado: casi no tiene lactosa y la EFSA (2010) ve tolerables hasta 12 g
+   de lactosa en una toma. */
+const ALLERGENS = {
+  gluten:       { label: "Gluten (celiaquía)", short: "gluten", emoji: "🌾", refs: ["eu_allergens", "eu_gluten"] },
+  leche:        { label: "Alergia a la leche", short: "leche", emoji: "🥛", refs: ["eu_allergens"] },
+  lactosa:      { label: "Intolerancia a la lactosa", short: "lactosa", emoji: "🧀", refs: ["efsa_lactose"] },
+  huevo:        { label: "Huevo", short: "huevo", emoji: "🥚", refs: ["eu_allergens"] },
+  pescado:      { label: "Pescado", short: "pescado", emoji: "🐟", refs: ["eu_allergens"] },
+  marisco:      { label: "Marisco", short: "marisco", emoji: "🦐", refs: ["eu_allergens"] },
+  frutos_secos: { label: "Frutos secos", short: "frutos secos", emoji: "🌰", refs: ["eu_allergens"] },
+  cacahuete:    { label: "Cacahuete", short: "cacahuete", emoji: "🥜", refs: ["eu_allergens"] },
+  soja:         { label: "Soja", short: "soja", emoji: "🫘", refs: ["eu_allergens"] },
+};
+
+/* Qué alérgenos lleva cada alimento del catálogo (los que no salen aquí no
+   llevan ninguno de la lista). */
+const FOOD_ALLERGENS = {
+  pasta: ["gluten"], avena: ["gluten"], pan_integral: ["gluten"],
+  leche_semi: ["leche", "lactosa"], yogur_griego: ["leche", "lactosa"], yogur_natural: ["leche", "lactosa"],
+  queso_fresco: ["leche", "lactosa"], queso_curado: ["leche"],
+  huevos: ["huevo"], claras_huevo: ["huevo"],
+  salmon: ["pescado"], merluza: ["pescado"], atun_lata: ["pescado"], gambas: ["marisco"],
+  almendras: ["frutos_secos"], crema_cacahuete: ["cacahuete"],
+  tofu: ["soja"], soja_texturizada: ["soja"], yogur_soja: ["soja"],
+};
+
+/* Dietas además de vegetariana y vegana. "Sin cerdo" y "halal" quitan el
+   cerdo; en halal además recordamos comprar la carne con sello halal, porque
+   eso depende de cómo se ha sacrificado el animal y no del alimento. */
+const PORK_FOODS = ["lomo_cerdo"];
 
 /* Cadenas de supermercado con un índice de precio aproximado respecto a
    Mercadona (1.00), a partir de las comparativas anuales de precios de cesta
@@ -659,7 +759,7 @@ const FOOD_EMOJI = {
   salmon: "🐟", merluza: "🐟", gambas: "🦐", atun_lata: "🥫",
   huevos: "🥚", leche_semi: "🥛", yogur_griego: "🥣", yogur_natural: "🥣", queso_fresco: "🧀", queso_curado: "🧀", claras_huevo: "🥚", yogur_soja: "🥣",
   arroz: "🍚", pasta: "🍝", avena: "🌾", quinoa: "🌾", lentejas: "🫘", garbanzos: "🫘", pan_integral: "🍞",
-  aceite_oliva: "🫒", almendras: "🌰", crema_cacahuete: "🥜", tofu: "⬜", soja_texturizada: "🫘", miel: "🍯",
+  aceite_oliva: "🫒", almendras: "🌰", crema_cacahuete: "🥜", tofu: "⬜", soja_texturizada: "🫘", harina_garbanzo: "🫘", miel: "🍯",
   platano: "🍌", manzana: "🍎", aguacate: "🥑", tomate: "🍅", brocoli: "🥦", espinacas: "🥬", pimiento: "🫑",
   cebolla: "🧅", limon: "🍋", ajo: "🧄", lechuga: "🥬", calabacin: "🥒", zanahoria: "🥕", patata: "🥔", boniato: "🍠",
 };
