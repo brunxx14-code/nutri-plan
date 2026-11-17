@@ -199,3 +199,49 @@ async function inviteFriend() {
     if (!e || e.name !== "AbortError") showToast(`🔗 ${APP_URL}`);
   }
 }
+
+// ---------- Compartir una receta ----------
+
+/* Texto de la receta con tu ración, listo para mandarlo por WhatsApp. */
+function recipeShareText(recipeId, factor = 1) {
+  const info = getRecipeInfo(recipeId);
+  const r = info.recipe;
+  const lines = [
+    `🥗 ${r.name}`,
+    `${Math.round(info.kcal * factor)} kcal · ${Math.round(info.prot * factor)} g ${tr("proteína")}`,
+    "",
+    `🛒 ${tr("Ingredientes")}:`,
+    ...r.ingredients.map(([id, qty]) => `• ${FOODS[id].name}: ${formatQty(qty * factor, FOODS[id].unit)}`),
+    "",
+    `👩‍🍳 ${tr("Preparación")}:`,
+    ...r.steps.map((s, i) => `${i + 1}. ${s}`),
+    "",
+    `${tr("Receta de NutriPlan. Crea tu plan de comidas gratis:")} ${APP_URL}`,
+  ];
+  return lines.join("\n");
+}
+
+function shareButtonHtml(recipeId) {
+  return `<button type="button" class="share-recipe-btn" data-share-recipe="${recipeId}" aria-label="Compartir receta">📤</button>`;
+}
+
+function bindShareRecipe(root, factor) {
+  root.querySelectorAll("[data-share-recipe]").forEach((btn) => {
+    btn.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      track("receta-compartida");
+      buzz(8);
+      const text = recipeShareText(btn.dataset.shareRecipe, factor);
+      try {
+        if (navigator.share) {
+          await navigator.share({ text });
+          return;
+        }
+        await navigator.clipboard.writeText(text);
+        showToast("📋 Receta copiada, ¡pégala donde quieras!");
+      } catch (err) {
+        if (!err || err.name !== "AbortError") showToast("No se pudo compartir ahora");
+      }
+    });
+  });
+}

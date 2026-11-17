@@ -1374,3 +1374,8 @@ button.streak-chip { font: inherit; border: none; cursor: pointer; }
 .freeze-count { margin-left: 6px; padding-left: 6px; border-left: 1px solid currentColor; opacity: .85; font-size: .92em; }
 .cal-day.frozen { background: color-mix(in srgb, #4aa3df 35%, var(--card)); }
 .cal-day.frozen::after { content: "🧊"; position: absolute; bottom: 1px; right: 2px; font-size: 9px; }
+.share-recipe-btn {
+  position: absolute; top: 12px; left: 64px; z-index: 2; width: 40px; height: 40px; border-radius: 50%;
+  border: none; background: rgba(255,255,255,.92); font-size: 17px; line-height: 1; cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0,0,0,.12);
+}
