@@ -35,6 +35,8 @@ const SOURCES = {
   eu_allergens: { label: "Reglamento UE 1169/2011", title: "Reglamento (UE) 1169/2011 sobre la información alimentaria facilitada al consumidor, anexo II: sustancias que causan alergias o intolerancias.", url: "https://eur-lex.europa.eu/legal-content/ES/TXT/?uri=CELEX:32011R1169" },
   eu_gluten: { label: "Reglamento UE 828/2014", title: "Reglamento de Ejecución (UE) 828/2014 sobre la información a los consumidores de la ausencia o presencia reducida de gluten en los alimentos.", url: "https://eur-lex.europa.eu/legal-content/ES/TXT/?uri=CELEX:32014R0828" },
   efsa_lactose: { label: "EFSA lactosa 2010", title: "EFSA. Scientific Opinion on lactose thresholds in lactose intolerance and galactosaemia. EFSA Journal, 2010.", url: "https://doi.org/10.2903/j.efsa.2010.1777" },
+  mariotti: { label: "Mariotti 2019", title: "Mariotti F, Gardner CD. Dietary protein and amino acids in vegetarian diets: a review. Nutrients, 2019.", url: "https://doi.org/10.3390/nu11112661" },
+  hevia: { label: "Hevia-Larraín 2021", title: "Hevia-Larraín V et al. High-protein plant-based diet versus a protein-matched omnivorous diet to support resistance training adaptations. Sports Med, 2021.", url: "https://doi.org/10.1007/s40279-021-01434-9" },
   usda: { label: "USDA FoodData Central", title: "Departamento de Agricultura de EE. UU. FoodData Central: composición de alimentos.", url: "https://fdc.nal.usda.gov/" },
 };
 
@@ -238,6 +240,10 @@ const FOODS = {
   crema_cacahuete: { name: "Crema de cacahuete",        section: "Despensa", unit: "g", price: 0.90, kcal: 588, prot: 25, carbs: 20, fat: 50,  cat: "grasa_saludable" },
   tofu:            { name: "Tofu firme",                section: "Despensa", unit: "g", price: 0.45, kcal: 144, prot: 17, carbs: 2.8, fat: 8.7, cat: "proteina_magra" },
   soja_texturizada:{ name: "Soja texturizada",          section: "Despensa", unit: "g", price: 0.80, kcal: 330, prot: 50, carbs: 18, fat: 1.5, cat: "legumbre" },
+  tempeh:          { name: "Tempeh",                    section: "Despensa", unit: "g", price: 1.25, kcal: 192, prot: 20, carbs: 7.6, fat: 10.8, cat: "proteina_magra" },
+  seitan:          { name: "Seitán",                    section: "Despensa", unit: "g", price: 0.88, kcal: 140, prot: 24, carbs: 5, fat: 2, cat: "proteina_magra" },
+  edamame:         { name: "Edamame congelado",         section: "Despensa", unit: "g", price: 0.50, kcal: 121, prot: 11.9, carbs: 8.9, fat: 5.2, cat: "legumbre" },
+  bebida_soja:     { name: "Bebida de soja sin azúcar", section: "Lácteos y huevos", unit: "ml", price: 0.11, kcal: 33, prot: 2.9, carbs: 1.7, fat: 1.6, cat: "proteina_magra" },
   harina_garbanzo: { name: "Harina de garbanzo",        section: "Despensa", unit: "g", price: 0.40, kcal: 387, prot: 22, carbs: 58, fat: 6.7, cat: "legumbre" },
   miel:            { name: "Miel",                      section: "Despensa", unit: "g", price: 0.80, kcal: 304, prot: 0.3, carbs: 82, fat: 0,   cat: "condimento" },
 
@@ -686,7 +692,102 @@ const RECIPES = [
     steps: [
       "Cuece los huevos 10 minutos, enfríalos en agua y pélalos.",
       "Sirve con el tomate en rodajas, un hilo de aceite y sal."
+    ]  },
+  // Recetas veganas con mucha proteína: con las de antes, un plan vegano para
+  // perder grasa no llegaba a la proteína del día (ISSN 2017).
+  {
+    id: "tostada_tofu", name: "Tostadas con revuelto de tofu y tomate", mealType: "desayuno",
+    tags: ["vegano", "vegetariano", "alto_proteina", "economico"],
+    ingredients: [["tofu", 150], ["pan_integral", 60], ["tomate", 80], ["aceite_oliva", 3]],
+    steps: [
+      "Desmenuza el tofu y saltéalo 3-4 minutos con el aceite, sal y una pizca de cúrcuma.",
+      "Tuesta el pan, pon el tomate en rodajas y el revuelto por encima."
     ]
+  },
+  {
+    id: "avena_bebida_soja", name: "Avena con bebida de soja, plátano y cacahuete", mealType: "desayuno",
+    tags: ["vegano", "vegetariano", "economico"],
+    ingredients: [["avena", 50], ["bebida_soja", 300], ["platano", 80], ["crema_cacahuete", 10]],
+    steps: [
+      "Cuece la avena en la bebida de soja 3-4 minutos, removiendo, hasta que espese.",
+      "Sirve con el plátano en rodajas y la crema de cacahuete por encima."
+    ]
+  },
+  {
+    id: "tempeh_brocoli", name: "Tempeh salteado con brócoli y arroz", mealType: "principal",
+    tags: ["vegano", "vegetariano", "sin_gluten", "alto_proteina"],
+    ingredients: [["tempeh", 120], ["arroz", 60], ["brocoli", 150], ["ajo", 1], ["aceite_oliva", 5]],
+    steps: [
+      "Cuece el arroz 15-18 minutos en agua con sal.",
+      "Corta el tempeh en dados y dóralo con el aceite y el ajo picado 5 minutos.",
+      "Añade el brócoli en ramilletes con un chorrito de agua, tapa y cocina 5 minutos más. Sirve con el arroz."
+    ]
+  },
+  {
+    id: "seitan_patata", name: "Seitán a la plancha con pimiento y patata", mealType: "principal",
+    tags: ["vegano", "vegetariano", "alto_proteina"],
+    ingredients: [["seitan", 150], ["pimiento", 100], ["patata", 200], ["aceite_oliva", 8]],
+    steps: [
+      "Cuece la patata en dados 12 minutos (o 6 minutos en el microondas tapada).",
+      "Haz el pimiento en tiras a la plancha con la mitad del aceite.",
+      "Marca el seitán en filetes 2-3 minutos por lado con el resto del aceite y sirve todo junto."
+    ]
+  },
+  {
+    id: "curry_garbanzo_tofu", name: "Curry de garbanzos y tofu con espinacas", mealType: "principal",
+    tags: ["vegano", "vegetariano", "sin_gluten", "alto_proteina", "economico"],
+    ingredients: [["garbanzos", 150], ["tofu", 120], ["espinacas", 80], ["tomate", 150], ["cebolla", 50], ["aceite_oliva", 5]],
+    steps: [
+      "Sofríe la cebolla picada con el aceite y una cucharadita de curry en polvo.",
+      "Añade el tomate triturado y el tofu en dados; cocina 8 minutos.",
+      "Incorpora los garbanzos escurridos y las espinacas y deja 3 minutos más."
+    ]
+  },
+  {
+    id: "soja_arroz_pimiento", name: "Arroz con soja texturizada y pimiento", mealType: "principal",
+    tags: ["vegano", "vegetariano", "sin_gluten", "alto_proteina", "economico"],
+    ingredients: [["soja_texturizada", 50], ["arroz", 60], ["pimiento", 100], ["tomate", 150], ["cebolla", 50], ["aceite_oliva", 5]],
+    steps: [
+      "Hidrata la soja texturizada 10 minutos en agua caliente y escúrrela.",
+      "Sofríe la cebolla y el pimiento con el aceite, añade la soja y el tomate y cocina 10 minutos.",
+      "Sirve con el arroz cocido."
+    ]
+  },
+  {
+    id: "edamame_quinoa", name: "Bol de quinoa con edamame y zanahoria", mealType: "principal",
+    tags: ["vegano", "vegetariano", "sin_gluten"],
+    ingredients: [["quinoa", 60], ["edamame", 150], ["zanahoria", 80], ["aguacate", 0.33], ["limon", 0.5]],
+    steps: [
+      "Cuece la quinoa 12-15 minutos y el edamame 4 minutos en agua hirviendo.",
+      "Ralla la zanahoria y corta el aguacate en dados.",
+      "Junta todo en un bol y aliña con zumo de limón y sal."
+    ]
+  },
+  {
+    id: "edamame_sal", name: "Edamame con sal y limón", mealType: "merienda",
+    tags: ["vegano", "vegetariano", "sin_gluten", "alto_proteina", "economico"],
+    ingredients: [["edamame", 150], ["limon", 0.25]],
+    steps: ["Cuece el edamame 4 minutos en agua hirviendo, escúrrelo y aliña con sal y unas gotas de limón."]
+  },
+  {
+    id: "batido_soja_platano", name: "Batido de bebida de soja y plátano", mealType: "merienda",
+    tags: ["vegano", "vegetariano", "sin_gluten", "economico"],
+    ingredients: [["bebida_soja", 300], ["platano", 100]],
+    steps: ["Tritura el plátano con la bebida de soja bien fría hasta que quede cremoso."]  },
+  {
+    id: "lentejas_seitan", name: "Lentejas estofadas con seitán", mealType: "principal",
+    tags: ["vegano", "vegetariano", "alto_proteina", "economico"],
+    ingredients: [["lentejas", 70], ["seitan", 80], ["zanahoria", 80], ["tomate", 100], ["cebolla", 50], ["aceite_oliva", 5]],
+    steps: [
+      "Sofríe la cebolla y la zanahoria picadas con el aceite, añade el tomate y el seitán en dados.",
+      "Incorpora las lentejas lavadas y agua hasta cubrir el doble; cuece 30-35 minutos a fuego suave (o usa lentejas de bote y 10 minutos)."
+    ]
+  },
+  {
+    id: "bocadillo_seitan", name: "Bocadillo integral de seitán y pimiento", mealType: "merienda",
+    tags: ["vegano", "vegetariano", "alto_proteina"],
+    ingredients: [["pan_integral", 60], ["seitan", 80], ["pimiento", 60], ["aceite_oliva", 3]],
+    steps: ["Marca el seitán en tiras con el pimiento y el aceite 3-4 minutos y rellena el pan."]
   }
 ];
 
@@ -720,6 +821,7 @@ const FOOD_ALLERGENS = {
   salmon: ["pescado"], merluza: ["pescado"], atun_lata: ["pescado"], gambas: ["marisco"],
   almendras: ["frutos_secos"], crema_cacahuete: ["cacahuete"],
   tofu: ["soja"], soja_texturizada: ["soja"], yogur_soja: ["soja"],
+  tempeh: ["soja"], edamame: ["soja"], bebida_soja: ["soja"], seitan: ["gluten"],
 };
 
 /* Dietas además de vegetariana y vegana. "Sin cerdo" y "halal" quitan el
@@ -759,7 +861,7 @@ const FOOD_EMOJI = {
   salmon: "🐟", merluza: "🐟", gambas: "🦐", atun_lata: "🥫",
   huevos: "🥚", leche_semi: "🥛", yogur_griego: "🥣", yogur_natural: "🥣", queso_fresco: "🧀", queso_curado: "🧀", claras_huevo: "🥚", yogur_soja: "🥣",
   arroz: "🍚", pasta: "🍝", avena: "🌾", quinoa: "🌾", lentejas: "🫘", garbanzos: "🫘", pan_integral: "🍞",
-  aceite_oliva: "🫒", almendras: "🌰", crema_cacahuete: "🥜", tofu: "⬜", soja_texturizada: "🫘", harina_garbanzo: "🫘", miel: "🍯",
+  aceite_oliva: "🫒", almendras: "🌰", crema_cacahuete: "🥜", tofu: "⬜", soja_texturizada: "🫘", harina_garbanzo: "🫘", tempeh: "🟫", seitan: "🥩", edamame: "🫛", bebida_soja: "🥛", miel: "🍯",
   platano: "🍌", manzana: "🍎", aguacate: "🥑", tomate: "🍅", brocoli: "🥦", espinacas: "🥬", pimiento: "🫑",
   cebolla: "🧅", limon: "🍋", ajo: "🧄", lechuga: "🥬", calabacin: "🥒", zanahoria: "🥕", patata: "🥔", boniato: "🍠",
 };

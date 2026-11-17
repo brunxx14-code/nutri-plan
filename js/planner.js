@@ -304,6 +304,15 @@ function swapAlternatives(recipeId, profile, limit = 5) {
     .map((a) => a.info);
 }
 
+/* Un extra de proteína que esta persona pueda tomar según su dieta y alergias. */
+function proteinSide(profile) {
+  const allergies = profile.allergies || [];
+  const noDairy = profile.dietType === "vegano" || allergies.includes("leche") || allergies.includes("lactosa");
+  if (!noDairy) return "un yogur o un vaso de leche";
+  if (!allergies.includes("soja")) return "un yogur de soja o un vaso de bebida de soja";
+  return "una ración de legumbre";
+}
+
 /* Explica por qué esta receta encaja en el plan de esta persona, con las
    fuentes que lo respaldan. Devuelve una lista de { text, refs }.
    factor = cuánto se ha escalado la ración para ese día. */
@@ -334,7 +343,7 @@ function explainRecipe(recipe, info, profile, slotLabel, factor = 1) {
     if (prot >= dose * 0.8) {
       add(`Con ${prot} g llegas a la cantidad de proteína por comida (unos ${dose} g para ti) que mejor aprovecha el músculo.`, ["schoenfeld_aragon"]);
     } else if (profile.goal !== "mantener") {
-      add(`Para aprovechar mejor la proteína conviene llegar a unos ${dose} g por comida; si te apetece, acompáñalo de un yogur o un vaso de leche.`, ["schoenfeld_aragon"]);
+      add(`Para aprovechar mejor la proteína conviene llegar a unos ${dose} g por comida; si te apetece, acompáñalo de ${proteinSide(profile)}.`, ["schoenfeld_aragon"]);
     }
   }
 
@@ -350,6 +359,10 @@ function explainRecipe(recipe, info, profile, slotLabel, factor = 1) {
   if (mainIngredient) {
     const role = FOOD_ROLES[mainIngredient.food.cat];
     add(`${mainIngredient.food.name} es tu ${role.label.toLowerCase()} principal aquí: ${role.why.toLowerCase()}`, role.refs);
+  }
+
+  if (profile.dietType === "vegano" && recipe.mealType === "principal") {
+    add("La proteína vegetal se aprovecha un poco peor, pero mezclando legumbres, soja y cereales durante el día y llegando a tu proteína diaria se gana músculo igual que con proteína animal.", ["mariotti", "hevia"]);
   }
 
   const hasVeg = recipe.ingredients.some(([id]) => ["verdura", "legumbre", "fruta"].includes(FOODS[id].cat));

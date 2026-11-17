@@ -118,6 +118,8 @@ I18N.en = {
     "EFSA. Scientific Opinion on lactose thresholds in lactose intolerance and galactosaemia. EFSA Journal, 2010.": "EFSA. Scientific Opinion on lactose thresholds in lactose intolerance and galactosaemia. EFSA Journal, 2010.",
     "Estudios en los que se basa": "Studies behind it",
     "Todo esto son estimaciones: cada cuerpo gasta un poco distinto. Por eso, si registras tu peso, comparamos tu tendencia real con el ritmo que buscamos y te proponemos ajustes.": "These are all estimates: every body burns a little differently. That's why, if you log your weight, we compare your real trend with the pace we're aiming for and suggest adjustments.",
+    "La proteína vegetal se aprovecha un poco peor, pero mezclando legumbres, soja y cereales durante el día y llegando a tu proteína diaria se gana músculo igual que con proteína animal.": "Plant protein is absorbed slightly less well, but by mixing legumes, soya and grains through the day and reaching your daily protein you build muscle just as well as with animal protein.",
+    "Mariotti 2019": "Mariotti 2019", "Hevia-Larraín 2021": "Hevia-Larraín 2021",
     "Lleva verdura, fruta o legumbre: la OMS recomienda al menos 400 g al día de frutas y verduras, y la fibra que aportan se asocia con menos riesgo cardiovascular y de diabetes.": "It includes vegetables, fruit or legumes: the WHO recommends at least 400 g of fruit and vegetables a day, and their fibre is linked to lower risk of heart disease and diabetes.",
     "en déficit, comer más proteína ayuda a no perder músculo y quita más el hambre": "in a deficit, eating more protein helps you keep muscle and keeps hunger away",
     "es la materia prima del músculo: con esta cantidad se consigue prácticamente todo el beneficio del entrenamiento": "it's the raw material for muscle: this amount gets you practically all the benefit from training",
@@ -508,6 +510,8 @@ I18N.en = {
     "Para ganar músculo, este plato te da {p} g de proteína y {c} g de carbohidratos: la proteína es la materia prima del músculo y los carbohidratos te dan energía para entrenar fuerte.": "To build muscle, this dish gives you {p} g of protein and {c} g of carbs: protein is the raw material for muscle and carbs fuel hard training.",
     "Con {p} g llegas a la cantidad de proteína por comida (unos {d} g para ti) que mejor aprovecha el músculo.": "With {p} g you reach the protein per meal (about {d} g for you) that your muscles make the most of.",
     "Para aprovechar mejor la proteína conviene llegar a unos {d} g por comida; si te apetece, acompáñalo de un yogur o un vaso de leche.": "To make the most of protein, aim for about {d} g per meal; if you like, add a yoghurt or a glass of milk.",
+    "Para aprovechar mejor la proteína conviene llegar a unos {d} g por comida; si te apetece, acompáñalo de un yogur de soja o un vaso de bebida de soja.": "To make the most of protein, aim for about {d} g per meal; if you like, add a soya yoghurt or a glass of soya drink.",
+    "Para aprovechar mejor la proteína conviene llegar a unos {d} g por comida; si te apetece, acompáñalo de una ración de legumbre.": "To make the most of protein, aim for about {d} g per meal; if you like, add a portion of legumes.",
     "Mantiene un buen equilibrio entre proteína ({p} g), carbohidratos ({c} g) y grasas ({f} g), acorde a tu objetivo de mantenimiento.": "It keeps a good balance of protein ({p} g), carbs ({c} g) and fat ({f} g), in line with your maintenance goal.",
 
     // Explicación de los objetivos
@@ -605,7 +609,8 @@ I18N.en = {
       arroz: "White rice", pasta: "Pasta (macaroni)", avena: "Rolled oats", quinoa: "Quinoa", lentejas: "Dried lentils",
       garbanzos: "Cooked chickpeas (jar)", pan_integral: "Wholemeal bread", aceite_oliva: "Extra virgin olive oil",
       almendras: "Raw almonds", crema_cacahuete: "Peanut butter", tofu: "Firm tofu", miel: "Honey",
-      claras_huevo: "Egg whites (carton)", yogur_soja: "Plain soya yoghurt", soja_texturizada: "Textured soya", harina_garbanzo: "Chickpea flour",
+      claras_huevo: "Egg whites (carton)", yogur_soja: "Plain soya yoghurt", soja_texturizada: "Textured soya", harina_garbanzo: "Chickpea flour", tempeh: "Tempeh", seitan: "Seitan",
+      edamame: "Frozen edamame", bebida_soja: "Unsweetened soya drink",
       platano: "Banana", manzana: "Apple", aguacate: "Avocado", tomate: "Tomato", brocoli: "Broccoli",
       espinacas: "Fresh spinach", pimiento: "Red pepper", cebolla: "Onion", limon: "Lemon", ajo: "Garlic",
       lechuga: "Lettuce", calabacin: "Courgette", zanahoria: "Carrot", patata: "Potato", boniato: "Sweet potato",
@@ -820,6 +825,52 @@ I18N.en = {
       hummus_zanahoria: { name: "Homemade hummus with carrot sticks", steps: [
         "Blend the drained chickpeas with the oil, lemon juice, garlic, salt and a splash of water until creamy.",
         "Cut the carrot into sticks and use them for dipping.",
+      ] },
+      tostada_tofu: { name: "Toast with tofu scramble and tomato", steps: [
+        "Crumble the tofu and sauté it for 3-4 minutes with the oil, salt and a pinch of turmeric.",
+        "Toast the bread, add the sliced tomato and the scramble on top.",
+      ] },
+      avena_bebida_soja: { name: "Oats with soya drink, banana and peanut", steps: [
+        "Cook the oats in the soya drink for 3-4 minutes, stirring, until thick.",
+        "Serve with the sliced banana and the peanut butter on top.",
+      ] },
+      tempeh_brocoli: { name: "Stir-fried tempeh with broccoli and rice", steps: [
+        "Cook the rice for 15-18 minutes in salted water.",
+        "Dice the tempeh and brown it with the oil and chopped garlic for 5 minutes.",
+        "Add the broccoli florets with a splash of water, cover and cook 5 more minutes. Serve with the rice.",
+      ] },
+      seitan_patata: { name: "Grilled seitan with pepper and potato", steps: [
+        "Boil the diced potato for 12 minutes (or 6 minutes in the microwave, covered).",
+        "Grill the pepper strips with half the oil.",
+        "Sear the seitan fillets 2-3 minutes per side with the rest of the oil and serve together.",
+      ] },
+      curry_garbanzo_tofu: { name: "Chickpea and tofu curry with spinach", steps: [
+        "Fry the chopped onion in the oil with a teaspoon of curry powder.",
+        "Add the crushed tomato and the diced tofu; cook for 8 minutes.",
+        "Stir in the drained chickpeas and the spinach and cook 3 more minutes.",
+      ] },
+      soja_arroz_pimiento: { name: "Rice with textured soya and pepper", steps: [
+        "Soak the textured soya for 10 minutes in hot water and drain.",
+        "Fry the onion and pepper in the oil, add the soya and the tomato and cook for 10 minutes.",
+        "Serve with the cooked rice.",
+      ] },
+      edamame_quinoa: { name: "Quinoa bowl with edamame and carrot", steps: [
+        "Cook the quinoa for 12-15 minutes and the edamame for 4 minutes in boiling water.",
+        "Grate the carrot and dice the avocado.",
+        "Put everything in a bowl and dress with lemon juice and salt.",
+      ] },
+      edamame_sal: { name: "Edamame with salt and lemon", steps: [
+        "Boil the edamame for 4 minutes, drain and season with salt and a few drops of lemon.",
+      ] },
+      batido_soja_platano: { name: "Soya drink and banana smoothie", steps: [
+        "Blend the banana with the cold soya drink until creamy.",
+      ] },
+      lentejas_seitan: { name: "Lentil stew with seitan", steps: [
+        "Fry the chopped onion and carrot in the oil, add the tomato and the diced seitan.",
+        "Add the rinsed lentils and water to cover twice over; simmer for 30-35 minutes (or use jarred lentils and 10 minutes).",
+      ] },
+      bocadillo_seitan: { name: "Wholemeal seitan and pepper sandwich", steps: [
+        "Sear the seitan strips with the pepper and oil for 3-4 minutes and fill the bread.",
       ] },
       huevos_duros_tomate: { name: "Boiled eggs with tomato and olive oil", steps: [
         "Boil the eggs for 10 minutes, cool them in water and peel.",
