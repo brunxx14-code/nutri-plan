@@ -14,6 +14,7 @@ const APP_SHELL = [
   "js/planner.js",
   "js/i18n.js",
   "js/i18n-en.js",
+  "js/prices.js",
   "js/app.js",
   "js/engage.js",
   "js/share.js",

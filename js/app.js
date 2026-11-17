@@ -729,7 +729,7 @@ function buildMacroRing(targets) {
 function renderDashboard() {
   const { profile, plan } = state;
   const targets = currentTargets();
-  const { grandTotal } = storeShoppingList();
+  const { checkoutTotal: grandTotal } = storeShoppingList(); // lo que pagas en caja
   const el = document.getElementById("dashboard-content");
   const whyParas = explainTargets(profile, targets);
   const ring = buildMacroRing(targets);
@@ -1675,15 +1675,24 @@ function storeIndex() {
   return state.store ? state.store.index : 1;
 }
 
-/* Lista de la compra con los precios escalados al súper elegido. */
-function storeShoppingList() {
+/* Lista de la compra con los precios escalados al súper elegido.
+   Cada artículo lleva lo que se compra de verdad (envases enteros, ver
+   js/prices.js): `cost` es lo que te comes esta semana y `paid` lo que pagas
+   en caja. checkoutTotal no cuenta lo que ya tienes en casa. */
+function storeShoppingList(k = storeIndex()) {
   const list = buildShoppingList(state.plan, weekTargets());
-  const k = storeIndex();
-  if (k === 1) return list;
+  const pantry = state.pantry || {};
+  let checkoutTotal = 0;
   for (const items of Object.values(list.bySection)) {
-    for (const it of items) it.cost *= k;
+    for (const it of items) {
+      it.cost *= k;
+      Object.assign(it, purchaseFor(it.foodId, it.qty, k));
+      it.atHome = !!pantry[it.foodId];
+      if (!it.atHome) checkoutTotal += it.paid;
+    }
   }
   list.grandTotal *= k;
+  list.checkoutTotal = checkoutTotal;
   return list;
 }
 
@@ -1784,7 +1793,7 @@ function renderStoreCard() {
     return `<div class="store-card empty"><div class="store-card-text"><b>📍 No encontramos súper a menos de 3 km</b></div>
       <button type="button" class="btn ghost block" id="find-stores">Buscar otra vez</button></div>`;
   }
-  const base = buildShoppingList(state.plan, weekTargets()).grandTotal;
+  const base = storeShoppingList(1).checkoutTotal;
   const cheapest = Math.min(...nearby.map((s) => s.index));
   return `
     <div class="store-card">
@@ -1801,6 +1810,43 @@ function renderStoreCard() {
       </div>
       <p class="hint">Precio aproximado de tu lista según la cadena: no son precios en tiempo real.</p>
     </div>`;
+}
+
+function pricesNoteHtml() {
+  return `<p class="hint prices-note">🏷️ Precios de referencia de ${PRICES_REFERENCE} revisados el ${formatPricesDate()}, ajustados a cada cadena. No son precios en tiempo real: en tu tienda pueden variar.</p>`;
+}
+
+/* Texto de la lista para WhatsApp o las notas: lo que falta por comprar. */
+function shoppingListText() {
+  const { bySection, checkoutTotal } = storeShoppingList();
+  const lines = [`🛒 Lista de la compra · NutriPlan${state.store ? ` · ${state.store.name}` : ""}`];
+  for (const section of Object.keys(bySection).sort()) {
+    const items = bySection[section].filter((it) => !it.atHome && !state.bought[it.foodId]);
+    if (!items.length) continue;
+    lines.push("", `${(SECTION_STYLE[section] || {}).emoji || "🛒"} ${section}`);
+    for (const it of items) {
+      const what = it.packs ? `${it.packs} × ${it.label}` : formatQty(it.buyQty, it.unit);
+      lines.push(`☐ ${it.name}: ${what} · ${it.paid.toFixed(2)} €`);
+    }
+  }
+  lines.push("", `Total aprox.: ${checkoutTotal.toFixed(2)} €`, `Precios de referencia (${formatPricesDate()}), pueden variar en tienda.`);
+  return lines.join("\n");
+}
+
+async function shareShoppingList() {
+  const text = shoppingListText();
+  track("compra-compartir");
+  try {
+    if (navigator.share) {
+      await navigator.share({ title: "Lista de la compra", text });
+      return;
+    }
+    await navigator.clipboard.writeText(text);
+    showToast("📋 Lista copiada: pégala en WhatsApp o en tus notas");
+  } catch (e) {
+    if (e && e.name === "AbortError") return; // cerró el menú de compartir
+    showToast("No se pudo compartir la lista");
+  }
 }
 
 function bindStoreCard(el) {
@@ -1820,7 +1866,7 @@ function bindStoreCard(el) {
 
 // ---------- Lista de la compra ----------
 
-function compraProgressHtml(done, total, grandTotal) {
+function compraProgressHtml(done, total, grandTotal, eatenTotal) {
   const r = 30;
   const C = 2 * Math.PI * r;
   const pct = total ? done / total : 0;
@@ -1833,7 +1879,9 @@ function compraProgressHtml(done, total, grandTotal) {
       </div>
       <div class="cart-hero-text">
         <span class="cart-count"><b id="cart-done">${done}</b>/${total} en el carro</span>
+        <span class="cart-total-label">Pagas en caja</span>
         <span class="cart-total"><b id="cart-total" data-value="${grandTotal.toFixed(2)}">${grandTotal.toFixed(2)}</b> €</span>
+        <span class="cart-eaten">Lo que comes esta semana: ${eatenTotal.toFixed(2)} €</span>
         ${budget ? `<span class="cart-budget ${grandTotal <= budget ? "ok" : "warn"}">${grandTotal <= budget ? `✅ ${(budget - grandTotal).toFixed(2)} € por debajo de tu presupuesto` : `⚠️ ${(grandTotal - budget).toFixed(2)} € por encima de tu presupuesto`}</span>` : ""}
       </div>
     </div>`;
@@ -1841,7 +1889,7 @@ function compraProgressHtml(done, total, grandTotal) {
 
 function renderCompra() {
   const { bought } = state;
-  const { bySection, grandTotal } = storeShoppingList();
+  const { bySection, checkoutTotal: grandTotal, grandTotal: eatenTotal } = storeShoppingList();
   const el = document.getElementById("compra-content");
   const sections = Object.keys(bySection).sort();
   document.getElementById("compra-eyebrow").textContent = state.store ? `${state.store.name}${state.store.dist ? ` · ${formatDistance(state.store.dist)}` : ""}` : "Precios de Mercadona";
@@ -1856,7 +1904,7 @@ function renderCompra() {
         <p class="hint">Desbloquéala con Premium para ver cada producto, su cantidad y su precio, listo para llevar al súper.</p>
         <button type="button" class="btn block" id="unlock-compra-btn">Desbloquear con Premium</button>
       </div>
-    `;
+    ` + pricesNoteHtml();
     bindStoreCard(el);
     document.getElementById("unlock-compra-btn").addEventListener("click", () => openPaywallSheet("compra"));
     return;
@@ -1866,10 +1914,10 @@ function renderCompra() {
   const doneCount = allItems.filter((it) => bought[it.foodId]).length;
   let rowIdx = 0;
 
-  el.innerHTML = renderStoreCard() + compraProgressHtml(doneCount, allItems.length, grandTotal) + sections.map((section, si) => {
+  el.innerHTML = renderStoreCard() + compraProgressHtml(doneCount, allItems.length, grandTotal, eatenTotal) + pricesNoteHtml() + sections.map((section, si) => {
     const items = bySection[section];
     const style = SECTION_STYLE[section] || { emoji: "🛒", color: "coral" };
-    const subtotal = items.reduce((s, it) => s + it.cost, 0);
+    const subtotal = items.reduce((s, it) => s + (it.atHome ? 0 : it.paid), 0);
     const secDone = items.filter((it) => bought[it.foodId]).length;
     return `
       <div class="section-block sec-${style.color} ${secDone === items.length ? "complete" : ""}" data-section="${section}" style="animation-delay:${0.05 + si * 0.07}s">
@@ -1887,15 +1935,17 @@ function renderCompra() {
           ${items.map((it) => {
             const isBought = !!bought[it.foodId];
             return `
-              <div class="item-row ${isBought ? "bought" : ""}" data-food="${it.foodId}" style="animation-delay:${0.1 + rowIdx++ * 0.025}s">
+              <div class="item-row ${isBought ? "bought" : ""} ${it.atHome ? "at-home" : ""}" data-food="${it.foodId}" style="animation-delay:${0.1 + rowIdx++ * 0.025}s">
                 <div class="item-left">
                   <span class="item-emoji">${FOOD_EMOJI[it.foodId] || "🛒"}</span>
                   <div>
                     <div class="item-name">${it.name}</div>
-                    <div class="item-qty">${formatQty(it.qty, it.unit)}</div>
+                    <div class="item-qty">${it.packs ? `${it.packs} × ${it.label}` : `${formatQty(it.buyQty, it.unit)} ${it.label}`}</div>
+                    <div class="item-need">${it.atHome ? "Ya lo tienes en casa" : `Necesitas ${formatQty(it.qty, it.unit)}`}</div>
                   </div>
                 </div>
-                <div class="item-cost">${it.cost.toFixed(2)} €</div>
+                <button type="button" class="pantry-btn ${it.atHome ? "on" : ""}" data-pantry="${it.foodId}" aria-pressed="${it.atHome}" aria-label="Ya lo tengo en casa" title="Ya lo tengo en casa">🏠</button>
+                <div class="item-cost">${it.atHome ? "—" : `${it.paid.toFixed(2)} €`}</div>
                 <div class="check-circle">${isBought ? "✓" : ""}</div>
               </div>`;
           }).join("")}
@@ -1903,6 +1953,8 @@ function renderCompra() {
       </div>`;
   }).join("") + `
     <div class="compra-actions">
+      <p class="hint">Toca 🏠 en lo que ya tienes en casa y no lo contamos. Lo que sobra (aceite, arroz...) te dura para otras semanas.</p>
+      <button type="button" class="btn secondary block" id="share-list">📤 Compartir lista</button>
       ${doneCount ? `<button type="button" class="btn ghost block" id="reset-bought">↺ Vaciar el carro</button>` : ""}
     </div>`;
 
@@ -1916,6 +1968,21 @@ function renderCompra() {
       const block = head.closest(".section-block");
       const collapsed = block.classList.toggle("collapsed");
       head.setAttribute("aria-expanded", String(!collapsed));
+    });
+  });
+
+  document.getElementById("share-list").addEventListener("click", shareShoppingList);
+  el.querySelectorAll("[data-pantry]").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation(); // no marca el artículo como comprado
+      const id = btn.dataset.pantry;
+      state.pantry = state.pantry || {};
+      if (state.pantry[id]) delete state.pantry[id];
+      else state.pantry[id] = true;
+      buzz(8);
+      saveState();
+      renderCompra();
+      renderDashboard();
     });
   });
 
