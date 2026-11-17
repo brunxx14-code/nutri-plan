@@ -143,6 +143,7 @@ function openArticleSheet(articleId) {
     <div class="sheet-section article-body">
       ${article.body.map((p) => `<p>${p}</p>`).join("")}
     </div>
+    ${article.refs && article.refs.length ? `<div class="sheet-section article-sources"><h4>Estudios en los que se basa</h4>${article.refs.map((id) => SOURCES[id] ? `<a class="src-ref" href="${SOURCES[id].url}" target="_blank" rel="noopener">📚 ${SOURCES[id].title}</a>` : "").join("")}</div>` : ""}
   `;
   openSheet();
 }
@@ -792,7 +793,7 @@ function renderDashboard() {
         <span>💡 ¿Por qué estos números?</span>
         <span class="chevron">⌄</span>
       </button>
-      <div class="why-body"><div class="why-body-inner">${whyParas.map((p) => `<p>${p}</p>`).join("")}</div></div>
+      <div class="why-body"><div class="why-body-inner">${whyParas.map(explainedHtml).join("")}</div></div>
     </div>
     <div class="quick-actions">
       <button class="btn" data-goto="plan" type="button">Ver plan semanal</button>
@@ -1524,7 +1525,7 @@ function openRecipeSheet(dayIdx, slotKey) {
   const info = getRecipeInfo(state.plan[dayIdx][slotKey]);
   const r = info.recipe;
   const factor = dayFactor(dayIdx);
-  const whySentences = explainRecipe(r, info, state.profile, slotLabel);
+  const whyItems = explainRecipe(r, info, state.profile, slotLabel, factor);
   const body = document.getElementById("sheet-body");
   track("receta-vista");
   body.innerHTML = `
@@ -1542,7 +1543,10 @@ function openRecipeSheet(dayIdx, slotKey) {
     </div>
     <button type="button" class="btn block cook-open-btn" id="cook-open-btn">👩‍🍳 Cocinar paso a paso</button>
     <button type="button" class="btn secondary block swap-open-btn" id="swap-open-btn">🔄 Cambiar por otro plato</button>
-    <div class="why-block why-short"><p>💡 ${whySentences[0]}</p></div>
+    <details class="why-block why-short why-recipe">
+      <summary>💡 ¿Por qué esta comida?</summary>
+      ${whyItems.map(explainedHtml).join("")}
+    </details>
     <div class="sheet-section">
       <h4>Ingredientes (tu ración)</h4>
       ${Math.abs(factor - 1) >= 0.05 ? `<p class="hint portion-hint">Cantidades ajustadas a tus calorías (×${factor.toFixed(2).replace(".", ",")} la ración estándar).</p>` : ""}
