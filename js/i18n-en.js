@@ -363,6 +363,11 @@ I18N.en = {
     "Meriendas": "Snacks",
     "Ver el recetario": "Browse the recipe book",
     "No hay recetas de este tipo.": "No recipes of this kind.",
+    // Calendario
+    "Mes anterior": "Previous month", "Mes siguiente": "Next month",
+    "Menos": "Less", "Más": "More",
+    "Toca un día para ver el detalle": "Tap a day to see the details",
+    "días cumplidos": "days on plan", "mejor racha": "best streak",
     // Perfil
     "Tu objetivo diario": "Your daily target",
     "kcal/día": "kcal/day",
@@ -472,6 +477,7 @@ I18N.en = {
     "Iniciar {n} min": "Start {n} min",
     "¡Tiempo! Paso {n} listo": "Time's up! Step {n} done",
     "{n} recetas que encajan con tu dieta. Guarda las que te gusten con el corazón.": "{n} recipes that fit your diet. Save the ones you like with the heart.",
+    "{n} fuera del plan": "{n} off plan",
     // Genéricas al final: solo se usan si no encaja ninguna más concreta
     // Fechas, cantidades y unidades
     "{n} ud": "{n} pcs",
