@@ -58,13 +58,13 @@ function setNoNumbers(on) {
 
 /* ---------- Modo sin números ---------- */
 
-// "520 kcal", "1.200 / 2.100 kcal", "+150 kcal/día"...
-const KCAL_TEXT = /[+−-]?\s*\d[\d.,]*\s*(?:\/\s*\d[\d.,]*\s*)?kcal(?:\s*\/\s*(?:día|day))?/gi;
+// "520 kcal", "250-450 kcal", "1.200 / 2.100 kcal", "+150 kcal/día"...
+const KCAL_TEXT = /[+−-]?\s*\d[\d.,]*\s*(?:[-–\/]\s*\d[\d.,]*\s*)?kcal(?:\s*\/\s*(?:día|day))?/gi;
 
 function stripKcal(node) {
   const v = node.nodeValue;
   if (!/kcal/i.test(v)) return;
-  let next = v.replace(KCAL_TEXT, "").replace(/^\s*·\s*/, "").replace(/\s*·\s*$/, "").replace(/·\s*·/g, "·");
+  let next = v.replace(KCAL_TEXT, "").replace(/\s*\(\s*\)/g, "").replace(/^\s*·\s*/, "").replace(/\s*·\s*$/, "").replace(/·\s*·/g, "·");
   if (next !== v) node.nodeValue = next;
 }
 
