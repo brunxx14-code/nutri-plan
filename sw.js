@@ -18,6 +18,7 @@ const APP_SHELL = [
   "js/engage.js",
   "js/share.js",
   "js/cook.js",
+  "js/ticket.js",
   "js/favorites.js",
   "js/calendar.js",
   "js/freeze.js",
