@@ -354,6 +354,15 @@ I18N.en = {
     "¡Hecho! Ya está en tu plan de hoy": "Done! It's in today's plan",
     "Sibarita": "Foodie",
     "Guarda 3 recetas favoritas": "Save 3 favourite recipes",
+    "Tus recetas": "Your recipes",
+    "Favoritas": "Favourites",
+    "Recetario": "Recipe book",
+    "Todas": "All",
+    "Desayunos": "Breakfasts",
+    "Comidas y cenas": "Lunch & dinner",
+    "Meriendas": "Snacks",
+    "Ver el recetario": "Browse the recipe book",
+    "No hay recetas de este tipo.": "No recipes of this kind.",
     // Perfil
     "Tu objetivo diario": "Your daily target",
     "kcal/día": "kcal/day",
@@ -384,6 +393,7 @@ I18N.en = {
     "Comí otra cosa en {slot}": "I ate something else for {slot}",
     "Marcar {slot} como hecha": "Mark {slot} as done",
     "{slot} · fuera del plan": "{slot} · off plan",
+    "En tu {x} de hoy": "In today's {x}",
     "{slot} de hoy": "Today's {slot}",
     "~{n} kcal": "~{n} kcal",
     "Semana reajustada: {x}": "Week rebalanced: {x}",
@@ -461,8 +471,7 @@ I18N.en = {
     "Paso {n}": "Step {n}",
     "Iniciar {n} min": "Start {n} min",
     "¡Tiempo! Paso {n} listo": "Time's up! Step {n} done",
-    "En tu {x} de hoy": "In today's {x}",
-    "{x} de hoy": "Today's {x}",
+    "{n} recetas que encajan con tu dieta. Guarda las que te gusten con el corazón.": "{n} recipes that fit your diet. Save the ones you like with the heart.",
     // Genéricas al final: solo se usan si no encaja ninguna más concreta
     // Fechas, cantidades y unidades
     "{n} ud": "{n} pcs",

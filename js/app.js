@@ -2098,7 +2098,7 @@ document.addEventListener("DOMContentLoaded", () => {
     btn.addEventListener("click", () => showView(btn.dataset.view));
   });
 
-  document.getElementById("favorites-btn").addEventListener("click", openFavoritesSheet);
+  document.getElementById("favorites-btn").addEventListener("click", () => openFavoritesSheet());
   document.getElementById("regenerate-btn").addEventListener("click", () => {
     state.plan = generateWeeklyPlan(state.profile, currentTargets().calories, favorites());
     state.bought = {};
