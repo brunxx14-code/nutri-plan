@@ -1394,3 +1394,16 @@ button.streak-chip { font: inherit; border: none; cursor: pointer; }
 .wp-kcal b { font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; }
 .wp-macros { display: flex; gap: 10px; font-size: 13px; font-weight: 700; }
 .wp-macros b { font-variant-numeric: tabular-nums; }
+
+/* ---------- Consejo del día ---------- */
+.tip-card {
+  display: flex; align-items: flex-start; gap: 12px; padding: 14px; margin-bottom: 16px; border-radius: 22px;
+  background: var(--amber-light); color: var(--ink); transition: opacity .18s ease, transform .18s ease;
+}
+.tip-card.swap { opacity: 0; transform: scale(.97); }
+.tip-card.enter { animation: riseIn .3s ease both; }
+.tip-emoji { flex: none; width: 44px; height: 44px; border-radius: 14px; background: var(--card); display: flex; align-items: center; justify-content: center; font-size: 22px; }
+.tip-body { flex: 1; min-width: 0; }
+.tip-kicker { font-size: 11.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--amber-dark); }
+.tip-text { margin: 4px 0 0; font-size: 14.5px; line-height: 1.45; font-weight: 600; }
+.tip-next { flex: none; width: 34px; height: 34px; border-radius: 50%; border: none; background: var(--card); color: var(--ink); font-size: 17px; cursor: pointer; }
