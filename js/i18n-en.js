@@ -343,6 +343,17 @@ I18N.en = {
     "Seguir": "Resume",
     "Reiniciar": "Restart",
     "¡Buen provecho!": "Enjoy your meal!",
+    // Favoritas
+    "Tus favoritas": "Your favourites",
+    "Quitar de favoritas": "Remove from favourites",
+    "Guardar en favoritas": "Save to favourites",
+    "Guardada en tus favoritas": "Saved to your favourites",
+    "Favorita": "Favourite",
+    "Salen más a menudo cuando regeneras el plan. También puedes ponerlas hoy mismo.": "They show up more often when you regenerate your plan. You can also add them to today.",
+    "Aún no tienes favoritas. Toca el corazón de cualquier receta para guardarla aquí.": "No favourites yet. Tap the heart on any recipe to save it here.",
+    "¡Hecho! Ya está en tu plan de hoy": "Done! It's in today's plan",
+    "Sibarita": "Foodie",
+    "Guarda 3 recetas favoritas": "Save 3 favourite recipes",
     // Perfil
     "Tu objetivo diario": "Your daily target",
     "kcal/día": "kcal/day",
@@ -450,6 +461,8 @@ I18N.en = {
     "Paso {n}": "Step {n}",
     "Iniciar {n} min": "Start {n} min",
     "¡Tiempo! Paso {n} listo": "Time's up! Step {n} done",
+    "En tu {x} de hoy": "In today's {x}",
+    "{x} de hoy": "Today's {x}",
     // Genéricas al final: solo se usan si no encaja ninguna más concreta
     // Fechas, cantidades y unidades
     "{n} ud": "{n} pcs",

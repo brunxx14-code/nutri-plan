@@ -1263,3 +1263,31 @@ input:focus, select:focus { outline: 2px solid var(--coral); outline-offset: 1px
 @media (prefers-reduced-motion: reduce) {
   .cook, .cook-in-fwd, .cook-in-back, .cook-ring.rang, .cook-dot.timing { animation: none; transition: none; }
 }
+
+/* ---------- Favoritas ---------- */
+.header-btns { display: flex; gap: 8px; }
+.fav-btn {
+  position: absolute; top: 12px; left: 16px; z-index: 2; width: 40px; height: 40px; border-radius: 50%;
+  border: none; background: rgba(255,255,255,.92); font-size: 19px; line-height: 1; cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0,0,0,.12);
+}
+.fav-btn.pop { animation: fav-pop .45s cubic-bezier(.3,1.6,.5,1); }
+@keyframes fav-pop { 0% { transform: scale(1); } 40% { transform: scale(1.35); } 100% { transform: scale(1); } }
+.fav-mark { font-size: 11px; margin-left: 2px; }
+.fav-list { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+.fav-item {
+  position: relative; display: flex; gap: 12px; align-items: flex-start; padding: 12px; border-radius: 18px;
+  background: var(--card); border: 1px solid var(--border);
+}
+.fav-item .photo-thumb { flex: none; width: 64px; height: 64px; border-radius: 14px; }
+.fav-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; padding-right: 40px; }
+.fav-name { font-weight: 800; line-height: 1.25; }
+.fav-meta { font-size: 13px; color: var(--muted); }
+.fav-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.chip-btn.small { font-size: 13px; padding: 6px 12px; background: var(--coral-light); color: var(--coral-dark); border-color: transparent; }
+.fav-today { font-size: 13px; font-weight: 700; color: var(--green-dark); padding: 6px 0; }
+.fav-item .fav-btn { top: 10px; left: auto; right: 10px; width: 34px; height: 34px; font-size: 16px; background: var(--bg); box-shadow: none; }
+.fav-empty { text-align: center; padding: 26px 10px 10px; color: var(--muted); }
+.fav-empty-heart { font-size: 54px; animation: fav-beat 1.6s ease-in-out infinite; }
+@keyframes fav-beat { 0%, 100% { transform: scale(1); } 15% { transform: scale(1.15); } 30% { transform: scale(1); } 45% { transform: scale(1.1); } }
+@media (prefers-reduced-motion: reduce) { .fav-btn.pop, .fav-empty-heart { animation: none; } }
