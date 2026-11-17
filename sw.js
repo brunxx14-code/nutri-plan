@@ -20,6 +20,7 @@ const APP_SHELL = [
   "js/cook.js",
   "js/favorites.js",
   "js/calendar.js",
+  "js/friends.js",
   "js/freeze.js",
   "js/tips.js",
   "manifest.webmanifest",
