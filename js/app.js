@@ -1026,7 +1026,14 @@ function showToast(text) {
   if (old) old.remove();
   const toast = document.createElement("div");
   toast.className = "toast";
+  toast.setAttribute("role", "status"); // los lectores de pantalla lo leen sin mover el foco
+  toast.setAttribute("aria-live", "polite");
   toast.textContent = text;
+  // tocarlo lo quita al momento
+  toast.addEventListener("click", () => {
+    toast.classList.add("hide");
+    setTimeout(() => toast.remove(), 400);
+  });
   document.getElementById("app-shell").appendChild(toast);
   setTimeout(() => toast.classList.add("hide"), 2400);
   setTimeout(() => toast.remove(), 2900);
