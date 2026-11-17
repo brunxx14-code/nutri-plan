@@ -2099,6 +2099,7 @@ function applyTheme(theme) {
   if (theme === "auto") delete root.dataset.theme;
   else root.dataset.theme = theme;
   try { localStorage.setItem(THEME_KEY, theme); } catch (e) { /* seguimos sin guardar */ }
+  if (typeof syncThemeColor === "function") syncThemeColor();
 }
 
 function themePickerHtml() {

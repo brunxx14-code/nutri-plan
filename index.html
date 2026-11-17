@@ -13,6 +13,16 @@
 <script>
   /* Aplica el tema guardado antes de pintar, para que no parpadee */
   try { var t = localStorage.getItem("nutriplan_theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (e) {}
+  /* La barra del navegador/móvil sigue al tema: coral en claro, oscura en oscuro */
+  function syncThemeColor() {
+    var meta = document.querySelector('meta[name="theme-color"]');
+    if (!meta) return;
+    var forced = document.documentElement.dataset.theme;
+    var dark = forced ? forced === "dark" : !!(window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches);
+    meta.setAttribute("content", dark ? "#14120f" : "#d9583a");
+  }
+  syncThemeColor();
+  try { matchMedia("(prefers-color-scheme: dark)").addEventListener("change", syncThemeColor); } catch (e) {}
 </script>
 <meta name="description" content="Plan semanal de comidas y lista de la compra ajustados a tu objetivo físico y tu presupuesto.">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
