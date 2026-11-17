@@ -1898,8 +1898,41 @@ function langPickerHtml() {
     </button>`).join("")}</div>`;
 }
 
+const THEME_KEY = "nutriplan_theme";
+const THEMES = { auto: { emoji: "📱", label: "Auto" }, light: { emoji: "☀️", label: "Claro" }, dark: { emoji: "🌙", label: "Oscuro" } };
+
+function currentTheme() {
+  try { return localStorage.getItem(THEME_KEY) || "auto"; } catch (e) { return "auto"; }
+}
+
+function applyTheme(theme) {
+  const root = document.documentElement;
+  if (theme === "auto") delete root.dataset.theme;
+  else root.dataset.theme = theme;
+  try { localStorage.setItem(THEME_KEY, theme); } catch (e) { /* seguimos sin guardar */ }
+}
+
+function themePickerHtml() {
+  const current = currentTheme();
+  return `<div class="lang-picker theme-picker">${Object.entries(THEMES).map(([key, t]) => `
+    <button type="button" class="lang-btn ${key === current ? "selected" : ""}" data-theme-choice="${key}">
+      <span class="lang-flag">${t.emoji}</span>${t.label}
+    </button>`).join("")}</div>`;
+}
+
+function bindThemePicker(root) {
+  root.querySelectorAll("[data-theme-choice]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      applyTheme(btn.dataset.themeChoice);
+      track(`tema-${btn.dataset.themeChoice}`);
+      root.querySelectorAll("[data-theme-choice]").forEach((b) => b.classList.toggle("selected", b === btn));
+      buzz(8);
+    });
+  });
+}
+
 function bindLangPicker(root) {
-  root.querySelectorAll(".lang-btn").forEach((btn) => {
+  root.querySelectorAll(".lang-btn[data-lang]").forEach((btn) => {
     btn.addEventListener("click", () => {
       if (btn.dataset.lang === currentLang) return;
       track(`idioma-${btn.dataset.lang}`);
@@ -1995,6 +2028,8 @@ function renderPerfil() {
     <div class="pcard">
       <div class="section-kicker">🌐 Idioma</div>
       ${langPickerHtml()}
+      <div class="section-kicker theme-kicker">🎨 Apariencia</div>
+      ${themePickerHtml()}
     </div>
 
     <button class="btn secondary block edit-profile-spacing" id="edit-profile-btn" type="button">✏️ Editar mis datos</button>
@@ -2002,6 +2037,7 @@ function renderPerfil() {
   `;
   document.getElementById("edit-profile-btn").addEventListener("click", enterEditMode);
   bindLangPicker(el);
+  bindThemePicker(el);
   if (isPremium()) {
     document.getElementById("cancel-sub-btn").addEventListener("click", cancelSubscription);
   } else {

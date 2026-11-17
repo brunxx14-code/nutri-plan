@@ -10,6 +10,10 @@
 <link rel="stylesheet" href="css/style.css">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#d9583a">
+<script>
+  /* Aplica el tema guardado antes de pintar, para que no parpadee */
+  try { var t = localStorage.getItem("nutriplan_theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
 <meta name="description" content="Plan semanal de comidas y lista de la compra ajustados a tu objetivo físico y tu presupuesto.">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">

@@ -18,6 +18,7 @@ I18N.en = {
     "Ahora no": "Not now",
     "Actualizar": "Refresh",
     "Idioma": "Language",
+    "Apariencia": "Appearance", "Auto": "Auto", "Claro": "Light", "Oscuro": "Dark",
 
     // Navegación y cabeceras
     "Resumen": "Summary",
