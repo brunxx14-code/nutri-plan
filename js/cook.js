@@ -60,6 +60,7 @@ function openCookMode(dayIdx, slotKey) {
   cook = {
     recipe: info.recipe, dayIdx, slotKey, factor: dayFactor(dayIdx),
     idx: 0, timers: {}, tick: null, wake: null,
+    opener: document.activeElement, // al salir, el foco vuelve aquí
   };
   track("modo-cocina");
   const el = document.createElement("div");
@@ -67,6 +68,7 @@ function openCookMode(dayIdx, slotKey) {
   el.id = "cook";
   el.setAttribute("role", "dialog");
   el.setAttribute("aria-label", "Modo cocina");
+  el.setAttribute("aria-modal", "true");
   el.innerHTML = `
     <div class="cook-top">
       <button type="button" class="cook-close" id="cook-close" aria-label="Cerrar">✕</button>
@@ -93,6 +95,7 @@ function openCookMode(dayIdx, slotKey) {
   keepScreenOn();
   cook.tick = setInterval(tickCookTimers, 250);
   renderCookStep(0);
+  try { el.querySelector("#cook-next").focus({ preventScroll: true }); } catch (e) { /* sin foco */ }
 }
 
 function closeCookMode() {
@@ -102,7 +105,12 @@ function closeCookMode() {
   document.removeEventListener("visibilitychange", onCookVisibility);
   document.removeEventListener("keydown", onCookKey);
   const el = document.getElementById("cook");
+  const opener = cook.opener;
   cook = null;
+  // el foco vuelve al botón que abrió el modo cocina, si sigue en pantalla
+  if (opener && opener.isConnected && opener.offsetParent) {
+    try { opener.focus({ preventScroll: true }); } catch (e) { /* sin foco */ }
+  }
   if (!el) return;
   el.classList.remove("open");
   setTimeout(() => el.remove(), 280);
@@ -270,6 +278,15 @@ function onCookKey(e) {
   } else if (e.key === "Escape") {
     e.preventDefault();
     closeCookMode();
+  } else if (e.key === "Tab") {
+    // Tab da la vuelta dentro del modo cocina, que tapa toda la pantalla
+    const box = document.getElementById("cook");
+    const items = [...box.querySelectorAll("button, [tabindex]:not([tabindex='-1'])")].filter((b) => !b.disabled && b.offsetParent !== null);
+    if (!items.length) return;
+    const first = items[0], last = items[items.length - 1];
+    const inside = box.contains(document.activeElement);
+    if (e.shiftKey && (document.activeElement === first || !inside)) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && (document.activeElement === last || !inside)) { e.preventDefault(); first.focus(); }
   }
 }
 
