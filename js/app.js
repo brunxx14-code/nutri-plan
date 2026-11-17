@@ -1664,10 +1664,20 @@ window.addEventListener("popstate", () => {
     }
     return;
   }
+  // Con el modo cocina abierto, «atrás» cierra solo el modo cocina y deja la receta
+  if (typeof cook !== "undefined" && cook) {
+    closeCookMode();
+    sheetInHistory = false;
+    if (sheetIsOpen()) {
+      try { history.pushState({ nutriSheet: true }, ""); sheetInHistory = true; } catch (e) { /* sin historial */ }
+    }
+    return;
+  }
   if (sheetInHistory || sheetIsOpen()) closeSheet(true);
 });
 
 document.addEventListener("keydown", (e) => {
+  if (typeof cook !== "undefined" && cook) return; // el modo cocina gestiona sus teclas
   if (e.key === "Escape" && sheetIsOpen()) closeSheet();
 });
 

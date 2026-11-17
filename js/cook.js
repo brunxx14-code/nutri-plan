@@ -89,6 +89,7 @@ function openCookMode(dayIdx, slotKey) {
   });
   bindCookSwipe(el.querySelector("#cook-stage"));
   document.addEventListener("visibilitychange", onCookVisibility);
+  document.addEventListener("keydown", onCookKey);
   keepScreenOn();
   cook.tick = setInterval(tickCookTimers, 250);
   renderCookStep(0);
@@ -99,6 +100,7 @@ function closeCookMode() {
   clearInterval(cook.tick);
   if (cook.wake) cook.wake.release().catch(() => {});
   document.removeEventListener("visibilitychange", onCookVisibility);
+  document.removeEventListener("keydown", onCookKey);
   const el = document.getElementById("cook");
   cook = null;
   if (!el) return;
@@ -254,6 +256,22 @@ function tickCookTimers() {
 }
 
 // ---------- Gestos y final ----------
+
+/* Con teclado (o un mando bluetooth): flechas para pasar de paso, Esc para salir. */
+function onCookKey(e) {
+  if (!cook || e.altKey || e.ctrlKey || e.metaKey) return;
+  if (e.target && e.target.closest && e.target.closest("input, textarea, select")) return;
+  if (e.key === "ArrowRight" || e.key === "PageDown") {
+    e.preventDefault();
+    if (cook.idx < totalCookSteps() - 1) goCookStep(cook.idx + 1);
+  } else if (e.key === "ArrowLeft" || e.key === "PageUp") {
+    e.preventDefault();
+    goCookStep(cook.idx - 1);
+  } else if (e.key === "Escape") {
+    e.preventDefault();
+    closeCookMode();
+  }
+}
 
 function bindCookSwipe(stage) {
   let x0 = null, y0 = 0;
