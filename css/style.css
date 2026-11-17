@@ -359,7 +359,10 @@ input:focus, select:focus { outline: 2px solid var(--coral); outline-offset: 1px
 .meal-card .slot-label { font-size: 11px; text-transform: uppercase; color: var(--muted); letter-spacing: .04em; font-weight: 700; }
 .meal-card .recipe-name { font-weight: 600; line-height: 1.3; font-size: 14.5px; margin-top: 1px; }
 .meal-card .kcal { color: var(--muted); font-size: 12.5px; margin-top: 2px; }
-.meal-card .chevron-right { color: var(--border); flex: none; }
+.meal-card .chevron-right { color: var(--muted); opacity: .85; font-size: 20px; line-height: 1; flex: none; transition: transform .2s ease, opacity .2s ease; }
+/* la flecha invita a tocar: se ve, y se adelanta un poco al pasar o pulsar */
+.meal-card:hover .chevron-right, .meal-card:active .chevron-right { opacity: 1; transform: translateX(3px); }
+@media (prefers-reduced-motion: reduce) { .meal-card .chevron-right { transition: none; } .meal-card:hover .chevron-right, .meal-card:active .chevron-right { transform: none; } }
 
 /* ---------- Lista de la compra ---------- */
 .section-block { margin-bottom: 18px; animation: riseIn .35s ease both; }
