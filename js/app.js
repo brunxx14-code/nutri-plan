@@ -127,6 +127,7 @@ function renderInformes() {
 
   el.querySelectorAll("[data-article]").forEach((b) => {
     b.addEventListener("click", () => openArticleSheet(b.dataset.article));
+    actLikeButton(b);
   });
   bindRecapCard(el);
   bindCalendarCard(el);
@@ -836,6 +837,7 @@ function renderDashboard() {
   });
   el.querySelectorAll("[data-article]").forEach((b) => {
     b.addEventListener("click", () => openArticleSheet(b.dataset.article));
+    actLikeButton(b);
   });
 
   animateCountUp(document.getElementById("ring-kcal-value"), targets.calories);
@@ -1020,6 +1022,20 @@ function burstConfetti() {
    copia guardada, pero así no sorprende que no carguen fotos o súper cercanos. */
 window.addEventListener("offline", () => showToast("📴 Sin conexión: sigues con tu plan guardado"));
 window.addEventListener("online", () => showToast("📶 Conexión recuperada"));
+
+/* Una tarjeta que se toca (un div con clic) también se usa con teclado y
+   lector de pantalla: recibe el foco y se abre con Intro o espacio. */
+function actLikeButton(el) {
+  el.setAttribute("role", "button");
+  el.tabIndex = 0;
+  el.addEventListener("keydown", (e) => {
+    if (e.target !== el) return;
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      el.click();
+    }
+  });
+}
 
 function showToast(text) {
   const old = document.querySelector(".toast");
@@ -1516,7 +1532,7 @@ function renderPlanDays() {
         const off = i === today && offToday[slot.key];
         if (off) {
           return `
-          <div class="meal-card off-plan" role="button" tabindex="0" data-day="${i}" data-slot="${slot.key}" data-off="1">
+          <div class="meal-card off-plan" data-day="${i}" data-slot="${slot.key}" data-off="1">
             <div class="photo photo-thumb big off"><span class="photo-fallback" aria-hidden="true">${off.emoji}</span></div>
             <div class="meal-info">
               <div class="slot-label">${slot.label} · fuera del plan</div>
@@ -1528,7 +1544,7 @@ function renderPlanDays() {
         }
         const info = getRecipeInfo(state.plan[i][slot.key]);
         return `
-          <div class="meal-card" role="button" tabindex="0" data-day="${i}" data-slot="${slot.key}">
+          <div class="meal-card" data-day="${i}" data-slot="${slot.key}">
             ${recipePhoto(info.recipe.id, { width: 160, className: `photo-thumb big ${slot.key}`, fallback: mealEmoji(slot.key) })}
             <div class="meal-info">
               <div class="slot-label">${slot.label}${isFavorite(info.recipe.id) ? ` <span class="fav-mark" aria-label="Favorita">❤️</span>` : ""}</div>
@@ -1549,13 +1565,7 @@ function renderPlanDays() {
       if (card.dataset.off) openOffPlanSheet(slotKey);
       else openRecipeSheet(day, slotKey);
     });
-    // con teclado: Intro o espacio abren la comida, como un botón
-    card.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        card.click();
-      }
-    });
+    actLikeButton(card);
   });
 }
 
