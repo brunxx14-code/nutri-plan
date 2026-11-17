@@ -536,6 +536,63 @@ I18N.en = {
       senderismo: "Hiking", otro: "Other sport",
     },
     recipes: {
+      porridge_cacahuete: { name: "Oat porridge with peanut butter and banana", steps: [
+        "Cook the oats in 250 ml of water with a pinch of salt for 4-5 minutes, stirring.",
+        "Once thick, take off the heat and stir in half the banana, mashed.",
+        "Serve topped with the rest of the banana, sliced, and the peanut butter.",
+      ] },
+      revuelto_tomate: { name: "Scrambled eggs with tomato and wholemeal bread", steps: [
+        "Chop the tomato and cook it in the pan with the oil for 3 minutes.",
+        "Add the beaten eggs and stir over low heat until set, about 2 minutes.",
+        "Serve with the toasted wholemeal bread.",
+      ] },
+      tofu_revuelto: { name: "Scrambled tofu toast with spinach", steps: [
+        "Crumble the tofu with a fork.",
+        "Sauté it with the oil and spinach for 4-5 minutes, with salt and pepper.",
+        "Serve on the toasted wholemeal bread.",
+      ] },
+      muslos_horno: { name: "Oven-baked chicken thighs with potato and pepper", steps: [
+        "Preheat the oven to 200°C.",
+        "Cut the potato, pepper and onion and toss them with the oil and salt on a tray.",
+        "Place the thighs on top and bake for 35-40 minutes, until golden.",
+      ] },
+      lomo_quinoa: { name: "Grilled pork loin with quinoa and salad", steps: [
+        "Cook the quinoa in twice its volume of water for 12-15 minutes.",
+        "Grill the pork loin for 3 minutes on each side.",
+        "Serve with the lettuce and tomato dressed with the oil.",
+      ] },
+      wok_pollo: { name: "Chicken and vegetable stir-fry with rice", steps: [
+        "Cook the rice as per the packet.",
+        "Cut the chicken and vegetables into thin strips.",
+        "Stir-fry the chicken in the oil over high heat for 4 minutes, add the vegetables and cook 5 minutes more.",
+        "Serve the stir-fry over the rice.",
+      ] },
+      ensalada_lentejas: { name: "Warm lentil salad with vegetables", steps: [
+        "Cook the lentils for 20-25 minutes, or use well-drained tinned lentils.",
+        "Dice the pepper, tomato and onion small.",
+        "Mix everything with the oil, lemon juice and salt, and serve warm.",
+      ] },
+      tofu_boniato: { name: "Crispy tofu with sweet potato and broccoli", steps: [
+        "Roast the diced sweet potato at 200°C for 25 minutes.",
+        "Steam the broccoli for 5-6 minutes.",
+        "Brown the diced tofu in the oil for 6-8 minutes until crispy, and serve everything together.",
+      ] },
+      merluza_papillote: { name: "Hake en papillote with vegetables", steps: [
+        "Preheat the oven to 200°C.",
+        "Thinly slice the potato and vegetables and lay them on baking paper with the hake on top.",
+        "Drizzle with the oil, season, close the parcel and bake for 18-20 minutes.",
+      ] },
+      pasta_bolonesa: { name: "Homemade pasta bolognese", steps: [
+        "Fry the chopped onion and carrot in the oil for 5 minutes.",
+        "Add the mince and brown it; stir in the crushed tomato and cook for 15 minutes.",
+        "Meanwhile, cook the pasta as per the packet and mix it with the sauce.",
+      ] },
+      tostada_cacahuete: { name: "Wholemeal toast with peanut butter and banana", steps: [
+        "Toast the bread, spread it with the peanut butter and top with the sliced banana.",
+      ] },
+      queso_fresco_tomate: { name: "Quark with tomato and olive oil", steps: [
+        "Serve the quark with the diced tomato, a drizzle of oil and a pinch of salt.",
+      ] },
       avena_platano: { name: "Oats with banana and almonds", steps: [
         "Warm the milk in a pan or microwave without letting it boil.",
         "Add the oats and cook for 3-4 minutes, stirring until thick.",
