@@ -1747,7 +1747,27 @@ window.addEventListener("popstate", () => {
 document.addEventListener("keydown", (e) => {
   if (typeof cook !== "undefined" && cook) return; // el modo cocina gestiona sus teclas
   if (e.key === "Escape" && sheetIsOpen()) closeSheet();
+  if (e.key === "Tab" && sheetIsOpen()) trapSheetFocus(e);
 });
+
+/* Con la hoja abierta, Tab da la vuelta dentro de ella en vez de irse a la
+   pantalla de detrás, que queda tapada. */
+function trapSheetFocus(e) {
+  const card = document.querySelector("#recipe-sheet .sheet-card");
+  const items = [...card.querySelectorAll('button, a[href], input, select, textarea, [tabindex]:not([tabindex="-1"])')]
+    .filter((el) => !el.disabled && el.offsetParent !== null);
+  if (!items.length) return;
+  const first = items[0];
+  const last = items[items.length - 1];
+  const inside = card.contains(document.activeElement);
+  if (e.shiftKey && (document.activeElement === first || !inside)) {
+    e.preventDefault();
+    last.focus();
+  } else if (!e.shiftKey && (document.activeElement === last || !inside)) {
+    e.preventDefault();
+    first.focus();
+  }
+}
 
 /* Arrastrar la hoja hacia abajo la cierra (si está arriba del todo). */
 function bindSheetSwipe() {
