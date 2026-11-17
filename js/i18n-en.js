@@ -328,6 +328,21 @@ I18N.en = {
     "No se pudo compartir ahora": "Couldn't share right now",
     "Enlace copiado, ¡pégalo donde quieras!": "Link copied, paste it anywhere!",
 
+    // Modo cocina
+    "Cocinar paso a paso": "Cook step by step",
+    "Modo cocina": "Cooking mode",
+    "Anterior": "Back",
+    "Siguiente →": "Next →",
+    "← Anterior": "← Back",
+    "Empezar →": "Start →",
+    "¡Listo!": "Done!",
+    "Antes de empezar": "Before you start",
+    "Prepara los ingredientes": "Get your ingredients ready",
+    "Ingredientes": "Ingredients",
+    "Pausar": "Pause",
+    "Seguir": "Resume",
+    "Reiniciar": "Restart",
+    "¡Buen provecho!": "Enjoy your meal!",
     // Perfil
     "Tu objetivo diario": "Your daily target",
     "kcal/día": "kcal/day",
@@ -431,6 +446,10 @@ I18N.en = {
     "{a} de {b} días cumpliendo mi plan": "{a} of {b} days on my plan",
     "/{n} días cumplidos": "/{n} days on plan",
 
+    "Paso {a} de {b}": "Step {a} of {b}",
+    "Paso {n}": "Step {n}",
+    "Iniciar {n} min": "Start {n} min",
+    "¡Tiempo! Paso {n} listo": "Time's up! Step {n} done",
     // Genéricas al final: solo se usan si no encaja ninguna más concreta
     // Fechas, cantidades y unidades
     "{n} ud": "{n} pcs",
