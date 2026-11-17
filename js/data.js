@@ -1,3 +1,40 @@
+/* Fuentes científicas en las que se basan los cálculos, los alimentos y los
+   informes de la app. Se muestran como enlaces pequeños junto a cada
+   explicación ("📚 Mifflin 1990") para que cualquiera pueda comprobarlas. */
+const SOURCES = {
+  mifflin: { label: "Mifflin 1990", title: "Mifflin MD, St Jeor ST et al. A new predictive equation for resting energy expenditure in healthy individuals. Am J Clin Nutr, 1990.", url: "https://doi.org/10.1093/ajcn/51.2.241" },
+  frankenfield: { label: "Frankenfield 2005", title: "Frankenfield D et al. Comparison of predictive equations for resting metabolic rate in healthy nonobese and obese adults: a systematic review. J Am Diet Assoc, 2005.", url: "https://doi.org/10.1016/j.jada.2005.02.005" },
+  fao: { label: "FAO/OMS 2004", title: "FAO/OMS/UNU. Human energy requirements. Informe de la consulta conjunta de expertos, 2004.", url: "https://www.fao.org/4/y5686e/y5686e00.htm" },
+  compendium: { label: "Compendio de actividades 2024", title: "Herrmann SD et al. 2024 Adult Compendium of Physical Activities. J Sport Health Sci, 2024.", url: "https://doi.org/10.1016/j.jshs.2023.10.010" },
+  jager: { label: "ISSN 2017", title: "Jäger R et al. International Society of Sports Nutrition Position Stand: protein and exercise. J Int Soc Sports Nutr, 2017.", url: "https://doi.org/10.1186/s12970-017-0177-8" },
+  morton: { label: "Morton 2018", title: "Morton RW et al. A systematic review, meta-analysis and meta-regression of the effect of protein supplementation on resistance training-induced gains in muscle mass and strength. Br J Sports Med, 2018.", url: "https://doi.org/10.1136/bjsports-2017-097608" },
+  helms: { label: "Helms 2014", title: "Helms ER, Aragon AA, Fitschen PJ. Evidence-based recommendations for natural bodybuilding contest preparation: nutrition and supplementation. J Int Soc Sports Nutr, 2014.", url: "https://doi.org/10.1186/1550-2783-11-20" },
+  garthe: { label: "Garthe 2011", title: "Garthe I et al. Effect of two different weight-loss rates on body composition and strength and power-related performance in elite athletes. Int J Sport Nutr Exerc Metab, 2011.", url: "https://doi.org/10.1123/ijsnem.21.2.97" },
+  leidy: { label: "Leidy 2015", title: "Leidy HJ et al. The role of protein in weight loss and maintenance. Am J Clin Nutr, 2015.", url: "https://doi.org/10.3945/ajcn.114.084038" },
+  iraki: { label: "Iraki 2019", title: "Iraki J et al. Nutrition recommendations for bodybuilders in the off-season: a narrative review. Sports, 2019.", url: "https://doi.org/10.3390/sports7070154" },
+  slater: { label: "Slater 2019", title: "Slater GJ et al. Is an energy surplus required to maximize skeletal muscle hypertrophy associated with resistance training? Front Nutr, 2019.", url: "https://doi.org/10.3389/fnut.2019.00131" },
+  schoenfeld_aragon: { label: "Schoenfeld & Aragon 2018", title: "Schoenfeld BJ, Aragon AA. How much protein can the body use in a single meal for muscle-building? J Int Soc Sports Nutr, 2018.", url: "https://doi.org/10.1186/s12970-018-0215-1" },
+  hall: { label: "Hall 2011", title: "Hall KD et al. Quantification of the effect of energy imbalance on bodyweight. Lancet, 2011.", url: "https://doi.org/10.1016/S0140-6736(11)60812-X" },
+  efsa_fat: { label: "EFSA grasas 2010", title: "EFSA. Scientific Opinion on Dietary Reference Values for fats. EFSA Journal, 2010.", url: "https://doi.org/10.2903/j.efsa.2010.1461" },
+  efsa_carbs: { label: "EFSA carbohidratos y fibra 2010", title: "EFSA. Scientific Opinion on Dietary Reference Values for carbohydrates and dietary fibre. EFSA Journal, 2010.", url: "https://doi.org/10.2903/j.efsa.2010.1462" },
+  efsa_calcium: { label: "EFSA calcio 2015", title: "EFSA. Scientific Opinion on Dietary Reference Values for calcium. EFSA Journal, 2015.", url: "https://doi.org/10.2903/j.efsa.2015.4101" },
+  acsm: { label: "ACSM 2016", title: "Thomas DT, Erdman KA, Burke LM. Nutrition and Athletic Performance. Posicionamiento conjunto ACSM / Academy of Nutrition and Dietetics / Dietitians of Canada. Med Sci Sports Exerc, 2016.", url: "https://doi.org/10.1249/MSS.0000000000000852" },
+  who: { label: "OMS dieta sana", title: "Organización Mundial de la Salud. Alimentación sana (nota descriptiva).", url: "https://www.who.int/es/news-room/fact-sheets/detail/healthy-diet" },
+  who_sugars: { label: "OMS azúcares 2015", title: "OMS. Guideline: sugars intake for adults and children, 2015.", url: "https://www.who.int/publications/i/item/9789241549028" },
+  reynolds: { label: "Reynolds 2019", title: "Reynolds A et al. Carbohydrate quality and human health: a series of systematic reviews and meta-analyses. Lancet, 2019.", url: "https://doi.org/10.1016/S0140-6736(18)31809-9" },
+  predimed: { label: "PREDIMED 2018", title: "Estruch R et al. Primary prevention of cardiovascular disease with a Mediterranean diet supplemented with extra-virgin olive oil or nuts. N Engl J Med, 2018.", url: "https://doi.org/10.1056/NEJMoa1800389" },
+  kerksick: { label: "ISSN timing 2017", title: "Kerksick CM et al. International Society of Sports Nutrition position stand: nutrient timing. J Int Soc Sports Nutr, 2017.", url: "https://doi.org/10.1186/s12970-017-0189-4" },
+  schoenfeld_timing: { label: "Schoenfeld 2013", title: "Schoenfeld BJ, Aragon AA, Krieger JW. The effect of protein timing on muscle strength and hypertrophy: a meta-analysis. J Int Soc Sports Nutr, 2013.", url: "https://doi.org/10.1186/1550-2783-10-53" },
+  robinson: { label: "Robinson 2014", title: "Robinson E et al. A systematic review and meta-analysis examining the effect of eating rate on energy intake and hunger. Am J Clin Nutr, 2014.", url: "https://doi.org/10.3945/ajcn.113.081745" },
+  spiegel: { label: "Spiegel 2004", title: "Spiegel K et al. Sleep curtailment in healthy young men is associated with decreased leptin levels, elevated ghrelin levels, and increased hunger and appetite. Ann Intern Med, 2004.", url: "https://doi.org/10.7326/0003-4819-141-11-200412070-00008" },
+  nedeltcheva: { label: "Nedeltcheva 2010", title: "Nedeltcheva AV et al. Insufficient sleep undermines dietary efforts to reduce adiposity. Ann Intern Med, 2010.", url: "https://doi.org/10.7326/0003-4819-153-7-201010050-00006" },
+  westenhoefer: { label: "Westenhoefer 1999", title: "Westenhoefer J, Stunkard AJ, Pudel V. Validation of the flexible and rigid control dimensions of dietary restraint. Int J Eat Disord, 1999.", url: "https://pubmed.ncbi.nlm.nih.gov/10349584/" },
+  ducrot: { label: "Ducrot 2017", title: "Ducrot P et al. Meal planning is associated with food variety, diet quality and body weight status in a large sample of French adults. Int J Behav Nutr Phys Act, 2017.", url: "https://doi.org/10.1186/s12966-017-0461-7" },
+  dansinger: { label: "Dansinger 2005", title: "Dansinger ML et al. Comparison of the Atkins, Ornish, Weight Watchers, and Zone diets for weight loss and heart disease risk reduction. JAMA, 2005.", url: "https://doi.org/10.1001/jama.293.1.43" },
+  lally: { label: "Lally 2010", title: "Lally P et al. How are habits formed: modelling habit formation in the real world. Eur J Soc Psychol, 2010.", url: "https://doi.org/10.1002/ejsp.674" },
+  usda: { label: "USDA FoodData Central", title: "Departamento de Agricultura de EE. UU. FoodData Central: composición de alimentos.", url: "https://fdc.nal.usda.gov/" },
+};
+
 /* Deportes con su equivalente metabólico (MET), usado para calcular una media
    de calorías quemadas: kcal/min = MET × 3.5 × peso(kg) / 200. */
 const SPORTS = {
@@ -5,7 +42,7 @@ const SPORTS = {
   caminar:   { label: "Caminar a paso ligero", met: 3.8 },
   ciclismo:  { label: "Ciclismo", met: 7.5 },
   natacion:  { label: "Natación", met: 8.0 },
-  pesas:     { label: "Musculación / pesas", met: 6.0 },
+  pesas:     { label: "Musculación / pesas", met: 5.0 },
   futbol:    { label: "Fútbol", met: 7.0 },
   baloncesto:{ label: "Baloncesto", met: 6.5 },
   tenis:     { label: "Tenis / pádel", met: 7.0 },
@@ -21,7 +58,7 @@ const SPORTS = {
    getWeeklyArticles en app.js) para que siempre haya contenido nuevo. */
 const ARTICLES = [
   {
-    id: "proteina_clave", category: "Nutrición básica", readMins: 3,
+    id: "proteina_clave", refs: ["jager", "schoenfeld_aragon", "leidy"], category: "Nutrición básica", readMins: 3,
     title: "Por qué la proteína importa en cada comida",
     teaser: "No es solo cosa de culturistas: repartirla a lo largo del día mejora la saciedad y protege tu masa muscular.",
     body: [
@@ -31,7 +68,7 @@ const ARTICLES = [
     ],
   },
   {
-    id: "fibra_olvidada", category: "Digestión", readMins: 3,
+    id: "fibra_olvidada", refs: ["reynolds", "efsa_carbs"], category: "Digestión", readMins: 3,
     title: "Fibra: la gran olvidada de la dieta",
     teaser: "La mayoría de las dietas occidentales se quedan por debajo de la fibra recomendada, y eso tiene consecuencias más allá del tránsito intestinal.",
     body: [
@@ -41,7 +78,7 @@ const ARTICLES = [
     ],
   },
   {
-    id: "hidratacion", category: "Rendimiento", readMins: 2,
+    id: "hidratacion", refs: ["acsm"], category: "Rendimiento", readMins: 2,
     title: "Hidratación y rendimiento, dentro y fuera del gimnasio",
     teaser: "Perder solo un 2% de tu peso corporal en agua ya puede notarse en tu energía y tu concentración.",
     body: [
@@ -51,7 +88,7 @@ const ARTICLES = [
     ],
   },
   {
-    id: "no_alimentos_prohibidos", category: "Mentalidad", readMins: 3,
+    id: "no_alimentos_prohibidos", refs: ["westenhoefer"], category: "Mentalidad", readMins: 3,
     title: "El mito de los alimentos \"prohibidos\"",
     teaser: "Etiquetar comidas como buenas o malas suele generar más ansiedad con la comida, no menos.",
     body: [
@@ -61,7 +98,7 @@ const ARTICLES = [
     ],
   },
   {
-    id: "meal_prep", category: "Hábitos", readMins: 2,
+    id: "meal_prep", refs: ["ducrot"], category: "Hábitos", readMins: 2,
     title: "Por qué planificar tus comidas reduce el estrés",
     teaser: "La mayoría de las decisiones de comida poco saludables ocurren cuando no hay un plan y el hambre ya apremia.",
     body: [
@@ -71,7 +108,7 @@ const ARTICLES = [
     ],
   },
   {
-    id: "azucares_añadidos", category: "Nutrición básica", readMins: 3,
+    id: "azucares_añadidos", refs: ["who_sugars"], category: "Nutrición básica", readMins: 3,
     title: "Azúcares añadidos: cómo detectarlos",
     teaser: "No siempre está en la lista como \"azúcar\": a menudo se esconde bajo otros nombres en la etiqueta.",
     body: [
@@ -81,7 +118,7 @@ const ARTICLES = [
     ],
   },
   {
-    id: "grasas_saludables", category: "Nutrición básica", readMins: 2,
+    id: "grasas_saludables", refs: ["predimed", "efsa_fat"], category: "Nutrición básica", readMins: 2,
     title: "El papel de las grasas saludables",
     teaser: "Durante años se demonizó a las grasas en bloque, pero no todas cumplen la misma función.",
     body: [
@@ -91,27 +128,27 @@ const ARTICLES = [
     ],
   },
   {
-    id: "comer_despacio", category: "Hábitos", readMins: 2,
+    id: "comer_despacio", refs: ["robinson"], category: "Hábitos", readMins: 2,
     title: "Comer despacio y la sensación de saciedad",
     teaser: "El cerebro tarda varios minutos en recibir la señal de que ya has comido suficiente.",
     body: [
-      "La saciedad no es inmediata: el cuerpo necesita entre 15 y 20 minutos para procesar las señales hormonales que indican que ya has comido suficiente. Comer muy rápido suele traducirse en comer más de lo que realmente necesitas.",
+      "La saciedad no es inmediata: las señales hormonales que indican que ya has comido suficiente tardan un rato en llegar al cerebro. Los estudios que comparan comer rápido con comer despacio ven que, comiendo despacio, se come algo menos sin quedarse con más hambre.",
       "Masticar más despacio, dejar los cubiertos entre bocado y bocado, o comer sin pantallas de por medio, son formas sencillas de darle tiempo a esa señal para llegar.",
       "Es un ajuste pequeño, pero con el tiempo puede marcar una diferencia real en cuánta cantidad necesitas para sentirte satisfecho.",
     ],
   },
   {
-    id: "sueño_apetito", category: "Rendimiento", readMins: 3,
-    title: "Sueño, cortisol y apetito",
+    id: "sueño_apetito", refs: ["spiegel", "nedeltcheva"], category: "Rendimiento", readMins: 3,
+    title: "Sueño y apetito",
     teaser: "Dormir mal no solo te cansa: también altera las hormonas que regulan el hambre.",
     body: [
       "La falta de sueño reduce los niveles de leptina (la hormona que indica saciedad) y aumenta la grelina (la que estimula el apetito). El resultado práctico: más hambre, especialmente por alimentos densos en calorías.",
-      "También eleva el cortisol, lo que puede favorecer la retención de grasa abdominal y dificultar la recuperación muscular tras el entrenamiento.",
+      "Y cuando estás a dieta, dormir poco hace que pierdas más músculo y menos grasa: en un estudio, las mismas personas con la misma dieta perdieron un 55 % menos de grasa durmiendo 5,5 horas que durmiendo 8,5.",
       "Cuidar la alimentación sin cuidar el sueño es remar a medias: dormir de forma consistente es, en la práctica, parte de la estrategia nutricional, no un tema aparte.",
     ],
   },
   {
-    id: "micronutrientes", category: "Nutrición básica", readMins: 3,
+    id: "micronutrientes", refs: ["who"], category: "Nutrición básica", readMins: 3,
     title: "No solo de macros vive el cuerpo",
     teaser: "Puedes cumplir tus macros a la perfección y aun así tener carencias de vitaminas y minerales.",
     body: [
@@ -121,7 +158,7 @@ const ARTICLES = [
     ],
   },
   {
-    id: "timing_entrenamiento", category: "Rendimiento", readMins: 3,
+    id: "timing_entrenamiento", refs: ["kerksick", "schoenfeld_timing"], category: "Rendimiento", readMins: 3,
     title: "¿Importa cuándo comes respecto al entrenamiento?",
     teaser: "El timing ayuda a rendir mejor en el momento, pero pesa menos que el total del día.",
     body: [
@@ -131,7 +168,7 @@ const ARTICLES = [
     ],
   },
   {
-    id: "consistencia", category: "Mentalidad", readMins: 2,
+    id: "consistencia", refs: ["dansinger", "lally"], category: "Mentalidad", readMins: 2,
     title: "La consistencia pesa más que la perfección",
     teaser: "Un plan que cumples el 80% de las semanas gana casi siempre a uno perfecto que abandonas al mes.",
     body: [
@@ -144,24 +181,26 @@ const ARTICLES = [
 
 /* Roles nutricionales: explican en una frase por qué un alimento está en el plan. */
 const FOOD_ROLES = {
-  proteina_magra:  { label: "Proteína magra",      why: "Mucha proteína con poca grasa: ayuda a saciarte y a mantener el músculo." },
-  proteina_grasa:  { label: "Proteína + grasa",    why: "Proteína de calidad junto con grasas que aportan energía y sabor." },
-  carbohidrato:    { label: "Carbohidrato complejo", why: "Energía de liberación lenta para rendir durante el día o al entrenar." },
-  legumbre:        { label: "Legumbre",            why: "Proteína vegetal, fibra e hidratos de carbono, todo en uno." },
-  verdura:         { label: "Verdura",             why: "Vitaminas, minerales y fibra con muy pocas calorías." },
-  fruta:           { label: "Fruta",               why: "Vitaminas y azúcares naturales que dan energía rápida." },
-  grasa_saludable: { label: "Grasa saludable",     why: "Grasas insaturadas necesarias para las hormonas y la saciedad." },
-  lacteo:          { label: "Lácteo",              why: "Calcio y proteína de buena calidad." },
-  condimento:      { label: "Condimento",          why: "Aporta sabor con un impacto calórico casi nulo." },
+  proteina_magra:  { label: "Proteína magra",      why: "Mucha proteína con poca grasa: ayuda a saciarte y a mantener el músculo.", refs: ["leidy"] },
+  proteina_grasa:  { label: "Proteína + grasa",    why: "Proteína de calidad junto con grasas que aportan energía y sabor.", refs: ["jager"] },
+  carbohidrato:    { label: "Carbohidrato complejo", why: "Energía de liberación lenta para rendir durante el día o al entrenar.", refs: ["acsm", "reynolds"] },
+  legumbre:        { label: "Legumbre",            why: "Proteína vegetal, fibra e hidratos de carbono, todo en uno.", refs: ["who", "reynolds"] },
+  verdura:         { label: "Verdura",             why: "Vitaminas, minerales y fibra con muy pocas calorías.", refs: ["who"] },
+  fruta:           { label: "Fruta",               why: "Vitaminas y azúcares naturales que dan energía rápida.", refs: ["who"] },
+  grasa_saludable: { label: "Grasa saludable",     why: "Grasas insaturadas necesarias para las hormonas y la saciedad.", refs: ["predimed", "efsa_fat"] },
+  lacteo:          { label: "Lácteo",              why: "Calcio y proteína de buena calidad.", refs: ["efsa_calcium", "jager"] },
+  condimento:      { label: "Condimento",          why: "Aporta sabor con un impacto calórico casi nulo.", refs: [] },
 };
 
 /* Catálogo de alimentos con precios de referencia estilo Mercadona.
    unit: 'g' | 'ml' | 'ud'. price = precio por 100g / 100ml / 1 unidad.
-   Macros (kcal/prot/carbs/fat) referidas a la misma cantidad de referencia.
+   Macros (kcal/prot/carbs/fat) referidas a la misma cantidad de referencia y
+   SIEMPRE en crudo / tal como se compra, porque las recetas pesan los
+   ingredientes en crudo (valores de USDA FoodData Central y etiquetas).
    cat = clave de FOOD_ROLES, usada para explicar el alimento en la app. */
 const FOODS = {
   // Carnicería
-  pollo_pechuga:   { name: "Pechuga de pollo",        section: "Carnicería", unit: "g",  price: 0.60, kcal: 165, prot: 31,  carbs: 0,    fat: 3.6, cat: "proteina_magra" },
+  pollo_pechuga:   { name: "Pechuga de pollo",        section: "Carnicería", unit: "g",  price: 0.60, kcal: 120, prot: 22.5, carbs: 0,   fat: 2.6, cat: "proteina_magra" },
   pollo_muslo:     { name: "Contramuslo de pollo",     section: "Carnicería", unit: "g",  price: 0.45, kcal: 179, prot: 19,  carbs: 0,    fat: 11,  cat: "proteina_grasa" },
   pavo_filete:     { name: "Filete de pavo",           section: "Carnicería", unit: "g",  price: 0.72, kcal: 104, prot: 24,  carbs: 0,    fat: 1,   cat: "proteina_magra" },
   ternera_picada:  { name: "Carne picada de ternera",  section: "Carnicería", unit: "g",  price: 0.85, kcal: 198, prot: 18,  carbs: 0,    fat: 14,  cat: "proteina_grasa" },
@@ -179,6 +218,8 @@ const FOODS = {
   yogur_griego:    { name: "Yogur griego natural",      section: "Lácteos y huevos", unit: "ud", price: 0.62, kcal: 121, prot: 8,   carbs: 5,    fat: 8,   cat: "lacteo" },
   yogur_natural:   { name: "Yogur natural",             section: "Lácteos y huevos", unit: "ud", price: 0.30, kcal: 61,  prot: 4,   carbs: 6,    fat: 2.5, cat: "lacteo" },
   queso_fresco:    { name: "Queso fresco batido 0%",    section: "Lácteos y huevos", unit: "g",  price: 0.35, kcal: 45,  prot: 8,   carbs: 4,    fat: 0,   cat: "lacteo" },
+  claras_huevo:    { name: "Claras de huevo (brick)",   section: "Lácteos y huevos", unit: "g",  price: 0.30, kcal: 52,  prot: 11,  carbs: 0.7,  fat: 0.2, cat: "proteina_magra" },
+  yogur_soja:      { name: "Yogur de soja natural",     section: "Lácteos y huevos", unit: "ud", price: 0.35, kcal: 63,  prot: 5,   carbs: 2.6,  fat: 2.9, cat: "proteina_magra" },
   queso_curado:    { name: "Queso curado",              section: "Lácteos y huevos", unit: "g",  price: 1.60, kcal: 400, prot: 25,  carbs: 0,    fat: 33,  cat: "lacteo" },
 
   // Despensa
@@ -192,7 +233,8 @@ const FOODS = {
   aceite_oliva:    { name: "Aceite de oliva virgen extra", section: "Despensa", unit: "ml", price: 0.90, kcal: 884, prot: 0, carbs: 0, fat: 100, cat: "grasa_saludable" },
   almendras:       { name: "Almendras crudas",          section: "Despensa", unit: "g", price: 1.20, kcal: 579, prot: 21, carbs: 22, fat: 50,  cat: "grasa_saludable" },
   crema_cacahuete: { name: "Crema de cacahuete",        section: "Despensa", unit: "g", price: 0.90, kcal: 588, prot: 25, carbs: 20, fat: 50,  cat: "grasa_saludable" },
-  tofu:            { name: "Tofu firme",                section: "Despensa", unit: "g", price: 0.45, kcal: 76,  prot: 8,  carbs: 1.9, fat: 4.8, cat: "proteina_magra" },
+  tofu:            { name: "Tofu firme",                section: "Despensa", unit: "g", price: 0.45, kcal: 144, prot: 17, carbs: 2.8, fat: 8.7, cat: "proteina_magra" },
+  soja_texturizada:{ name: "Soja texturizada",          section: "Despensa", unit: "g", price: 0.80, kcal: 330, prot: 50, carbs: 18, fat: 1.5, cat: "legumbre" },
   miel:            { name: "Miel",                      section: "Despensa", unit: "g", price: 0.80, kcal: 304, prot: 0.3, carbs: 82, fat: 0,   cat: "condimento" },
 
   // Frutería
@@ -515,6 +557,73 @@ const RECIPES = [
     tags: ["vegetariano", "sin_gluten", "alto_proteina"],
     ingredients: [["queso_fresco", 200], ["tomate", 120], ["aceite_oliva", 8]],
     steps: ["Sirve el queso fresco con el tomate en dados, un chorrito de aceite y una pizca de sal."]
+  },
+  {
+    id: "queso_batido_avena", name: "Queso batido con avena y plátano", mealType: "desayuno",
+    tags: ["vegetariano", "alto_proteina", "economico"],
+    ingredients: [["queso_fresco", 250], ["avena", 40], ["platano", 80]],
+    steps: [
+      "Pon el queso fresco batido en un bol.",
+      "Añade los copos de avena y deja reposar 2-3 minutos para que se ablanden.",
+      "Corona con el plátano en rodajas."
+    ]
+  },
+  {
+    id: "tortitas_claras", name: "Tortitas de claras y avena", mealType: "desayuno",
+    tags: ["vegetariano", "alto_proteina", "economico"],
+    ingredients: [["claras_huevo", 200], ["avena", 50], ["platano", 60]],
+    steps: [
+      "Tritura las claras con la avena y la mitad del plátano hasta tener una masa lisa.",
+      "Vierte pequeñas porciones en una sartén antiadherente caliente y cuaja 1-2 minutos por cada lado.",
+      "Sirve con el resto del plátano en rodajas."
+    ]
+  },
+  {
+    id: "yogur_soja_avena", name: "Bol de yogur de soja con avena y cacahuete", mealType: "desayuno",
+    tags: ["vegano", "vegetariano", "economico"],
+    ingredients: [["yogur_soja", 2], ["avena", 40], ["platano", 80], ["crema_cacahuete", 10]],
+    steps: [
+      "Mezcla los yogures de soja con la avena.",
+      "Añade el plátano en rodajas y la crema de cacahuete por encima."
+    ]
+  },
+  {
+    id: "tortilla_claras_patata", name: "Tortilla de claras con patata y calabacín", mealType: "principal",
+    tags: ["vegetariano", "sin_gluten", "alto_proteina", "economico"],
+    ingredients: [["claras_huevo", 250], ["huevos", 1], ["patata", 200], ["calabacin", 100], ["aceite_oliva", 8]],
+    steps: [
+      "Corta la patata y el calabacín en láminas finas y hazlos a fuego medio con el aceite, tapados, 12-15 minutos.",
+      "Bate las claras con el huevo y una pizca de sal y mézclalas con la verdura.",
+      "Cuaja la tortilla en la sartén 3-4 minutos por cada lado."
+    ]
+  },
+  {
+    id: "soja_bolonesa", name: "Pasta con boloñesa de soja texturizada", mealType: "principal",
+    tags: ["vegano", "vegetariano", "alto_proteina", "economico"],
+    ingredients: [["soja_texturizada", 50], ["pasta", 70], ["tomate", 200], ["cebolla", 50], ["aceite_oliva", 5]],
+    steps: [
+      "Hidrata la soja texturizada 10 minutos en agua caliente y escúrrela bien.",
+      "Sofríe la cebolla picada con el aceite, añade la soja y después el tomate triturado; cocina 10 minutos.",
+      "Cuece la pasta, escúrrela y mézclala con la salsa."
+    ]
+  },
+  {
+    id: "queso_batido_almendras", name: "Queso batido con almendras y miel", mealType: "merienda",
+    tags: ["vegetariano", "sin_gluten", "alto_proteina", "economico"],
+    ingredients: [["queso_fresco", 200], ["almendras", 10], ["miel", 5]],
+    steps: ["Sirve el queso batido con las almendras troceadas y un hilo de miel."]
+  },
+  {
+    id: "tostada_atun", name: "Tostada integral de atún y tomate", mealType: "merienda",
+    tags: ["alto_proteina", "economico"],
+    ingredients: [["atun_lata", 1], ["pan_integral", 40], ["tomate", 60]],
+    steps: ["Tuesta el pan, ralla o corta el tomate por encima y añade el atún escurrido."]
+  },
+  {
+    id: "yogur_soja_almendras", name: "Yogur de soja con almendras", mealType: "merienda",
+    tags: ["vegano", "vegetariano", "sin_gluten"],
+    ingredients: [["yogur_soja", 2], ["almendras", 10]],
+    steps: ["Sirve los yogures de soja con las almendras troceadas por encima."]
   }
 ];
 
@@ -548,9 +657,9 @@ const DEFAULT_SUPERMARKET_INDEX = 1.05; // súper de barrio o cadena desconocida
 const FOOD_EMOJI = {
   pollo_pechuga: "🍗", pollo_muslo: "🍗", pavo_filete: "🦃", ternera_picada: "🥩", lomo_cerdo: "🥓",
   salmon: "🐟", merluza: "🐟", gambas: "🦐", atun_lata: "🥫",
-  huevos: "🥚", leche_semi: "🥛", yogur_griego: "🥣", yogur_natural: "🥣", queso_fresco: "🧀", queso_curado: "🧀",
+  huevos: "🥚", leche_semi: "🥛", yogur_griego: "🥣", yogur_natural: "🥣", queso_fresco: "🧀", queso_curado: "🧀", claras_huevo: "🥚", yogur_soja: "🥣",
   arroz: "🍚", pasta: "🍝", avena: "🌾", quinoa: "🌾", lentejas: "🫘", garbanzos: "🫘", pan_integral: "🍞",
-  aceite_oliva: "🫒", almendras: "🌰", crema_cacahuete: "🥜", tofu: "⬜", miel: "🍯",
+  aceite_oliva: "🫒", almendras: "🌰", crema_cacahuete: "🥜", tofu: "⬜", soja_texturizada: "🫘", miel: "🍯",
   platano: "🍌", manzana: "🍎", aguacate: "🥑", tomate: "🍅", brocoli: "🥦", espinacas: "🥬", pimiento: "🫑",
   cebolla: "🧅", limon: "🍋", ajo: "🧄", lechuga: "🥬", calabacin: "🥒", zanahoria: "🥕", patata: "🥔", boniato: "🍠",
 };

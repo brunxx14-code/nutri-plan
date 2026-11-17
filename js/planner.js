@@ -126,7 +126,60 @@ function generateWeeklyPlan(profile, targetKcal, favorites = []) {
   avoidSameLunchAndDinner(plan);
 
   if (profile.weeklyBudget) fitToBudget(plan, profile, poolByType, targetKcal);
+  balanceProtein(plan, profile, poolByType, targetKcal);
   return plan;
+}
+
+function proteinShare(recipeId) {
+  const info = getRecipeInfo(recipeId);
+  return (info.prot * 4) / info.kcal;
+}
+
+function dayProtein(day, targetKcal) {
+  const factor = dayPortionFactor(day, targetKcal);
+  return MEAL_SLOTS.reduce((sum, slot) => sum + getRecipeInfo(day[slot.key]).prot * factor, 0);
+}
+
+/* Las raciones se ajustan a las calorías, pero eso no garantiza llegar a la
+   proteína que necesita cada objetivo (ISSN 2017). Si un día se queda corto,
+   cambiamos el plato con menos proteína por otro del mismo tipo que tenga
+   más, sin salirnos del presupuesto y sin repetir siempre el mismo. */
+const PROTEIN_MIN_SHARE_GAIN = 0.04;
+
+function balanceProtein(plan, profile, poolByType, targetKcal) {
+  const targetProtein = calcTargets(profile).protein;
+  if (!targetProtein) return;
+  const uses = {};
+  for (const day of plan) for (const slot of MEAL_SLOTS) uses[day[slot.key]] = (uses[day[slot.key]] || 0) + 1;
+
+  for (const day of plan) {
+    for (let guard = 0; guard < MEAL_SLOTS.length; guard++) {
+      if (dayProtein(day, targetKcal) >= targetProtein * 0.95) break;
+      const costBefore = profile.weeklyBudget ? planWeeklyCost(plan, targetKcal) : 0;
+      let best = null;
+      for (const slot of MEAL_SLOTS) {
+        const current = day[slot.key];
+        const partner = slot.key === "comida" ? day.cena : slot.key === "cena" ? day.comida : null;
+        for (const id of new Set(poolByType[slot.mealType])) {
+          if (id === current || id === partner) continue;
+          const gain = proteinShare(id) - proteinShare(current);
+          if (gain < PROTEIN_MIN_SHARE_GAIN) continue;
+          if (profile.weeklyBudget) {
+            day[slot.key] = id;
+            const costAfter = planWeeklyCost(plan, targetKcal);
+            day[slot.key] = current;
+            if (costAfter > profile.weeklyBudget && costAfter > costBefore) continue;
+          }
+          const score = gain - (uses[id] || 0) * 0.03; // variedad: penaliza lo ya repetido
+          if (!best || score > best.score) best = { slotKey: slot.key, id, score };
+        }
+      }
+      if (!best) break;
+      uses[day[best.slotKey]]--;
+      day[best.slotKey] = best.id;
+      uses[best.id] = (uses[best.id] || 0) + 1;
+    }
+  }
 }
 
 /* Comida y cena salen del mismo grupo de recetas: si un día coinciden,
@@ -229,25 +282,38 @@ function swapAlternatives(recipeId, profile, limit = 5) {
     .map((a) => a.info);
 }
 
-/* Explica, en 2 frases, por qué esta receta encaja en el plan de esta persona. */
-function explainRecipe(recipe, info, profile, slotLabel) {
+/* Explica por qué esta receta encaja en el plan de esta persona, con las
+   fuentes que lo respaldan. Devuelve una lista de { text, refs }.
+   factor = cuánto se ha escalado la ración para ese día. */
+function explainRecipe(recipe, info, profile, slotLabel, factor = 1) {
+  const prot = Math.round(info.prot * factor);
+  const carbs = Math.round(info.carbs * factor);
+  const fat = Math.round(info.fat * factor);
   const proteinKcalShare = (info.prot * 4) / info.kcal;
-  const sentences = [];
+  const items = [];
+  const add = (text, refs = []) => items.push({ text, refs });
 
   if (profile.goal === "perder") {
-    sentences.push(
-      proteinKcalShare > 0.25
-        ? `Como tu objetivo es perder grasa, en la ${slotLabel.toLowerCase()} priorizamos platos con bastante proteína (${Math.round(info.prot)} g): ayuda a saciarte y a conservar músculo mientras comes por debajo de tu gasto.`
-        : `Es una opción ligera (${Math.round(info.kcal)} kcal) que encaja con el déficit calórico que necesitas para perder grasa sin pasar hambre.`
-    );
+    if (proteinKcalShare >= 0.25) {
+      add(`Para perder grasa, este plato te da ${prot} g de proteína con pocas calorías: en déficit, la proteína ayuda a no perder músculo y es lo que más sacia.`, ["leidy", "helms"]);
+    } else {
+      add(`Este plato tiene menos proteína (${prot} g), así que el resto de comidas de tu día la compensan. Su ración está ajustada para que el día cuadre con tu déficit.`);
+    }
   } else if (profile.goal === "ganar") {
-    sentences.push(
-      `Como tu objetivo es ganar músculo, esta receta aporta ${Math.round(info.prot)} g de proteína y ${Math.round(info.carbs)} g de carbohidratos: la combinación que ayuda a recuperarte del entrenamiento y a crecer.`
-    );
+    add(`Para ganar músculo, este plato te da ${prot} g de proteína y ${carbs} g de carbohidratos: la proteína es la materia prima del músculo y los carbohidratos te dan energía para entrenar fuerte.`, ["jager", "acsm"]);
   } else {
-    sentences.push(
-      `Mantiene un buen equilibrio entre proteína (${Math.round(info.prot)} g), carbohidratos (${Math.round(info.carbs)} g) y grasas (${Math.round(info.fat)} g), acorde a tu objetivo de mantenimiento.`
-    );
+    add(`Mantiene un buen equilibrio entre proteína (${prot} g), carbohidratos (${carbs} g) y grasas (${fat} g), acorde a tu objetivo de mantenimiento.`, ["who"]);
+  }
+
+  // Dosis de proteína por comida: ~0,4 g/kg en las comidas principales.
+  if (recipe.mealType !== "merienda" && profile.weightKg) {
+    const ref = proteinReferenceWeight(profile).kg;
+    const dose = Math.round(Math.max(20, ref * 0.4) / 5) * 5;
+    if (prot >= dose * 0.8) {
+      add(`Con ${prot} g llegas a la cantidad de proteína por comida (unos ${dose} g para ti) que mejor aprovecha el músculo.`, ["schoenfeld_aragon"]);
+    } else if (profile.goal !== "mantener") {
+      add(`Para aprovechar mejor la proteína conviene llegar a unos ${dose} g por comida; si te apetece, acompáñalo de un yogur o un vaso de leche.`, ["schoenfeld_aragon"]);
+    }
   }
 
   const mainIngredient = [...recipe.ingredients]
@@ -261,10 +327,15 @@ function explainRecipe(recipe, info, profile, slotLabel) {
 
   if (mainIngredient) {
     const role = FOOD_ROLES[mainIngredient.food.cat];
-    sentences.push(`${mainIngredient.food.name} es tu ${role.label.toLowerCase()} principal aquí: ${role.why.toLowerCase()}`);
+    add(`${mainIngredient.food.name} es tu ${role.label.toLowerCase()} principal aquí: ${role.why.toLowerCase()}`, role.refs);
   }
 
-  return sentences;
+  const hasVeg = recipe.ingredients.some(([id]) => ["verdura", "legumbre", "fruta"].includes(FOODS[id].cat));
+  if (hasVeg) {
+    add("Lleva verdura, fruta o legumbre: la OMS recomienda al menos 400 g al día de frutas y verduras, y la fibra que aportan se asocia con menos riesgo cardiovascular y de diabetes.", ["who", "reynolds"]);
+  }
+
+  return items;
 }
 
 function formatQty(qty, unit) {

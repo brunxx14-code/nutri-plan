@@ -1407,3 +1407,19 @@ button.streak-chip { font: inherit; border: none; cursor: pointer; }
 .tip-kicker { font-size: 11.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--amber-dark); }
 .tip-text { margin: 4px 0 0; font-size: 14.5px; line-height: 1.45; font-weight: 600; }
 .tip-next { flex: none; width: 34px; height: 34px; border-radius: 50%; border: none; background: var(--card); color: var(--ink); font-size: 17px; cursor: pointer; }
+
+/* Fuentes científicas junto a cada explicación */
+.why-card.open .why-body { max-height: 2400px; }
+.src-links { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin-top: -4px; font-size: 11.5px; color: var(--muted); }
+.src-link { display: inline-block; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--border); background: var(--card); color: var(--green-dark); text-decoration: none; font-weight: 600; }
+.src-link:hover, .src-link:focus-visible { border-color: var(--green); }
+.why-recipe summary { cursor: pointer; font-weight: 700; font-size: 14px; color: var(--green-dark); list-style: none; }
+.why-recipe summary::-webkit-details-marker { display: none; }
+.why-recipe summary::after { content: " ⌄"; color: var(--muted); }
+.why-recipe[open] summary::after { content: " ⌃"; }
+.why-recipe[open] summary { margin-bottom: 4px; }
+.article-sources { display: flex; flex-direction: column; gap: 8px; }
+.src-ref { font-size: 12.5px; line-height: 1.45; color: var(--green-dark); text-decoration: none; overflow-wrap: anywhere; }
+.src-ref:hover { text-decoration: underline; }
+.why-recipe p { margin: 10px 0 4px; }
+.why-recipe .src-links { margin-top: 0; }
