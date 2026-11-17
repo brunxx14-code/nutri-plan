@@ -413,19 +413,51 @@ function buildDislikesGrid() {
   }
 }
 
+/* Para buscar sin que importen tildes ni mayúsculas: "Pádel" = "padel". */
+function foldText(s) {
+  return String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+}
+
+/* Cierra el buscador de deportes que esté abierto (solo hay uno a la vez). */
+function closeSportPickers(except) {
+  document.querySelectorAll(".sport-picker-panel:not(.hidden)").forEach((panel) => {
+    if (panel === except) return;
+    panel.classList.add("hidden");
+    const row = panel.closest(".sport-row");
+    if (row) row.querySelector(".sport-pick").setAttribute("aria-expanded", "false");
+  });
+}
+
+document.addEventListener("click", (e) => {
+  if (!e.target.closest(".sport-row")) closeSportPickers();
+});
+
+/* Fila de un deporte: botón que abre un buscador con todos los deportes
+   agrupados por categoría, veces por semana y minutos por sesión. Si elige
+   "Otro deporte", puede escribir cuál es y lo intenso que es. */
 function createSportRow(prefill) {
   const row = document.createElement("div");
   row.className = "sport-row";
+  const startType = prefill && SPORTS[prefill.type] ? prefill.type : "running";
 
-  const select = document.createElement("select");
-  select.className = "sport-type";
-  for (const [key, sport] of Object.entries(SPORTS)) {
-    const opt = document.createElement("option");
-    opt.value = key;
-    opt.textContent = sport.label;
-    if (prefill && prefill.type === key) opt.selected = true;
-    select.appendChild(opt);
-  }
+  const typeInput = document.createElement("input");
+  typeInput.type = "hidden";
+  typeInput.className = "sport-type";
+  typeInput.value = startType;
+
+  const pickBtn = document.createElement("button");
+  pickBtn.type = "button";
+  pickBtn.className = "sport-pick";
+  pickBtn.setAttribute("aria-haspopup", "listbox");
+  pickBtn.setAttribute("aria-expanded", "false");
+  const pickEmoji = document.createElement("span");
+  pickEmoji.className = "sport-pick-emoji";
+  const pickLabel = document.createElement("span");
+  pickLabel.className = "sport-pick-label";
+  const pickCaret = document.createElement("span");
+  pickCaret.className = "sport-pick-caret";
+  pickCaret.textContent = "⌄";
+  pickBtn.append(pickEmoji, pickLabel, pickCaret);
 
   const freqInput = document.createElement("input");
   freqInput.type = "number";
@@ -433,6 +465,7 @@ function createSportRow(prefill) {
   freqInput.min = 0;
   freqInput.max = 14;
   freqInput.placeholder = "veces";
+  freqInput.setAttribute("aria-label", "Veces por semana");
   freqInput.value = prefill ? prefill.freq : "";
 
   const minsInput = document.createElement("input");
@@ -441,15 +474,152 @@ function createSportRow(prefill) {
   minsInput.min = 0;
   minsInput.max = 300;
   minsInput.placeholder = "min";
+  minsInput.setAttribute("aria-label", "Minutos por sesión");
   minsInput.value = prefill ? prefill.mins : "";
 
   const removeBtn = document.createElement("button");
   removeBtn.type = "button";
   removeBtn.className = "remove-sport";
   removeBtn.textContent = "✕";
+  removeBtn.setAttribute("aria-label", "Quitar deporte");
   removeBtn.addEventListener("click", () => row.remove());
 
-  row.append(select, freqInput, minsInput, removeBtn);
+  // "Otro deporte": nombre libre + intensidad
+  const other = document.createElement("div");
+  other.className = "sport-other hidden";
+  const otherName = document.createElement("input");
+  otherName.type = "text";
+  otherName.className = "sport-other-name";
+  otherName.maxLength = 30;
+  otherName.placeholder = "¿Cuál? (ej. parkour)";
+  otherName.value = prefill && prefill.type === "otro" && prefill.name ? prefill.name : "";
+  const otherIntensity = document.createElement("select");
+  otherIntensity.className = "sport-other-intensity";
+  otherIntensity.setAttribute("aria-label", "Intensidad");
+  for (const [key, it] of Object.entries(OTHER_SPORT_INTENSITY)) {
+    const opt = document.createElement("option");
+    opt.value = key;
+    opt.textContent = `Intensidad ${it.label.toLowerCase()}`;
+    otherIntensity.appendChild(opt);
+  }
+  otherIntensity.value = prefill && OTHER_SPORT_INTENSITY[prefill.intensity] ? prefill.intensity : "moderada";
+  other.append(otherName, otherIntensity);
+
+  // Buscador
+  const panel = document.createElement("div");
+  panel.className = "sport-picker-panel hidden";
+  const search = document.createElement("input");
+  search.type = "search";
+  search.className = "sport-search";
+  search.placeholder = "Busca tu deporte (pádel, escalada, boxeo...)";
+  search.setAttribute("aria-label", "Buscar deporte");
+  search.autocomplete = "off";
+  const list = document.createElement("div");
+  list.className = "sport-list";
+  list.setAttribute("role", "listbox");
+  const empty = document.createElement("button");
+  empty.type = "button";
+  empty.className = "sport-empty hidden";
+  panel.append(search, list, empty);
+
+  const options = [];
+  for (const [catKey, catLabel] of Object.entries(SPORT_CATEGORIES)) {
+    const group = document.createElement("div");
+    group.className = "sport-group";
+    const title = document.createElement("div");
+    title.className = "sport-group-title";
+    title.textContent = catLabel;
+    const items = document.createElement("div");
+    items.className = "sport-group-items";
+    group.append(title, items);
+    for (const [key, sport] of Object.entries(SPORTS)) {
+      if (sport.cat !== catKey) continue;
+      const opt = document.createElement("button");
+      opt.type = "button";
+      opt.className = "sport-option";
+      opt.setAttribute("role", "option");
+      opt.dataset.type = key;
+      opt.textContent = `${sport.emoji} ${sport.label}`;
+      items.appendChild(opt);
+      options.push({ el: opt, group, haystack: foldText(`${sport.label} ${sport.aka || ""}`) });
+    }
+    if (items.children.length) list.appendChild(group);
+  }
+
+  function render() {
+    const s = SPORTS[typeInput.value];
+    pickEmoji.textContent = s.emoji;
+    pickLabel.textContent = typeInput.value === "otro" && otherName.value.trim() ? otherName.value.trim() : s.label;
+    other.classList.toggle("hidden", typeInput.value !== "otro");
+    options.forEach((o) => o.el.setAttribute("aria-selected", String(o.el.dataset.type === typeInput.value)));
+  }
+
+  function filter() {
+    const q = foldText(search.value.trim());
+    const words = q.split(/\s+/).filter(Boolean);
+    let shown = 0;
+    options.forEach((o) => {
+      const ok = words.every((w) => o.haystack.includes(w));
+      o.el.classList.toggle("hidden", !ok);
+      if (ok) shown++;
+    });
+    list.querySelectorAll(".sport-group").forEach((g) => {
+      g.classList.toggle("hidden", !g.querySelector(".sport-option:not(.hidden)"));
+    });
+    // Si no está en la lista, se puede añadir tal cual como "otro deporte"
+    empty.classList.toggle("hidden", shown > 0 || !q);
+    empty.textContent = `➕ Añadir "${search.value.trim()}" como otro deporte`;
+  }
+
+  function choose(type, customName) {
+    typeInput.value = type;
+    if (type === "otro" && customName) otherName.value = customName.slice(0, 30);
+    render();
+    panel.classList.add("hidden");
+    pickBtn.setAttribute("aria-expanded", "false");
+    typeInput.dispatchEvent(new Event("change", { bubbles: true }));
+    if (type === "otro" && !otherName.value.trim()) otherName.focus();
+    else if (!freqInput.value) freqInput.focus();
+  }
+
+  pickBtn.addEventListener("click", () => {
+    const opening = panel.classList.contains("hidden");
+    closeSportPickers(panel);
+    panel.classList.toggle("hidden", !opening);
+    pickBtn.setAttribute("aria-expanded", String(opening));
+    if (opening) {
+      search.value = "";
+      filter();
+      search.focus({ preventScroll: true });
+      panel.scrollIntoView({ block: "center", behavior: prefersReducedMotion() ? "auto" : "smooth" });
+      const sel = list.querySelector('[aria-selected="true"]');
+      if (sel) list.scrollTop = sel.offsetTop - list.offsetTop - 40;
+    }
+  });
+  search.addEventListener("input", filter);
+  search.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      // Enter elige el primer resultado y no envía el formulario
+      e.preventDefault();
+      const first = options.find((o) => !o.el.classList.contains("hidden"));
+      if (first) choose(first.el.dataset.type);
+      else if (search.value.trim()) choose("otro", search.value.trim());
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      panel.classList.add("hidden");
+      pickBtn.setAttribute("aria-expanded", "false");
+      pickBtn.focus();
+    }
+  });
+  list.addEventListener("click", (e) => {
+    const opt = e.target.closest(".sport-option");
+    if (opt) choose(opt.dataset.type);
+  });
+  empty.addEventListener("click", () => choose("otro", search.value.trim()));
+  otherName.addEventListener("input", render);
+
+  render();
+  row.append(typeInput, pickBtn, freqInput, minsInput, removeBtn, other, panel);
   return row;
 }
 
@@ -463,7 +633,15 @@ function readSportsFromForm() {
     const type = row.querySelector(".sport-type").value;
     const freq = Number(row.querySelector(".sport-freq").value) || 0;
     const mins = Number(row.querySelector(".sport-mins").value) || 0;
-    if (freq > 0 && mins > 0) sports.push({ type, freq, mins });
+    if (!(freq > 0 && mins > 0)) return;
+    const sport = { type, freq, mins };
+    if (type === "otro") {
+      // El nombre acaba en el HTML del perfil: sin caracteres de etiquetas
+      const name = row.querySelector(".sport-other-name").value.replace(/[<>&"]/g, "").trim().slice(0, 30);
+      if (name) sport.name = name;
+      sport.intensity = row.querySelector(".sport-other-intensity").value;
+    }
+    sports.push(sport);
   });
   return sports;
 }
@@ -1987,10 +2165,6 @@ function renderCompra() {
 
 // ---------- Perfil ----------
 
-const SPORT_EMOJI = {
-  running: "🏃", caminar: "🚶", ciclismo: "🚴", natacion: "🏊", pesas: "🏋️", futbol: "⚽", baloncesto: "🏀",
-  tenis: "🎾", yoga: "🧘", hiit: "🔥", spinning: "🚲", boxeo: "🥊", senderismo: "🥾", otro: "🏅",
-};
 const GOAL_EMOJI = { perder: "🔥", mantener: "⚖️", ganar: "💪" };
 const ACTIVITY_EMOJI = { sedentario: "🪑", moderado: "🚶", activo: "🏗️" };
 const DIET_INFO = {
@@ -2106,7 +2280,7 @@ function renderPerfil() {
       <div class="section-kicker">🏃 Actividad</div>
       <div class="pline"><span class="pline-emoji">${ACTIVITY_EMOJI[p.activityLevel] || "🚶"}</span>${ACTIVITY_LABELS[p.activityLevel] || "—"}</div>
       ${p.sports && p.sports.length ? `<div class="chip-wrap">
-        ${p.sports.map((sp) => `<span class="sport-chip">${SPORT_EMOJI[sp.type] || "🏅"} ${SPORTS[sp.type].label}<small>${sp.freq}×/sem · ${sp.mins} min</small></span>`).join("")}
+        ${p.sports.map((sp) => `<span class="sport-chip">${sportEmoji(sp)} ${sportLabel(sp)}<small>${sp.freq}×/sem · ${sp.mins} min</small></span>`).join("")}
       </div>
       <div class="pline muted">🔥 +${targets.exerciseKcal} kcal/día de media por entrenar</div>` : `<div class="pline muted">Sin deporte registrado</div>`}
     </div>

@@ -37,22 +37,149 @@ const SOURCES = {
 
 /* Deportes con su equivalente metabólico (MET), usado para calcular una media
    de calorías quemadas: kcal/min = MET × 3.5 × peso(kg) / 200. */
-const SPORTS = {
-  running:   { label: "Correr / running", met: 9.8 },
-  caminar:   { label: "Caminar a paso ligero", met: 3.8 },
-  ciclismo:  { label: "Ciclismo", met: 7.5 },
-  natacion:  { label: "Natación", met: 8.0 },
-  pesas:     { label: "Musculación / pesas", met: 5.0 },
-  futbol:    { label: "Fútbol", met: 7.0 },
-  baloncesto:{ label: "Baloncesto", met: 6.5 },
-  tenis:     { label: "Tenis / pádel", met: 7.0 },
-  yoga:      { label: "Yoga / pilates", met: 3.0 },
-  hiit:      { label: "Crossfit / HIIT", met: 8.0 },
-  spinning:  { label: "Spinning / ciclo indoor", met: 8.5 },
-  boxeo:     { label: "Boxeo", met: 9.0 },
-  senderismo:{ label: "Senderismo", met: 6.0 },
-  otro:      { label: "Otro deporte", met: 5.0 },
+/* Categorías del buscador de deportes, en el orden en que se muestran. */
+const SPORT_CATEGORIES = {
+  resistencia: "Correr, caminar y bici",
+  gimnasio: "Gimnasio y fitness",
+  equipo: "Deportes de equipo",
+  raqueta: "Raqueta",
+  combate: "Combate y artes marciales",
+  agua: "Agua",
+  montana: "Montaña y nieve",
+  baile: "Baile",
+  cuerpo: "Cuerpo y mente",
+  otros: "Otros",
 };
+
+/* MET de cada deporte sacados del Compendio de Actividades Físicas para
+   adultos (Herrmann 2024 / Ainsworth 2011). Al lado de cada uno va la
+   actividad del Compendio que usamos; cuando hay varias intensidades
+   elegimos la "general" o la de un practicante aficionado.
+   aka = otras formas de buscarlo. Las claves antiguas (running, tenis,
+   yoga, hiit...) se mantienen para que los perfiles guardados sigan valiendo. */
+const SPORTS = {
+  // Correr, caminar y bici
+  running:     { label: "Correr / running", met: 9.8, cat: "resistencia", emoji: "🏃", aka: "correr footing jogging carrera" }, // running, 6 mph (10 min/mile)
+  trail:       { label: "Trail / correr por montaña", met: 9.0, cat: "resistencia", emoji: "⛰️", aka: "trail running cross" }, // running, cross country
+  caminar:     { label: "Caminar a paso ligero", met: 3.8, cat: "resistencia", emoji: "🚶", aka: "andar paseo marcha nordic" }, // walking, 3.0 mph
+  ciclismo:    { label: "Ciclismo", met: 7.5, cat: "resistencia", emoji: "🚴", aka: "bici bicicleta carretera" }, // bicycling, general
+  mtb:         { label: "Bici de montaña (MTB)", met: 8.5, cat: "resistencia", emoji: "🚵", aka: "mountain bike btt" }, // bicycling, mountain, general
+  spinning:    { label: "Spinning / ciclo indoor", met: 8.5, cat: "resistencia", emoji: "🚲", aka: "bici estatica cycling" }, // bicycling, stationary, 101-160 W, vigorous
+  eliptica:    { label: "Elíptica", met: 5.0, cat: "resistencia", emoji: "🏃", aka: "eliptica" }, // elliptical trainer, moderate effort
+  remo_maquina:{ label: "Remo en máquina", met: 7.0, cat: "resistencia", emoji: "🚣", aka: "remoergometro rowing" }, // rowing, stationary, 100 W, moderate
+  comba:       { label: "Saltar a la comba", met: 11.8, cat: "resistencia", emoji: "🪢", aka: "cuerda comba jump rope" }, // rope jumping, moderate
+  patinaje:    { label: "Patinaje en línea", met: 7.5, cat: "resistencia", emoji: "🛼", aka: "patines rollers" }, // roller blading (in-line skating), general
+  atletismo:   { label: "Atletismo (pista)", met: 10.0, cat: "resistencia", emoji: "🏃", aka: "velocidad saltos lanzamientos" }, // track and field (e.g., high jump, sprints)
+
+  // Gimnasio y fitness
+  pesas:       { label: "Musculación / pesas", met: 5.0, cat: "gimnasio", emoji: "🏋️", aka: "gym gimnasio fuerza hipertrofia" }, // resistance training, multiple exercises, 8-15 reps
+  crossfit:    { label: "Crossfit", met: 8.0, cat: "gimnasio", emoji: "🏋️", aka: "cross training wod" }, // circuit training, vigorous effort
+  hiit:        { label: "HIIT / circuitos", met: 8.0, cat: "gimnasio", emoji: "🔥", aka: "intervalos tabata funcional crossfit" }, // circuit training, vigorous effort
+  calistenia:  { label: "Calistenia", met: 3.8, cat: "gimnasio", emoji: "🤸", aka: "street workout dominadas flexiones peso corporal" }, // calisthenics, moderate effort
+  halterofilia:{ label: "Halterofilia / powerlifting", met: 6.0, cat: "gimnasio", emoji: "🏋️", aka: "powerlifting olimpico fuerza" }, // weight lifting, powerlifting or bodybuilding, vigorous
+  aerobic:     { label: "Aeróbic / step / zumba", met: 7.3, cat: "gimnasio", emoji: "💃", aka: "zumba step clases dirigidas body" }, // aerobic, general
+  bodypump:    { label: "Body pump / clases con pesas", met: 5.0, cat: "gimnasio", emoji: "🏋️", aka: "clases dirigidas pump" }, // resistance training, multiple exercises
+
+  // Deportes de equipo
+  futbol:      { label: "Fútbol / fútbol sala", met: 7.0, cat: "equipo", emoji: "⚽", aka: "futbol sala futsal soccer" }, // soccer, casual, general
+  baloncesto:  { label: "Baloncesto", met: 6.5, cat: "equipo", emoji: "🏀", aka: "basket basquet" }, // basketball, general
+  voleibol:    { label: "Voleibol", met: 4.0, cat: "equipo", emoji: "🏐", aka: "volley voley balonvolea" }, // volleyball, competitive, in gymnasium
+  voley_playa: { label: "Vóley playa", met: 8.0, cat: "equipo", emoji: "🏐", aka: "volley voley playa beach" }, // volleyball, beach, in sand
+  balonmano:   { label: "Balonmano", met: 12.0, cat: "equipo", emoji: "🤾", aka: "handball" }, // handball, general
+  rugby:       { label: "Rugby", met: 8.3, cat: "equipo", emoji: "🏉", aka: "rugby" }, // rugby, union, team, competitive
+  hockey:      { label: "Hockey (hierba / patines)", met: 7.8, cat: "equipo", emoji: "🏑", aka: "hockey hierba patines sala" }, // field hockey
+  hockey_hielo:{ label: "Hockey sobre hielo", met: 8.0, cat: "equipo", emoji: "🏒", aka: "hockey hielo" }, // ice hockey, general
+  waterpolo:   { label: "Waterpolo", met: 10.0, cat: "equipo", emoji: "🤽", aka: "water polo" }, // water polo
+  beisbol:     { label: "Béisbol / sóftbol", met: 5.0, cat: "equipo", emoji: "⚾", aka: "beisbol softbol baseball" }, // softball or baseball, fast or slow pitch, general
+  futbol_americano: { label: "Fútbol americano", met: 8.0, cat: "equipo", emoji: "🏈", aka: "football americano flag" }, // football, touch, flag, general
+  ultimate:    { label: "Ultimate frisbee", met: 8.0, cat: "equipo", emoji: "🥏", aka: "frisbee disco" }, // frisbee, ultimate
+
+  // Raqueta
+  tenis:       { label: "Tenis", met: 7.3, cat: "raqueta", emoji: "🎾", aka: "tennis" }, // tennis, general
+  padel:       { label: "Pádel", met: 6.0, cat: "raqueta", emoji: "🎾", aka: "padel paddle" }, // tennis, doubles (el pádel se juega siempre por parejas)
+  badminton:   { label: "Bádminton", met: 5.5, cat: "raqueta", emoji: "🏸", aka: "badminton" }, // badminton, social singles and doubles, general
+  squash:      { label: "Squash", met: 7.3, cat: "raqueta", emoji: "🎾", aka: "squash" }, // squash, general
+  ping_pong:   { label: "Ping pong / tenis de mesa", met: 4.0, cat: "raqueta", emoji: "🏓", aka: "ping pong tenis de mesa" }, // table tennis, ping pong
+  frontenis:   { label: "Frontón / frontenis", met: 7.0, cat: "raqueta", emoji: "🎾", aka: "fronton pelota vasca racquetball" }, // racquetball, general
+
+  // Combate y artes marciales
+  boxeo:       { label: "Boxeo", met: 7.8, cat: "combate", emoji: "🥊", aka: "boxing saco" }, // boxing, sparring
+  kickboxing:  { label: "Kickboxing / muay thai", met: 10.3, cat: "combate", emoji: "🥊", aka: "muay thai k1 kick artes marciales" }, // martial arts, moderate pace (kick boxing, Muay Thai)
+  karate:      { label: "Karate / taekwondo", met: 10.3, cat: "combate", emoji: "🥋", aka: "karate taekwondo kung fu artes marciales" }, // martial arts, moderate pace (karate, tae kwan do)
+  judo:        { label: "Judo / jiu-jitsu", met: 10.3, cat: "combate", emoji: "🥋", aka: "judo jiu jitsu bjj grappling artes marciales" }, // martial arts, moderate pace (judo, jujitsu)
+  mma:         { label: "MMA / artes marciales mixtas", met: 10.3, cat: "combate", emoji: "🥊", aka: "mma artes marciales mixtas" }, // martial arts, moderate pace
+  lucha:       { label: "Lucha", met: 6.0, cat: "combate", emoji: "🤼", aka: "lucha libre grecorromana wrestling" }, // wrestling (one match = 5 minutes)
+  esgrima:     { label: "Esgrima", met: 6.0, cat: "combate", emoji: "🤺", aka: "esgrima fencing" }, // fencing
+  defensa:     { label: "Defensa personal / krav maga", met: 5.3, cat: "combate", emoji: "🥋", aka: "krav maga defensa personal artes marciales" }, // martial arts, slower pace, novice
+
+  // Agua
+  natacion:    { label: "Natación", met: 8.0, cat: "agua", emoji: "🏊", aka: "nadar piscina largos" }, // swimming laps, freestyle, fast, light-moderate effort
+  aguas_abiertas: { label: "Natación en aguas abiertas", met: 6.0, cat: "agua", emoji: "🌊", aka: "mar lago" }, // swimming, lake, ocean, river
+  aquagym:     { label: "Aquagym", met: 5.3, cat: "agua", emoji: "💦", aka: "aquafitness aerobic agua" }, // water aerobics, water calisthenics
+  surf:        { label: "Surf / bodyboard", met: 3.0, cat: "agua", emoji: "🏄", aka: "surf bodyboard" }, // surfing, body or board, general
+  paddle_surf: { label: "Paddle surf (SUP)", met: 6.0, cat: "agua", emoji: "🏄", aka: "sup paddleboard tabla" }, // paddle boarding, standing
+  remo:        { label: "Remo / piragüismo / kayak", met: 5.8, cat: "agua", emoji: "🚣", aka: "piragua canoa kayak remo" }, // canoeing, rowing, kayaking, 4.0-5.9 mph, moderate
+  vela:        { label: "Vela / windsurf / kitesurf", met: 3.0, cat: "agua", emoji: "⛵", aka: "windsurf kitesurf kite navegar" }, // sailing, windsurfing, general
+  buceo:       { label: "Buceo / snorkel", met: 7.0, cat: "agua", emoji: "🤿", aka: "submarinismo snorkel" }, // skindiving, scuba diving, general
+
+  // Montaña y nieve
+  senderismo:  { label: "Senderismo", met: 6.0, cat: "montana", emoji: "🥾", aka: "montaña trekking excursion" }, // hiking, cross country
+  escalada:    { label: "Escalada / búlder", met: 5.8, cat: "montana", emoji: "🧗", aka: "boulder bulder rocodromo climbing" }, // climbing, rock, ascending or traversing, low-moderate
+  alpinismo:   { label: "Alpinismo / montañismo", met: 8.0, cat: "montana", emoji: "🏔️", aka: "montañismo ferrata" }, // climbing hills with 21-42 lb load
+  esqui:       { label: "Esquí alpino", met: 5.3, cat: "montana", emoji: "⛷️", aka: "esqui pista ski" }, // skiing, downhill, light to moderate effort, general
+  snowboard:   { label: "Snowboard", met: 5.3, cat: "montana", emoji: "🏂", aka: "snow tabla" }, // snowboarding, light effort, general
+  esqui_fondo: { label: "Esquí de fondo / travesía", met: 9.0, cat: "montana", emoji: "⛷️", aka: "esqui nordico skimo travesia" }, // skiing, cross country, moderate effort
+  raquetas:    { label: "Raquetas de nieve", met: 5.3, cat: "montana", emoji: "❄️", aka: "snowshoe" }, // snow shoeing, moderate effort
+  patinaje_hielo: { label: "Patinaje sobre hielo", met: 7.0, cat: "montana", emoji: "⛸️", aka: "hielo skating" }, // ice skating, general
+
+  // Baile
+  baile_latino:{ label: "Salsa / bachata / baile latino", met: 4.5, cat: "baile", emoji: "💃", aka: "salsa bachata merengue kizomba latino" }, // ethnic or cultural dancing (salsa, merengue...)
+  flamenco:    { label: "Flamenco / sevillanas", met: 4.5, cat: "baile", emoji: "💃", aka: "flamenco sevillanas" }, // ethnic or cultural dancing (flamenco)
+  baile_urbano:{ label: "Hip hop / baile urbano", met: 7.8, cat: "baile", emoji: "🕺", aka: "hip hop urbano breakdance reggaeton" }, // general dancing, fast
+  ballet:      { label: "Ballet / danza contemporánea", met: 5.0, cat: "baile", emoji: "🩰", aka: "ballet danza moderna jazz" }, // ballet, modern, or jazz, general
+  baile_salon: { label: "Baile de salón", met: 5.5, cat: "baile", emoji: "💃", aka: "salon vals tango swing" }, // ballroom, fast
+
+  // Cuerpo y mente
+  yoga:        { label: "Yoga", met: 2.5, cat: "cuerpo", emoji: "🧘", aka: "yoga hatha" }, // yoga, Hatha
+  power_yoga:  { label: "Yoga dinámico / power yoga", met: 4.0, cat: "cuerpo", emoji: "🧘", aka: "vinyasa ashtanga power" }, // yoga, Power
+  pilates:     { label: "Pilates", met: 3.0, cat: "cuerpo", emoji: "🤸", aka: "pilates reformer" }, // pilates, general
+  estiramientos:{ label: "Estiramientos / movilidad", met: 2.3, cat: "cuerpo", emoji: "🙆", aka: "stretching movilidad" }, // stretching, mild
+  tai_chi:     { label: "Tai chi / chi kung", met: 3.0, cat: "cuerpo", emoji: "☯️", aka: "taichi qigong" }, // tai chi, qi gong, general
+  barre:       { label: "Barre", met: 3.8, cat: "cuerpo", emoji: "🩰", aka: "barre" }, // calisthenics, moderate effort (equivalente)
+
+  // Otros
+  golf:        { label: "Golf", met: 4.8, cat: "otros", emoji: "⛳", aka: "golf" }, // golf, general
+  equitacion:  { label: "Equitación", met: 5.5, cat: "otros", emoji: "🏇", aka: "caballo hipica montar" }, // horseback riding, general
+  skate:       { label: "Skate", met: 5.0, cat: "otros", emoji: "🛹", aka: "skateboard monopatin longboard" }, // skateboarding, general, moderate effort
+  parkour:     { label: "Parkour", met: 8.0, cat: "otros", emoji: "🤸", aka: "freerunning" }, // calisthenics, vigorous effort (equivalente)
+  gimnasia:    { label: "Gimnasia artística / trampolín", met: 3.8, cat: "otros", emoji: "🤸", aka: "gimnasia ritmica artistica trampolin" }, // gymnastics, general
+  triatlon:    { label: "Triatlón", met: 8.5, cat: "otros", emoji: "🏅", aka: "triatlon duatlon ironman" }, // media de correr, nadar y bici a ritmo moderado
+  petanca:     { label: "Petanca / bolos", met: 3.0, cat: "otros", emoji: "🎳", aka: "petanca bolos bowling" }, // bowling
+  otro:        { label: "Otro deporte", met: 5.0, cat: "otros", emoji: "🏅", aka: "otro" },
+};
+
+/* "Otro deporte": el usuario escribe el nombre y elige la intensidad. Los MET
+   son los de los niveles del Compendio: ligera < 3, moderada 3–5,9,
+   intensa ≥ 6 (usamos un valor típico de cada tramo). */
+const OTHER_SPORT_INTENSITY = {
+  suave: { label: "Suave", met: 3.5 },
+  moderada: { label: "Moderada", met: 5.0 },
+  intensa: { label: "Intensa", met: 8.0 },
+};
+
+function sportMet(s) {
+  if (s.type === "otro" && OTHER_SPORT_INTENSITY[s.intensity]) return OTHER_SPORT_INTENSITY[s.intensity].met;
+  return (SPORTS[s.type] && SPORTS[s.type].met) || 5;
+}
+
+function sportLabel(s) {
+  if (s.type === "otro" && s.name) return s.name;
+  return (SPORTS[s.type] && SPORTS[s.type].label) || "deporte";
+}
+
+function sportEmoji(s) {
+  return (SPORTS[s.type] && SPORTS[s.type].emoji) || "🏅";
+}
 
 /* Informes breves sobre nutrición. Un subconjunto rota cada semana (ver
    getWeeklyArticles en app.js) para que siempre haya contenido nuevo. */
