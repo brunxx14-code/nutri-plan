@@ -1435,6 +1435,7 @@ function openRecipeSheet(dayIdx, slotKey) {
       <div class="macro-tile fat"><b>${Math.round(info.fat * factor)} g</b><span>🥑 grasa</span></div>
       <div class="macro-tile cost"><b>${(info.cost * factor).toFixed(2)} €</b><span>🛒 coste</span></div>
     </div>
+    <button type="button" class="btn block cook-open-btn" id="cook-open-btn">👩‍🍳 Cocinar paso a paso</button>
     <button type="button" class="btn secondary block swap-open-btn" id="swap-open-btn">🔄 Cambiar por otro plato</button>
     <div class="why-block why-short"><p>💡 ${whySentences[0]}</p></div>
     <div class="sheet-section">
@@ -1457,6 +1458,7 @@ function openRecipeSheet(dayIdx, slotKey) {
     </div>
   `;
   document.getElementById("swap-open-btn").addEventListener("click", () => openSwapSheet(dayIdx, slotKey));
+  document.getElementById("cook-open-btn").addEventListener("click", () => openCookMode(dayIdx, slotKey));
   openSheet();
 }
 
