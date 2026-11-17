@@ -785,6 +785,7 @@ function renderDashboard() {
     ${renderProgressCard()}
     ${budgetHtml}
     ${renderInstallCard()}
+    ${tipCardHtml()}
     ${renderReportTeaser()}
     <div class="why-card" id="targets-why-card">
       <button class="why-toggle" id="targets-why-toggle" type="button">
@@ -800,6 +801,7 @@ function renderDashboard() {
   `;
   el.querySelectorAll("[data-goto]").forEach((b) => b.addEventListener("click", () => showView(b.dataset.goto)));
   bindUpNextCard(el);
+  bindTipCard(el);
   bindTodayCard();
   bindLevelChip(el);
   bindProgressCard();
