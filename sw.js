@@ -2,7 +2,8 @@
    Primero intenta la red (así los probadores siempre ven la última versión)
    y, si no hay conexión, sirve la copia guardada. */
 
-const CACHE = "nutriplan-v21";
+const CACHE = "nutriplan-v22";
+const REMINDER_CACHE = "nutriplan-reminders"; // los avisos que guarda la app (js/reminders.js)
 const APP_SHELL = [
   "./",
   "index.html",
@@ -22,6 +23,8 @@ const APP_SHELL = [
   "js/calendar.js",
   "js/freeze.js",
   "js/tips.js",
+  "js/reminders.js",
+  "css/reminders.css",
   "manifest.webmanifest",
   "icons/icon-192.png",
   "icons/icon-512.png",
@@ -34,7 +37,7 @@ self.addEventListener("install", (event) => {
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE && k !== REMINDER_CACHE).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
@@ -61,4 +64,53 @@ self.addEventListener("fetch", (event) => {
       .catch(() => caches.match(request, { ignoreSearch: true })
         .then((cached) => cached || (request.mode === "navigate" ? caches.match("index.html") : undefined)))
   );
+});
+
+// ---------- Recordatorios para cocinar ----------
+
+/* Tocar el aviso (o su botón ▶️) abre el modo cocina de esa receta. Si la
+   app ya está abierta, la trae delante y le pide que lo abra; si no, la abre
+   con ?cocinar=<comida>. */
+self.addEventListener("notificationclick", (event) => {
+  const data = event.notification.data || {};
+  event.notification.close();
+  if (event.action === "later" || !data.url) return;
+  event.waitUntil((async () => {
+    const all = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+    const client = all.find((c) => new URL(c.url).origin === self.location.origin);
+    if (client) {
+      await client.focus();
+      client.postMessage({ type: "nutriplan-cook", slot: data.slot, day: data.day });
+      return;
+    }
+    await self.clients.openWindow(data.url);
+  })());
+});
+
+/* Chrome Android con la app instalada despierta al service worker de vez en
+   cuando: si en ese rato toca una comida, avisamos aunque la app esté cerrada. */
+async function showDueReminders() {
+  const cache = await caches.open(REMINDER_CACHE);
+  const res = await cache.match("schedule.json");
+  if (!res) return;
+  const { items = [] } = await res.json();
+  const shownRes = await cache.match("shown.json");
+  const shown = shownRes ? await shownRes.json() : {};
+  const now = Date.now();
+  const due = items.filter((it) => now >= it.at && now < it.at + 90 * 60000 && !shown[it.tag]);
+  if (!due.length) return;
+  const it = due[due.length - 1];
+  due.forEach((d) => { shown[d.tag] = d.at; });
+  for (const tag of Object.keys(shown)) if (shown[tag] < now - 3 * 86400000) delete shown[tag];
+  await cache.put("shown.json", new Response(JSON.stringify(shown), { headers: { "Content-Type": "application/json" } }));
+  await self.registration.showNotification(it.title, {
+    body: it.body, tag: it.tag, icon: "icons/icon-192.png", badge: "icons/favicon-32.png",
+    vibrate: [200, 100, 200],
+    data: { url: it.url, slot: it.slot, day: it.day },
+    actions: [{ action: "cook", title: it.cookLabel }, { action: "later", title: it.laterLabel }],
+  });
+}
+
+self.addEventListener("periodicsync", (event) => {
+  if (event.tag === "nutriplan-reminders") event.waitUntil(showDueReminders().catch(() => {}));
 });
