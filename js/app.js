@@ -315,14 +315,22 @@ function refreshUpNext() {
   if (!old) return;
   const next = nextMealSlot(dailyEntry());
   if ((old.dataset.slot || null) === next) return;
+  const doneSlot = old.dataset.slot;
   old.classList.add("leaving");
   setTimeout(() => {
     const cur = document.getElementById("up-next");
     if (!cur) return;
+    // si el foco estaba en la tarjeta (p. ej. en «Ya la hice»), no se pierde al cambiarla
+    const hadFocus = cur.contains(document.activeElement);
     cur.outerHTML = upNextCardHtml();
     const fresh = document.getElementById("up-next");
     fresh.classList.add("entering");
     bindUpNextCard(fresh.parentNode);
+    if (hadFocus) {
+      const target = fresh.querySelector("[data-upnext-done]")
+        || document.querySelector(`#dashboard-content [data-eat="${doneSlot}"]`);
+      if (target) target.focus({ preventScroll: true });
+    }
   }, prefersReducedMotion() ? 0 : 260);
 }
 
