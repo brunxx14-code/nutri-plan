@@ -1636,6 +1636,7 @@ function openRecipeSheet(dayIdx, slotKey) {
     <div class="why-block why-short"><p>💡 ${whySentences[0]}</p></div>
     <div class="sheet-section">
       <h4>Ingredientes (tu ración)</h4>
+      <p class="hint ing-tip">Toca cada ingrediente cuando lo tengas a mano.</p>
       ${Math.abs(factor - 1) >= 0.05 ? `<p class="hint portion-hint">Cantidades ajustadas a tus calorías (×${factor.toFixed(2).replace(".", ",")} la ración estándar).</p>` : ""}
       ${r.ingredients.map(([id, qty]) => {
         const food = FOODS[id];
@@ -1655,6 +1656,18 @@ function openRecipeSheet(dayIdx, slotKey) {
   `;
   document.getElementById("swap-open-btn").addEventListener("click", () => openSwapSheet(dayIdx, slotKey));
   document.getElementById("cook-open-btn").addEventListener("click", () => openCookMode(dayIdx, slotKey));
+  // preparar la cocina: tachar los ingredientes que ya tienes a mano (solo
+  // mientras la receta está abierta, no se guarda)
+  body.querySelectorAll(".ingredient-row").forEach((row) => {
+    actLikeButton(row);
+    row.setAttribute("role", "checkbox");
+    row.setAttribute("aria-checked", "false");
+    row.addEventListener("click", () => {
+      const on = row.classList.toggle("got");
+      row.setAttribute("aria-checked", String(on));
+      if (on) buzz(8);
+    });
+  });
   bindFavButtons(body);
   bindShareRecipe(body, factor);
   openSheet();

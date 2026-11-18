@@ -688,6 +688,20 @@ input:focus, select:focus { outline: 2px solid var(--coral); outline-offset: 1px
 .ingredient-row { align-items: center; }
 .ing-emoji { font-size: 20px; width: 34px; height: 34px; border-radius: 10px; background: var(--bg); display: flex; align-items: center; justify-content: center; flex: none; }
 .ing-text { flex: 1; min-width: 0; }
+.ing-tip { margin: -2px 0 4px; }
+.ingredient-row { cursor: pointer; border-radius: 10px; transition: opacity .25s; -webkit-tap-highlight-color: transparent; }
+.ingredient-row:focus-visible { outline: 2px solid var(--coral); outline-offset: 2px; }
+.ingredient-row .ing-emoji { position: relative; transition: transform .25s; }
+.ingredient-row:active .ing-emoji { transform: scale(.88); }
+.ingredient-row .ing-emoji::after {
+  content: "✓"; position: absolute; inset: 0; border-radius: inherit; background: var(--green); color: #fff;
+  font-size: 15px; font-weight: 800; display: flex; align-items: center; justify-content: center;
+  transform: scale(0); transition: transform .3s cubic-bezier(.3,1.6,.5,1);
+}
+.ingredient-row.got .ing-emoji::after { transform: scale(1); }
+.ingredient-row.got { opacity: .55; }
+.ingredient-row.got .ing-name { text-decoration: line-through; }
+@media (prefers-reduced-motion: reduce) { .ingredient-row .ing-emoji, .ingredient-row .ing-emoji::after { transition: none; } }
 .swap-option { justify-content: flex-start; }
 .swap-option .swap-name { flex: 1; }
 
