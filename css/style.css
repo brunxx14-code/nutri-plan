@@ -351,6 +351,9 @@ input:focus, select:focus { outline: 2px solid var(--coral); outline-offset: 1px
   animation: riseIn .35s ease both; transition: transform .15s ease;
 }
 .meal-card:active { transform: scale(.98); }
+.meal-card.done .photo, .meal-card.done .recipe-name, .meal-card.done .kcal { opacity: .6; }
+.done-mark { display: inline-block; margin-left: 4px; padding: 1px 7px; border-radius: 999px; background: var(--green-light); color: var(--green-dark); font-size: 11px; font-weight: 700; text-transform: none; letter-spacing: 0; vertical-align: 1px; }
+.done-mark::before { content: "✓ "; }
 .meal-card:focus-visible, .photo-card:focus-visible, .report-tile:focus-visible { outline: 2px solid var(--coral); outline-offset: 2px; }
 .day-panel .meal-card:nth-child(1) { animation-delay: .03s; }
 .day-panel .meal-card:nth-child(2) { animation-delay: .09s; }

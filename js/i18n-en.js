@@ -360,6 +360,7 @@ I18N.en = {
     "Guardar en favoritas": "Save to favourites",
     "Guardada en tus favoritas": "Saved to your favourites",
     "Favorita": "Favourite",
+    "Hecha": "Done",
     "Salen más a menudo cuando regeneras el plan. También puedes ponerlas hoy mismo.": "They show up more often when you regenerate your plan. You can also add them to today.",
     "Aún no tienes favoritas. Toca el corazón de cualquier receta para guardarla aquí.": "No favourites yet. Tap the heart on any recipe to save it here.",
     "¡Hecho! Ya está en tu plan de hoy": "Done! It's in today's plan",

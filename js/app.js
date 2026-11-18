@@ -1233,6 +1233,7 @@ function bindTodayCard() {
       }
       updateTodayProgress(false);
       refreshUpNext();
+      renderPlanDays();
 
       const nowComplete = mealsDone(entry) >= MEALS_FOR_STREAK;
       document.getElementById("streak-chip").outerHTML = renderStreakChip();
@@ -1654,6 +1655,7 @@ function renderPlanDays() {
   const { perDay } = weekRebalance();
   const today = todayPlanIndex();
   const offToday = (dailyEntry().offPlan) || {};
+  const eatenToday = dailyEntry().eaten || {};
   el.innerHTML = DAYS.map((day, i) => {
     const factor = dayFactor(i);
     const chip = perDay && i > today
@@ -1677,11 +1679,13 @@ function renderPlanDays() {
           </div>`;
         }
         const info = getRecipeInfo(state.plan[i][slot.key]);
+        // las comidas de hoy que ya marcaste salen con «✓ Hecha» y un poco atenuadas
+        const done = i === today && eatenToday[slot.key];
         return `
-          <div class="meal-card" data-day="${i}" data-slot="${slot.key}">
+          <div class="meal-card ${done ? "done" : ""}" data-day="${i}" data-slot="${slot.key}">
             ${recipePhoto(info.recipe.id, { width: 160, className: `photo-thumb big ${slot.key}`, fallback: mealEmoji(slot.key) })}
             <div class="meal-info">
-              <div class="slot-label">${slot.label}${isFavorite(info.recipe.id) ? ` <span class="fav-mark" aria-label="Favorita">❤️</span>` : ""}</div>
+              <div class="slot-label">${slot.label}${isFavorite(info.recipe.id) ? ` <span class="fav-mark" aria-label="Favorita">❤️</span>` : ""}${done ? ` <span class="done-mark">Hecha</span>` : ""}</div>
               <div class="recipe-name">${info.recipe.name}</div>
               <div class="kcal">${Math.round(info.kcal * factor)} kcal · ${euro(info.cost * factor)} €</div>
             </div>
