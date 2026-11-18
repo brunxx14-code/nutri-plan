@@ -1,0 +1,14 @@
+# Servidor pequeño que reconoce la comida de una foto (Cloudflare Workers).
+# La clave de Anthropic NO va aquí: se guarda con `npx wrangler secret put ANTHROPIC_API_KEY`.
+name = "nutriplan-food-photo"
+main = "worker.js"
+compatibility_date = "2025-06-01"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+# Solo se aceptan peticiones desde la app publicada (separa varias con comas).
+ALLOWED_ORIGINS = "https://brunxx14-code.github.io"
+# Modelo de IA: claude-opus-5-5 (más preciso) o claude-haiku-5-5 (más barato).
+MODEL = "claude-opus-5-5"
+# Fotos por persona (IP) y hora, para que nadie gaste tu saldo a lo loco.
+MAX_PHOTOS_PER_HOUR = "20"
