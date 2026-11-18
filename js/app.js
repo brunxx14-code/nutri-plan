@@ -2152,7 +2152,7 @@ function renderCompra() {
       </div>`;
   }).join("") + `
     <div class="compra-actions">
-      ${doneCount ? `<button type="button" class="btn ghost block" id="reset-bought">↺ Vaciar el carro</button>` : ""}
+      <button type="button" class="btn ghost block" id="reset-bought"${doneCount ? "" : " hidden"}>↺ Vaciar el carro</button>
     </div>`;
 
   bindStoreCard(el);
@@ -2192,6 +2192,8 @@ function renderCompra() {
     const C = Number(ring.getAttribute("stroke-dasharray"));
     ring.style.strokeDashoffset = C * (1 - done / allItems.length);
     el.querySelector(".cart-ring-emoji").textContent = done === allItems.length ? "🎉" : "🛒";
+    // «Vaciar el carro» aparece con el primer artículo marcado y se va con el último
+    if (reset) reset.hidden = done === 0;
     return done;
   };
 
