@@ -236,6 +236,8 @@ I18N.en = {
     "Desbloquéala con Premium para ver cada producto, su cantidad y su precio, listo para llevar al súper.": "Unlock it with Premium to see every product, its quantity and its price, ready to take to the shop.",
     "Desbloquear con Premium": "Unlock with Premium",
     "↺ Vaciar el carro": "↺ Empty the cart",
+    "Carro vaciado": "Cart emptied",
+    "Deshacer": "Undo",
     "¡Compra completa! A cocinar": "Shopping done! Time to cook",
 
     // Premium

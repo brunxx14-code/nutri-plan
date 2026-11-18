@@ -1059,7 +1059,9 @@ function actLikeButton(el) {
   });
 }
 
-function showToast(text) {
+/* `action` ({ label, run }) añade un botón al aviso, p. ej. «Deshacer»; el
+   aviso dura entonces más, para dar tiempo a tocarlo. */
+function showToast(text, action) {
   const old = document.querySelector(".toast");
   if (old) old.remove();
   const toast = document.createElement("div");
@@ -1067,14 +1069,23 @@ function showToast(text) {
   toast.setAttribute("role", "status"); // los lectores de pantalla lo leen sin mover el foco
   toast.setAttribute("aria-live", "polite");
   toast.textContent = text;
+  if (action) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "toast-action";
+    btn.textContent = action.label;
+    btn.addEventListener("click", () => action.run());
+    toast.appendChild(btn);
+  }
   // tocarlo lo quita al momento
   toast.addEventListener("click", () => {
     toast.classList.add("hide");
     setTimeout(() => toast.remove(), 400);
   });
   document.getElementById("app-shell").appendChild(toast);
-  setTimeout(() => toast.classList.add("hide"), 2400);
-  setTimeout(() => toast.remove(), 2900);
+  const ms = action ? 5000 : 2400;
+  setTimeout(() => toast.classList.add("hide"), ms);
+  setTimeout(() => toast.remove(), ms + 500);
 }
 
 function renderStreakChip() {
@@ -2159,9 +2170,19 @@ function renderCompra() {
 
   const reset = document.getElementById("reset-bought");
   if (reset) reset.addEventListener("click", () => {
+    const before = state.bought;
     state.bought = {};
     saveState();
     renderCompra();
+    // por si lo tocaste sin querer: se puede deshacer unos segundos
+    showToast("🧺 Carro vaciado", {
+      label: "Deshacer",
+      run: () => {
+        state.bought = before;
+        saveState();
+        renderCompra();
+      },
+    });
   });
 
   const updateProgress = () => {
