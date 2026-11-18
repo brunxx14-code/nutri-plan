@@ -976,8 +976,12 @@ input:focus, select:focus { outline: 2px solid var(--coral); outline-offset: 1px
 .section-block.collapsed .section-caret { transform: rotate(-90deg); }
 .section-bar { height: 4px; border-radius: 999px; background: var(--border); overflow: hidden; margin: 0 4px 8px; }
 .section-bar-fill { height: 100%; background: var(--sec); border-radius: 999px; transition: width .5s cubic-bezier(.22,.95,.4,1); }
-.section-block .section-items { display: grid; grid-template-rows: 1fr; transition: grid-template-rows .3s ease; }
-.section-block.collapsed .section-items { display: none; }
+/* plegar y desplegar una sección se anima en vez de saltar; al acabar de
+   plegarse, las filas quedan ocultas también para el teclado */
+.section-block .section-items { display: grid; grid-template-rows: 1fr; transition: grid-template-rows .3s ease, box-shadow .3s, visibility 0s; }
+.section-items-inner { min-height: 0; overflow: hidden; }
+.section-block.collapsed .section-items { grid-template-rows: 0fr; box-shadow: none; visibility: hidden; transition: grid-template-rows .3s ease, box-shadow .3s, visibility 0s .3s; }
+@media (prefers-reduced-motion: reduce) { .section-block .section-items, .section-block.collapsed .section-items { transition: none; } }
 
 .item-row { position: relative; cursor: pointer; animation: riseIn .35s ease both; transition: background .25s, opacity .25s; }
 .item-row:active { background: var(--bg); }

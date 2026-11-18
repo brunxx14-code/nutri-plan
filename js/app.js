@@ -2060,7 +2060,7 @@ function renderCompra() {
     const secDone = items.filter((it) => bought[it.foodId]).length;
     return `
       <div class="section-block sec-${style.color} ${secDone === items.length ? "complete" : ""}" data-section="${section}" style="animation-delay:${0.05 + si * 0.07}s">
-        <button type="button" class="section-head" aria-expanded="true">
+        <button type="button" class="section-head" aria-expanded="true" aria-controls="sec-items-${si}">
           <span class="section-emoji">${style.emoji}</span>
           <span class="section-head-text">
             <span class="section-name">${section}</span>
@@ -2070,7 +2070,7 @@ function renderCompra() {
           <span class="section-caret">⌄</span>
         </button>
         <div class="section-bar"><div class="section-bar-fill" style="width:${(secDone / items.length) * 100}%"></div></div>
-        <div class="section-items">
+        <div class="section-items" id="sec-items-${si}"><div class="section-items-inner">
           ${items.map((it) => {
             const isBought = !!bought[it.foodId];
             return `
@@ -2086,7 +2086,7 @@ function renderCompra() {
                 <div class="check-circle">${isBought ? "✓" : ""}</div>
               </div>`;
           }).join("")}
-        </div>
+        </div></div>
       </div>`;
   }).join("") + `
     <div class="compra-actions">
