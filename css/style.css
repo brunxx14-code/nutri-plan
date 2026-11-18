@@ -1036,6 +1036,10 @@ input:focus, select:focus { outline: 2px solid var(--coral); outline-offset: 1px
 .view-enter-left { animation: viewFromLeft .34s cubic-bezier(.22,.95,.4,1); }
 @keyframes viewFromRight { from { opacity: 0; transform: translateX(36px); } to { opacity: 1; transform: none; } }
 @keyframes viewFromLeft { from { opacity: 0; transform: translateX(-36px); } to { opacity: 1; transform: none; } }
+/* el día del Plan entra desde el lado hacia el que vas (pastilla o deslizar) */
+.day-panel.active.day-from-right { animation: viewFromRight .28s cubic-bezier(.22,.95,.4,1); }
+.day-panel.active.day-from-left { animation: viewFromLeft .28s cubic-bezier(.22,.95,.4,1); }
+@media (prefers-reduced-motion: reduce) { .day-panel.active.day-from-right, .day-panel.active.day-from-left { animation: none; } }
 
 /* ---------- Nivel, XP y logros ---------- */
 .level-chip {

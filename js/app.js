@@ -1543,13 +1543,42 @@ function renderPlan() {
   dayTabs.innerHTML = DAYS.map((d, i) => `<button type="button" class="day-pill ${i === selectedDay ? "active" : ""} ${i === today ? "today" : ""}" data-day="${i}"${i === today ? ` aria-label="${d} (hoy)"` : ""}>${d.slice(0, 3)}</button>`).join("");
   centerActiveDay();
   dayTabs.querySelectorAll(".day-pill").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      selectedDay = Number(btn.dataset.day);
-      dayTabs.querySelectorAll(".day-pill").forEach((b) => b.classList.toggle("active", Number(b.dataset.day) === selectedDay));
-      document.querySelectorAll(".day-panel").forEach((p) => p.classList.toggle("active", Number(p.dataset.day) === selectedDay));
-    });
+    btn.addEventListener("click", () => selectPlanDay(Number(btn.dataset.day)));
   });
   renderPlanDays();
+}
+
+/* Cambia el día del Plan; el día nuevo entra desde el lado hacia el que vas. */
+function selectPlanDay(day) {
+  if (day < 0 || day >= DAYS.length || day === selectedDay) return;
+  const dir = day > selectedDay ? "day-from-right" : "day-from-left";
+  selectedDay = day;
+  document.querySelectorAll("#day-tabs .day-pill").forEach((b) => b.classList.toggle("active", Number(b.dataset.day) === day));
+  document.querySelectorAll(".day-panel").forEach((p) => {
+    const on = Number(p.dataset.day) === day;
+    p.classList.remove("day-from-right", "day-from-left");
+    p.classList.toggle("active", on);
+    if (on) p.classList.add(dir);
+  });
+  centerActiveDay();
+}
+
+/* En el móvil, deslizar el plan a los lados pasa al día anterior o siguiente. */
+function bindPlanSwipe() {
+  const el = document.getElementById("plan-content");
+  let x0 = null, y0 = 0;
+  el.addEventListener("touchstart", (e) => {
+    if (e.touches.length !== 1) { x0 = null; return; }
+    x0 = e.touches[0].clientX; y0 = e.touches[0].clientY;
+  }, { passive: true });
+  el.addEventListener("touchend", (e) => {
+    if (x0 === null) return;
+    const dx = e.changedTouches[0].clientX - x0;
+    const dy = e.changedTouches[0].clientY - y0;
+    x0 = null;
+    if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return; // era scroll, no un deslizamiento
+    selectPlanDay(selectedDay + (dx < 0 ? 1 : -1));
+  }, { passive: true });
 }
 
 function renderPlanDays() {
@@ -2428,6 +2457,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById("sheet-close").addEventListener("click", () => closeSheet());
   bindSheetSwipe();
+  bindPlanSwipe();
   window.addEventListener("resize", moveTabIndicator);
   document.getElementById("sheet-backdrop").addEventListener("click", () => closeSheet());
 
