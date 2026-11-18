@@ -1637,7 +1637,7 @@ function openRecipeSheet(dayIdx, slotKey) {
     <div class="sheet-section">
       <h4>Ingredientes (tu ración)</h4>
       <p class="hint ing-tip">Toca cada ingrediente cuando lo tengas a mano.</p>
-      ${Math.abs(factor - 1) >= 0.05 ? `<p class="hint portion-hint">Cantidades ajustadas a tus calorías (×${factor.toFixed(2).replace(".", ",")} la ración estándar).</p>` : ""}
+      ${Math.abs(factor - 1) >= 0.05 ? `<p class="hint portion-hint">Cantidades ajustadas a tus calorías (×${localDecimal(factor.toFixed(2))} la ración estándar).</p>` : ""}
       ${r.ingredients.map(([id, qty]) => {
         const food = FOODS[id];
         const role = FOOD_ROLES[food.cat];
@@ -1896,7 +1896,7 @@ function distanceM(lat1, lon1, lat2, lon2) {
 }
 
 function formatDistance(m) {
-  return m < 1000 ? `${Math.round(m / 10) * 10} m` : `${(m / 1000).toFixed(1).replace(".", ",")} km`;
+  return m < 1000 ? `${Math.round(m / 10) * 10} m` : `${localDecimal((m / 1000).toFixed(1))} km`;
 }
 
 function getPosition() {
