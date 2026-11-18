@@ -8,6 +8,7 @@ const APP_SHELL = [
   "index.html",
   "css/style.css",
   "js/analytics.js",
+  "js/safety.js",
   "js/photos.js",
   "js/data.js",
   "js/nutrition.js",
