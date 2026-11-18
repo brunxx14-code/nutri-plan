@@ -1891,6 +1891,14 @@ window.addEventListener("popstate", () => {
 
 document.addEventListener("keydown", (e) => {
   if (typeof cook !== "undefined" && cook) return; // el modo cocina gestiona sus teclas
+  // Esc en un buscador con texto lo borra (como hace el navegador) en vez de cerrar la hoja
+  const t = e.target;
+  if (e.key === "Escape" && t && t.type === "search" && t.value) {
+    e.preventDefault();
+    t.value = "";
+    t.dispatchEvent(new Event("input", { bubbles: true }));
+    return;
+  }
   if (e.key === "Escape" && sheetIsOpen()) closeSheet();
   if (e.key === "Tab" && sheetIsOpen()) trapSheetFocus(e);
 });

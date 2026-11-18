@@ -388,6 +388,7 @@ I18N.en = {
     "Recomendadas": "Recommended", "Más proteína": "Most protein", "Más baratas": "Cheapest", "Menos kcal": "Fewest kcal",
     "Busca por plato o ingrediente": "Search by dish or ingredient",
     "No hay recetas que coincidan con tu búsqueda.": "No recipes match your search.",
+    "Borrar búsqueda": "Clear search",
     // Protector de racha
     "Protectores de racha": "Streak freezes",
     "Sube de nivel para ganar un protector de racha": "Level up to earn a streak freeze",
