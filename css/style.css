@@ -561,6 +561,11 @@ input:focus, select:focus { outline: 2px solid var(--coral); outline-offset: 1px
   padding: 18px; margin: 16px 0; animation: riseIn .4s ease both .08s;
 }
 .today-count { font-size: 18px; font-weight: 800; }
+#today-done { display: inline-block; font-variant-numeric: tabular-nums; }
+#today-done.roll-up { animation: rollUp .35s cubic-bezier(.22,.95,.4,1); }
+#today-done.roll-down { animation: rollDown .35s cubic-bezier(.22,.95,.4,1); }
+@keyframes rollUp { from { opacity: 0; transform: translateY(60%); } to { opacity: 1; transform: none; } }
+@keyframes rollDown { from { opacity: 0; transform: translateY(-60%); } to { opacity: 1; transform: none; } }
 .today-bars { display: flex; flex-direction: column; gap: 10px; margin: 12px 0 14px; }
 .today-bar-label { display: flex; justify-content: space-between; font-size: 12.5px; font-weight: 600; color: var(--muted); margin-bottom: 5px; }
 .bar-track { height: 10px; border-radius: 999px; background: var(--bg); overflow: hidden; }

@@ -1181,7 +1181,16 @@ function updateTodayProgress(animate = true) {
     document.getElementById("today-prot-bar").style.width = `${protPct}%`;
   };
   if (animate) requestAnimationFrame(() => requestAnimationFrame(set)); else set();
-  document.getElementById("today-done").textContent = mealsDone(dailyEntry());
+  // el contador de comidas «rueda»: el número nuevo entra desde abajo al subir y desde arriba al bajar
+  const doneEl = document.getElementById("today-done");
+  const prev = Number(doneEl.textContent);
+  const now = mealsDone(dailyEntry());
+  doneEl.textContent = now;
+  if (now !== prev && !prefersReducedMotion()) {
+    doneEl.classList.remove("roll-up", "roll-down");
+    void doneEl.offsetWidth;
+    doneEl.classList.add(now > prev ? "roll-up" : "roll-down");
+  }
 }
 
 function bindTodayCard() {
