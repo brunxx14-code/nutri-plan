@@ -1163,7 +1163,19 @@ function updateTodayProgress(animate = true) {
   document.getElementById("today-kcal").textContent = `${Math.round(kcal)} / ${targets.calories} kcal${isOver ? ` · +${over}` : ""}`;
   document.getElementById("today-kcal").classList.toggle("over", isOver);
   document.getElementById("today-kcal-bar").classList.toggle("over", isOver);
-  document.getElementById("today-prot").textContent = `${Math.round(prot)} / ${targets.protein} g`;
+  // proteína cumplida: la barra se pone verde, sale un ✓ y da un saltito la primera vez
+  const protEl = document.getElementById("today-prot");
+  const protMet = prot >= targets.protein;
+  const justMet = protMet && protEl.dataset.met === "false";
+  protEl.dataset.met = String(protMet);
+  protEl.textContent = `${Math.round(prot)} / ${targets.protein} g${protMet ? " ✓" : ""}`;
+  protEl.classList.toggle("met", protMet);
+  document.getElementById("today-prot-bar").classList.toggle("met", protMet);
+  if (justMet) {
+    protEl.classList.remove("pop");
+    void protEl.offsetWidth;
+    protEl.classList.add("pop");
+  }
   const set = () => {
     document.getElementById("today-kcal-bar").style.width = `${kcalPct}%`;
     document.getElementById("today-prot-bar").style.width = `${protPct}%`;
