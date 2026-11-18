@@ -1540,7 +1540,7 @@ function centerActiveDay() {
 function renderPlan() {
   const dayTabs = document.getElementById("day-tabs");
   const today = todayPlanIndex();
-  dayTabs.innerHTML = DAYS.map((d, i) => `<button type="button" class="day-pill ${i === selectedDay ? "active" : ""} ${i === today ? "today" : ""}" data-day="${i}"${i === today ? ` aria-label="${d} (hoy)"` : ""}>${d.slice(0, 3)}</button>`).join("");
+  dayTabs.innerHTML = DAYS.map((d, i) => `<button type="button" class="day-pill ${i === selectedDay ? "active" : ""} ${i === today ? "today" : ""}" data-day="${i}" aria-pressed="${i === selectedDay}" aria-label="${i === today ? `${d} (hoy)` : d}">${d.slice(0, 3)}</button>`).join("");
   centerActiveDay();
   dayTabs.querySelectorAll(".day-pill").forEach((btn) => {
     btn.addEventListener("click", () => selectPlanDay(Number(btn.dataset.day)));
@@ -1553,7 +1553,11 @@ function selectPlanDay(day) {
   if (day < 0 || day >= DAYS.length || day === selectedDay) return;
   const dir = day > selectedDay ? "day-from-right" : "day-from-left";
   selectedDay = day;
-  document.querySelectorAll("#day-tabs .day-pill").forEach((b) => b.classList.toggle("active", Number(b.dataset.day) === day));
+  document.querySelectorAll("#day-tabs .day-pill").forEach((b) => {
+    const on = Number(b.dataset.day) === day;
+    b.classList.toggle("active", on);
+    b.setAttribute("aria-pressed", String(on)); // el lector de pantalla dice qué día ves
+  });
   document.querySelectorAll(".day-panel").forEach((p) => {
     const on = Number(p.dataset.day) === day;
     p.classList.remove("day-from-right", "day-from-left");
