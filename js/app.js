@@ -1794,7 +1794,9 @@ function openSwapSheet(dayIdx, slotKey) {
   `;
   body.querySelectorAll(".swap-option").forEach((btn) => {
     btn.addEventListener("click", () => {
-      state.plan[dayIdx][slotKey] = btn.dataset.recipe;
+      const previousId = state.plan[dayIdx][slotKey];
+      const newId = btn.dataset.recipe;
+      state.plan[dayIdx][slotKey] = newId;
       saveState();
       track("plato-cambiado");
       engage.swapped();
@@ -1802,6 +1804,20 @@ function openSwapSheet(dayIdx, slotKey) {
       renderDashboard();
       renderCompra();
       openRecipeSheet(dayIdx, slotKey);
+      // por si te equivocas de plato: «Deshacer» vuelve a dejar el que tenías
+      showToast("🔄 Plato cambiado", {
+        label: "Deshacer",
+        run: () => {
+          if (state.plan[dayIdx][slotKey] !== newId) return;
+          state.plan[dayIdx][slotKey] = previousId;
+          saveState();
+          renderPlanDays();
+          renderDashboard();
+          renderCompra();
+          // si sigues viendo la receta nueva, la hoja pasa a la de antes
+          if (sheetIsOpen() && document.querySelector(`#sheet-body #cook-open-btn`) && document.querySelector(`#sheet-body .fav-btn[data-fav="${newId}"]`)) openRecipeSheet(dayIdx, slotKey);
+        },
+      });
     });
   });
   document.getElementById("swap-back-btn").addEventListener("click", () => openRecipeSheet(dayIdx, slotKey));

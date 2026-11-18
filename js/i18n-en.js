@@ -237,6 +237,7 @@ I18N.en = {
     "Desbloquear con Premium": "Unlock with Premium",
     "↺ Vaciar el carro": "↺ Empty the cart",
     "Carro vaciado": "Cart emptied",
+    "Plato cambiado": "Dish swapped",
     "Deshacer": "Undo",
     "¡Compra completa! A cocinar": "Shopping done! Time to cook",
 
