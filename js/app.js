@@ -1157,7 +1157,12 @@ function updateTodayProgress(animate = true) {
   const { kcal, prot } = todayTotals();
   const kcalPct = Math.min(100, (kcal / targets.calories) * 100);
   const protPct = Math.min(100, (prot / targets.protein) * 100);
-  document.getElementById("today-kcal").textContent = `${Math.round(kcal)} / ${targets.calories} kcal`;
+  // si te pasas de calorías, la barra cambia de color y dice cuánto («+180»)
+  const over = Math.round(kcal - targets.calories);
+  const isOver = over > targets.calories * 0.05;
+  document.getElementById("today-kcal").textContent = `${Math.round(kcal)} / ${targets.calories} kcal${isOver ? ` · +${over}` : ""}`;
+  document.getElementById("today-kcal").classList.toggle("over", isOver);
+  document.getElementById("today-kcal-bar").classList.toggle("over", isOver);
   document.getElementById("today-prot").textContent = `${Math.round(prot)} / ${targets.protein} g`;
   const set = () => {
     document.getElementById("today-kcal-bar").style.width = `${kcalPct}%`;
