@@ -138,13 +138,13 @@ function openFavoritesSheet(view) {
     ${tab === "all" ? `
       <label class="recipe-search">
         <span aria-hidden="true">🔍</span>
-        <input type="search" id="recipe-search" placeholder="Busca por plato o ingrediente" value="${query.replace(/"/g, "&quot;")}" autocomplete="off">
+        <input type="search" id="recipe-search" placeholder="Busca por plato o ingrediente" aria-label="Busca por plato o ingrediente" value="${query.replace(/"/g, "&quot;")}" autocomplete="off">
       </label>` : ""}
-    ${tab === "all" || favCount ? `<div class="recipe-filters">
-      ${RECIPE_FILTERS.map((f) => `<button type="button" class="chip-btn filter ${f.key === filter ? "on" : ""}" data-filter="${f.key}">${f.label}</button>`).join("")}
+    ${tab === "all" || favCount ? `<div class="recipe-filters" role="group" aria-label="Tipo de plato">
+      ${RECIPE_FILTERS.map((f) => `<button type="button" class="chip-btn filter ${f.key === filter ? "on" : ""}" data-filter="${f.key}" aria-pressed="${f.key === filter}">${f.label}</button>`).join("")}
     </div>` : ""}
-    ${tab === "all" ? `<div class="recipe-filters sorts">
-      ${RECIPE_SORTS.map((o) => `<button type="button" class="chip-btn filter sort ${o.key === sort ? "on" : ""}" data-sort="${o.key}">${o.label}</button>`).join("")}
+    ${tab === "all" ? `<div class="recipe-filters sorts" role="group" aria-label="Ordenar por">
+      ${RECIPE_SORTS.map((o) => `<button type="button" class="chip-btn filter sort ${o.key === sort ? "on" : ""}" data-sort="${o.key}" aria-pressed="${o.key === sort}">${o.label}</button>`).join("")}
     </div>` : ""}
     ${tab === "fav" && !favCount ? `
       <div class="fav-empty">

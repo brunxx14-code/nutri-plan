@@ -389,6 +389,8 @@ I18N.en = {
     "Busca por plato o ingrediente": "Search by dish or ingredient",
     "No hay recetas que coincidan con tu búsqueda.": "No recipes match your search.",
     "Borrar búsqueda": "Clear search",
+    "Tipo de plato": "Type of dish",
+    "Ordenar por": "Sort by",
     // Protector de racha
     "Protectores de racha": "Streak freezes",
     "Sube de nivel para ganar un protector de racha": "Level up to earn a streak freeze",
