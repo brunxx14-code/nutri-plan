@@ -1606,6 +1606,11 @@ function renderPlanDays() {
   });
 }
 
+// etiquetas de la receta con tildes, en vez del identificador interno
+const TAG_LABEL = {
+  vegetariano: "vegetariano", vegano: "vegano", alto_proteina: "alto en proteína", sin_gluten: "sin gluten", economico: "económico",
+};
+
 const TAG_COLOR_CLASS = {
   vegetariano: "", vegano: "", alto_proteina: "tag-rose", sin_gluten: "tag-amber", economico: "tag-purple",
 };
@@ -1623,7 +1628,7 @@ function openRecipeSheet(dayIdx, slotKey) {
     ${favButtonHtml(r.id)}
     ${shareButtonHtml(r.id)}
     <h3>${r.name}</h3>
-    <div class="modal-tags">${r.tags.map((t) => `<span class="tag ${TAG_COLOR_CLASS[t] || ""}">${t.replace("_", " ")}</span>`).join("")}</div>
+    <div class="modal-tags">${r.tags.map((t) => `<span class="tag ${TAG_COLOR_CLASS[t] || ""}">${TAG_LABEL[t] || t.replace("_", " ")}</span>`).join("")}</div>
     <div class="macro-tiles">
       <div class="macro-tile kcal"><b>${Math.round(info.kcal * factor)}</b><span>🔥 kcal</span></div>
       <div class="macro-tile prot"><b>${Math.round(info.prot * factor)} g</b><span>🍗 prot</span></div>
