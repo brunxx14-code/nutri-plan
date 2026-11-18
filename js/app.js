@@ -2102,6 +2102,10 @@ function compraProgressHtml(done, total, grandTotal) {
     </div>`;
 }
 
+// secciones de la compra que has plegado: siguen plegadas al volver a dibujar
+// la lista (cambiar de súper, deshacer, volver a la pestaña…)
+const collapsedSections = new Set();
+
 function renderCompra() {
   const { bought } = state;
   const { bySection, grandTotal } = storeShoppingList();
@@ -2135,8 +2139,8 @@ function renderCompra() {
     const subtotal = items.reduce((s, it) => s + it.cost, 0);
     const secDone = items.filter((it) => bought[it.foodId]).length;
     return `
-      <div class="section-block sec-${style.color} ${secDone === items.length ? "complete" : ""}" data-section="${section}" style="animation-delay:${0.05 + si * 0.07}s">
-        <button type="button" class="section-head" aria-expanded="true" aria-controls="sec-items-${si}">
+      <div class="section-block sec-${style.color} ${secDone === items.length ? "complete" : ""} ${collapsedSections.has(section) ? "collapsed" : ""}" data-section="${section}" style="animation-delay:${0.05 + si * 0.07}s">
+        <button type="button" class="section-head" aria-expanded="${!collapsedSections.has(section)}" aria-controls="sec-items-${si}">
           <span class="section-emoji">${style.emoji}</span>
           <span class="section-head-text">
             <span class="section-name">${section}</span>
@@ -2179,12 +2183,16 @@ function renderCompra() {
       const block = head.closest(".section-block");
       const collapsed = block.classList.toggle("collapsed");
       head.setAttribute("aria-expanded", String(!collapsed));
+      if (collapsed) collapsedSections.add(block.dataset.section);
+      else collapsedSections.delete(block.dataset.section);
     });
   });
 
   const reset = document.getElementById("reset-bought");
   if (reset) reset.addEventListener("click", () => {
     const before = state.bought;
+    const wasCollapsed = [...collapsedSections];
+    collapsedSections.clear(); // carro vacío: todas las secciones a la vista
     state.bought = {};
     saveState();
     renderCompra();
@@ -2193,6 +2201,7 @@ function renderCompra() {
       label: "Deshacer",
       run: () => {
         state.bought = before;
+        wasCollapsed.forEach((sec) => collapsedSections.add(sec));
         saveState();
         renderCompra();
       },
@@ -2254,6 +2263,7 @@ function renderCompra() {
         setTimeout(() => {
           block.classList.add("collapsed");
           block.querySelector(".section-head").setAttribute("aria-expanded", "false");
+          collapsedSections.add(block.dataset.section);
         }, 600);
       }
     });
