@@ -74,7 +74,7 @@ function openCookMode(dayIdx, slotKey) {
       <button type="button" class="cook-close" id="cook-close" aria-label="Cerrar">✕</button>
       <div class="cook-title">👩‍🍳 ${cook.recipe.name}</div>
     </div>
-    <div class="cook-dots" id="cook-dots"></div>
+    <div class="cook-dots" id="cook-dots" role="group" aria-label="Pasos"></div>
     <div class="cook-stage" id="cook-stage"></div>
     <div class="cook-nav">
       <button type="button" class="btn ghost" id="cook-prev">← Anterior</button>
@@ -136,7 +136,8 @@ function renderCookDots() {
   dots.innerHTML = Array.from({ length: totalCookSteps() }, (_, i) => {
     const t = cook.timers[i];
     const cls = [i === cook.idx ? "now" : "", i < cook.idx ? "done" : "", t && t.running ? "timing" : ""].join(" ");
-    return `<button type="button" class="cook-dot ${cls}" data-step="${i}" aria-label="${i === 0 ? "Ingredientes" : `Paso ${i}`}"></button>`;
+    // el punto del paso actual lo anuncia el lector de pantalla («paso actual»)
+    return `<button type="button" class="cook-dot ${cls}" data-step="${i}" aria-label="${i === 0 ? "Ingredientes" : `Paso ${i}`}"${i === cook.idx ? ` aria-current="step"` : ""}></button>`;
   }).join("");
   dots.querySelectorAll("[data-step]").forEach((b) => b.addEventListener("click", () => goCookStep(Number(b.dataset.step))));
 }

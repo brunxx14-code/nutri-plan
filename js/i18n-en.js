@@ -348,6 +348,7 @@ I18N.en = {
     "Antes de empezar": "Before you start",
     "Prepara los ingredientes": "Get your ingredients ready",
     "Ingredientes": "Ingredients",
+    "Pasos": "Steps",
     "Pausar": "Pause",
     "Seguir": "Resume",
     "Reiniciar": "Restart",
