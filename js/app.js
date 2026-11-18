@@ -1560,6 +1560,15 @@ function renderPlan() {
   centerActiveDay();
   dayTabs.querySelectorAll(".day-pill").forEach((btn) => {
     btn.addEventListener("click", () => selectPlanDay(Number(btn.dataset.day)));
+    // con teclado, ← y → pasan de día (Inicio y Fin van al lunes y al domingo)
+    btn.addEventListener("keydown", (e) => {
+      const to = { ArrowLeft: selectedDay - 1, ArrowRight: selectedDay + 1, Home: 0, End: DAYS.length - 1 }[e.key];
+      if (to === undefined || e.altKey || e.ctrlKey || e.metaKey) return;
+      e.preventDefault();
+      selectPlanDay(Math.max(0, Math.min(DAYS.length - 1, to)));
+      const pill = dayTabs.querySelector(`.day-pill[data-day="${selectedDay}"]`);
+      if (pill) pill.focus();
+    });
   });
   renderPlanDays();
 }
