@@ -59,7 +59,7 @@ function openCookMode(dayIdx, slotKey) {
   const info = getRecipeInfo(state.plan[dayIdx][slotKey]);
   cook = {
     recipe: info.recipe, dayIdx, slotKey, factor: dayFactor(dayIdx),
-    idx: 0, timers: {}, tick: null, wake: null,
+    idx: 0, timers: {}, tick: null, wake: null, title: document.title,
     opener: document.activeElement, // al salir, el foco vuelve aquí
   };
   track("modo-cocina");
@@ -106,6 +106,7 @@ function closeCookMode() {
   document.removeEventListener("keydown", onCookKey);
   const el = document.getElementById("cook");
   const opener = cook.opener;
+  document.title = cook.title;
   cook = null;
   // el foco vuelve al botón que abrió el modo cocina, si sigue en pantalla
   if (opener && opener.isConnected && opener.offsetParent) {
@@ -254,6 +255,7 @@ function tickCookTimers() {
     t.running = false;
     t.left = 0;
     t.rang = true;
+    t.rangAt = Date.now();
     beep();
     if (navigator.vibrate) navigator.vibrate([250, 120, 250, 120, 250]);
     showToast(`⏰ ¡Tiempo! Paso ${i} listo`);
@@ -261,6 +263,22 @@ function tickCookTimers() {
     renderCookDots();
   }
   updateCookRing();
+  updateCookTitle();
+}
+
+/* El temporizador también se ve en la pestaña del navegador, por si cambias
+   de pestaña o de app mientras se cuece algo: «⏱️ 4:32 · NutriPlan». Al
+   sonar pone «⏰» durante un minuto. */
+function updateCookTitle() {
+  const timers = Object.values(cook.timers);
+  const running = timers.filter((t) => t.running);
+  let title = cook.title;
+  if (running.length) {
+    title = `⏱️ ${formatClock(Math.min(...running.map(timerLeft)))} · ${cook.title}`;
+  } else if (timers.some((t) => t.rang && Date.now() - t.rangAt < 60000)) {
+    title = `⏰ ${cook.title}`;
+  }
+  if (document.title !== title) document.title = title;
 }
 
 // ---------- Gestos y final ----------
