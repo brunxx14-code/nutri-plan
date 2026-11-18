@@ -1725,7 +1725,7 @@ function openRecipeSheet(dayIdx, slotKey) {
   const body = document.getElementById("sheet-body");
   track("receta-vista");
   body.innerHTML = `
-    ${recipePhoto(r.id, { width: 700, className: "photo-hero", fallback: mealEmoji(slotKey) })}
+    ${recipePhoto(r.id, { width: 700, className: "photo-hero", fallback: mealEmoji(slotKey), eager: true })}
     ${favButtonHtml(r.id)}
     ${shareButtonHtml(r.id)}
     <h3>${r.name}</h3>
