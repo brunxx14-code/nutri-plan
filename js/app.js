@@ -1281,11 +1281,11 @@ function openOffPlanSheet(slotKey) {
       </button>
     </div>
     <div class="off-custom hidden" id="off-custom">
-      <input type="text" id="off-custom-name" placeholder="¿Qué era? (opcional)" maxlength="40">
-      <input type="number" id="off-custom-kcal" inputmode="numeric" min="50" max="3000" placeholder="kcal aprox.">
+      <input type="text" id="off-custom-name" placeholder="¿Qué era? (opcional)" aria-label="¿Qué era? (opcional)" maxlength="40">
+      <input type="number" id="off-custom-kcal" inputmode="numeric" min="50" max="3000" placeholder="kcal aprox." aria-label="kcal aprox.">
     </div>
     <div class="section-kicker off-size-kicker">¿Cuánto?</div>
-    <div class="size-row">
+    <div class="size-row" role="group" aria-label="¿Cuánto?">
       ${Object.entries(OFF_PLAN_SIZES).map(([k, v]) => `<button type="button" class="size-chip" data-size="${k}">${v.label}</button>`).join("")}
     </div>
     <button type="button" class="btn block" id="off-save" disabled>Guardar y reajustar</button>
@@ -1293,8 +1293,17 @@ function openOffPlanSheet(slotKey) {
   `;
 
   const sync = () => {
-    body.querySelectorAll(".off-option").forEach((b) => b.classList.toggle("selected", b.dataset.preset === selected));
-    body.querySelectorAll(".size-chip").forEach((b) => b.classList.toggle("selected", b.dataset.size === size));
+    // aria-pressed: el lector de pantalla dice qué opción y qué tamaño están elegidos
+    body.querySelectorAll(".off-option").forEach((b) => {
+      const on = b.dataset.preset === selected;
+      b.classList.toggle("selected", on);
+      b.setAttribute("aria-pressed", String(on));
+    });
+    body.querySelectorAll(".size-chip").forEach((b) => {
+      const on = b.dataset.size === size;
+      b.classList.toggle("selected", on);
+      b.setAttribute("aria-pressed", String(on));
+    });
     document.getElementById("off-custom").classList.toggle("hidden", selected !== "otro");
     document.getElementById("off-save").disabled = !selected;
   };
