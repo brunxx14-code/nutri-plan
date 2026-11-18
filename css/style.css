@@ -613,6 +613,13 @@ input:focus, select:focus { outline: 2px solid var(--coral); outline-offset: 1px
   background: #5aa9e0; transition: height .3s ease;
 }
 .glass.full::after { height: 78%; }
+#water-count.met { color: #1f6ea8; font-weight: 700; }
+#water-count.met::after { content: " ✓"; }
+.water-glasses.wave .glass { animation: glassWave .5s ease calc(var(--i) * 55ms) both; }
+@keyframes glassWave { 0%, 100% { transform: none; } 40% { transform: translateY(-6px) scale(1.06); } }
+@media (prefers-reduced-motion: reduce) { .water-glasses.wave .glass { animation: none; } }
+:root[data-theme="dark"] #water-count.met { color: #7cc0ee; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) #water-count.met { color: #7cc0ee; } }
 
 .toast {
   position: absolute; left: 16px; right: 16px; bottom: 92px; width: fit-content; margin: 0 auto; z-index: 60;

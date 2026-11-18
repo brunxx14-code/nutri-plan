@@ -1144,9 +1144,9 @@ function renderTodayCard() {
         ? `🔄 Semana reajustada por comidas fuera del plan: <b>${rebalanceText(rebalance.perDay)}</b>.`
         : "¿Comiste otra cosa? Pulsa ✏️ y reajustamos el resto de tu semana."}</p>
       <div class="water-row">
-        <div class="today-bar-label"><span>💧 Agua</span><span id="water-count">${entry.water}/${glasses} vasos</span></div>
+        <div class="today-bar-label"><span>💧 Agua</span><span id="water-count" class="${entry.water >= glasses ? "met" : ""}">${entry.water}/${glasses} vasos</span></div>
         <div class="water-glasses">
-          ${Array.from({ length: glasses }, (_, i) => `<button type="button" class="glass ${i < entry.water ? "full" : ""}" data-glass="${i + 1}" aria-label="${i === 0 ? "1 vaso" : `${i + 1} vasos`}" aria-pressed="${i < entry.water}"></button>`).join("")}
+          ${Array.from({ length: glasses }, (_, i) => `<button type="button" class="glass ${i < entry.water ? "full" : ""}" style="--i:${i}" data-glass="${i + 1}" aria-label="${i === 0 ? "1 vaso" : `${i + 1} vasos`}" aria-pressed="${i < entry.water}"></button>`).join("")}
         </div>
       </div>
     </div>`;
@@ -1268,7 +1268,16 @@ function bindTodayCard() {
       btn.classList.remove("pop");
       void btn.offsetWidth;
       btn.classList.add("pop");
-      document.getElementById("water-count").textContent = `${entry.water}/${goal} vasos`;
+      const count = document.getElementById("water-count");
+      count.textContent = `${entry.water}/${goal} vasos`;
+      count.classList.toggle("met", entry.water >= goal);
+      // al llenar el último vaso, los vasos hacen una ola de izquierda a derecha
+      const row = card.querySelector(".water-glasses");
+      row.classList.remove("wave");
+      if (entry.water === goal && n === goal && !prefersReducedMotion()) {
+        void row.offsetWidth;
+        row.classList.add("wave");
+      }
       track("agua");
       engage.water(entry.water === n, entry.water === goal && n === goal, btn);
       if (entry.water === goal && n === goal) showToast("💧 ¡Objetivo de agua cumplido!");
