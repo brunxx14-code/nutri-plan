@@ -2366,8 +2366,9 @@ function bmiInfo(p) {
 }
 
 function langPickerHtml() {
-  return `<div class="lang-picker">${Object.entries(LANGUAGES).map(([code, l]) => `
-    <button type="button" class="lang-btn ${code === currentLang ? "selected" : ""}" data-lang="${code}">
+  // aria-pressed dice cuál está elegido; lang hace que «English» se lea en inglés
+  return `<div class="lang-picker" role="group" aria-label="Idioma">${Object.entries(LANGUAGES).map(([code, l]) => `
+    <button type="button" class="lang-btn ${code === currentLang ? "selected" : ""}" data-lang="${code}" lang="${code}" aria-pressed="${code === currentLang}">
       <span class="lang-flag">${l.flag}</span>${l.label}
     </button>`).join("")}</div>`;
 }
@@ -2389,8 +2390,8 @@ function applyTheme(theme) {
 
 function themePickerHtml() {
   const current = currentTheme();
-  return `<div class="lang-picker theme-picker">${Object.entries(THEMES).map(([key, t]) => `
-    <button type="button" class="lang-btn ${key === current ? "selected" : ""}" data-theme-choice="${key}">
+  return `<div class="lang-picker theme-picker" role="group" aria-label="Apariencia">${Object.entries(THEMES).map(([key, t]) => `
+    <button type="button" class="lang-btn ${key === current ? "selected" : ""}" data-theme-choice="${key}" aria-pressed="${key === current}">
       <span class="lang-flag">${t.emoji}</span>${t.label}
     </button>`).join("")}</div>`;
 }
@@ -2400,7 +2401,10 @@ function bindThemePicker(root) {
     btn.addEventListener("click", () => {
       applyTheme(btn.dataset.themeChoice);
       track(`tema-${btn.dataset.themeChoice}`);
-      root.querySelectorAll("[data-theme-choice]").forEach((b) => b.classList.toggle("selected", b === btn));
+      root.querySelectorAll("[data-theme-choice]").forEach((b) => {
+        b.classList.toggle("selected", b === btn);
+        b.setAttribute("aria-pressed", String(b === btn));
+      });
       buzz(8);
     });
   });
