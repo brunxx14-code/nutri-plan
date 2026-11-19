@@ -1112,7 +1112,10 @@ function showToast(text, action) {
 
 function renderStreakChip() {
   const streak = currentStreak();
-  return `<button type="button" class="streak-chip ${streak ? "active" : ""}" id="streak-chip">🔥 ${streak} ${streak === 1 ? "día" : "días"}${freezeChipHtml()}</button>`;
+  // el lector de pantalla oía «fuego 3 días cubito de hielo por 2»; ahora lo dice en palabras
+  const freezes = streakFreezes();
+  const label = `Racha: ${streak} ${streak === 1 ? "día seguido" : "días seguidos"}${freezes ? `. Protectores: ${freezes}` : ""}`;
+  return `<button type="button" class="streak-chip ${streak ? "active" : ""}" id="streak-chip" aria-label="${label}">🔥 ${streak} ${streak === 1 ? "día" : "días"}${freezeChipHtml()}</button>`;
 }
 
 function renderTodayCard() {

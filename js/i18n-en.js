@@ -534,6 +534,10 @@ I18N.en = {
     "Nivel {n}": "Level {n}",
     "Nv. {n}": "Lv. {n}",
     "Ver tus logros: nivel {n}, {xp} XP": "See your achievements: level {n}, {xp} XP",
+    "Racha: {n} día seguido": "Streak: {n} day in a row",
+    "Racha: {n} días seguidos": "Streak: {n} days in a row",
+    "Racha: {n} día seguido. Protectores: {m}": "Streak: {n} day in a row. Streak freezes: {m}",
+    "Racha: {n} días seguidos. Protectores: {m}": "Streak: {n} days in a row. Streak freezes: {m}",
     "{n} g proteína": "{n} g protein",
     "{n} platos": "{n} dishes",
 

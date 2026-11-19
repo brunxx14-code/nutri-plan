@@ -43,7 +43,7 @@ function useStreakFreezes() {
 
 function freezeChipHtml() {
   const n = streakFreezes();
-  return n ? `<span class="freeze-count" aria-label="Protectores de racha">🧊${n > 1 ? `×${n}` : ""}</span>` : "";
+  return n ? `<span class="freeze-count" aria-hidden="true">🧊${n > 1 ? `×${n}` : ""}</span>` : "";
 }
 
 document.addEventListener("click", (e) => {
