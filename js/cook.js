@@ -199,9 +199,22 @@ function renderCookStep(idx, dir = "fwd") {
 
 // ---------- Temporizadores ----------
 
+/* Los botones del temporizador se vuelven a crear al pulsarlos. Si uno tenía
+   el foco (teclado), el foco pasa al botón que toma su sitio: «Iniciar» →
+   «Pausar», «Pausar»/«Seguir» → el mismo, «Reiniciar» → «Iniciar». */
 function renderCookTimer() {
   const box = document.getElementById("cook-timer");
   if (!box) return;
+  const had = box.contains(document.activeElement);
+  paintCookTimer(box);
+  if (!had) return;
+  const target = box.querySelector("#cook-timer-toggle") || box.querySelector("button");
+  if (target) {
+    try { target.focus({ preventScroll: true }); } catch (e) { /* sin foco */ }
+  }
+}
+
+function paintCookTimer(box) {
   const mins = Number(box.dataset.mins);
   const t = cook.timers[cook.idx];
   if (!t) {
