@@ -187,7 +187,12 @@ function renderCookStep(idx, dir = "fwd") {
 
   const prev = document.getElementById("cook-prev");
   const next = document.getElementById("cook-next");
+  const prevHadFocus = document.activeElement === prev;
   prev.disabled = idx === 0;
+  // si «← Anterior» tenía el foco y se desactiva (vuelves a los ingredientes), el foco pasa a «Empezar →»
+  if (prevHadFocus && prev.disabled) {
+    try { next.focus({ preventScroll: true }); } catch (e) { /* sin foco */ }
+  }
   next.textContent = idx === 0 ? "Empezar →" : idx === total ? "✅ ¡Listo!" : "Siguiente →";
   next.classList.toggle("done", idx === total);
 }
