@@ -30,6 +30,16 @@ function weekRecap() {
   };
 }
 
+/* Lo que dice el lector de pantalla de cada día del resumen, en vez de
+   «✓ L» o «2 M»: «Lunes: día cumplido», «Martes: 2 comidas»… */
+function recapDayLabel(d) {
+  const name = d.i === todayPlanIndex() ? `${DAYS[d.i]} (hoy)` : DAYS[d.i];
+  if (d.future) return `${name}: todavía no ha llegado`;
+  if (d.onPlan) return `${name}: día cumplido`;
+  if (!d.done) return `${name}: sin comidas`;
+  return d.done === 1 ? `${name}: 1 comida` : `${name}: ${d.done} comidas`;
+}
+
 function recapCardHtml() {
   const r = weekRecap();
   return `
@@ -40,7 +50,7 @@ function recapCardHtml() {
       </div>
       <div class="recap-days">
         ${r.days.map((d) => `
-          <div class="recap-day ${d.onPlan ? "on" : ""} ${d.future ? "future" : ""}" style="animation-delay:${d.i * 0.05}s">
+          <div class="recap-day ${d.onPlan ? "on" : ""} ${d.future ? "future" : ""}" style="animation-delay:${d.i * 0.05}s" role="img" aria-label="${recapDayLabel(d)}">
             <span class="recap-dot">${d.onPlan ? "✓" : d.future ? "" : d.done || ""}</span>
             <span class="recap-letter">${dayInitial(d.i)}</span>
           </div>`).join("")}

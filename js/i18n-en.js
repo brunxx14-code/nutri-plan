@@ -448,6 +448,11 @@ I18N.en = {
 
   templates: {
     "{d} (hoy)": "{d} (today)",
+    "{d}: todavía no ha llegado": "{d}: still to come",
+    "{d}: día cumplido": "{d}: day on plan",
+    "{d}: sin comidas": "{d}: no meals",
+    "{d}: 1 comida": "{d}: 1 meal",
+    "{d}: {n} comidas": "{d}: {n} meals",
     // Bienvenida y racha
     "Lo siguiente · {slot}": "Up next · {slot}",
     "Llevas {n} días seguidos. ¡No rompas la racha!": "{n} days in a row. Don't break the streak!",
