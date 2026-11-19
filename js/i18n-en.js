@@ -390,7 +390,7 @@ I18N.en = {
     "Un picoteo que suma": "A snack that counts",
     "Cierra el día bien": "End the day well",
     "Cocinar": "Cook",
-    "Ya la hice": "Done it",
+    "Ya la hice": "Done it", "Ya lo tomé": "I had it", "Ya la tomé": "I had it",
     "Recomendadas": "Recommended", "Más proteína": "Most protein", "Más baratas": "Cheapest", "Menos kcal": "Fewest kcal",
     "Busca por plato o ingrediente": "Search by dish or ingredient",
     "No hay recetas que coincidan con tu búsqueda.": "No recipes match your search.",

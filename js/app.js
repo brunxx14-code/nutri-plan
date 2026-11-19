@@ -292,7 +292,7 @@ function upNextCardHtml() {
       </button>
       <div class="up-next-actions">
         <button type="button" class="btn small" data-upnext-cook>👩‍🍳 Cocinar</button>
-        <button type="button" class="btn secondary small" data-upnext-done>✓ Ya la hice</button>
+        <button type="button" class="btn secondary small" data-upnext-done>✓ ${slotKey === "desayuno" ? "Ya lo tomé" : "Ya la tomé"}</button>
       </div>
     </div>`;
 }
@@ -320,7 +320,7 @@ function refreshUpNext() {
   setTimeout(() => {
     const cur = document.getElementById("up-next");
     if (!cur) return;
-    // si el foco estaba en la tarjeta (p. ej. en «Ya la hice»), no se pierde al cambiarla
+    // si el foco estaba en la tarjeta (p. ej. en «Ya la tomé»), no se pierde al cambiarla
     const hadFocus = cur.contains(document.activeElement);
     cur.outerHTML = upNextCardHtml();
     const fresh = document.getElementById("up-next");
