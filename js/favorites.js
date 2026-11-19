@@ -216,15 +216,30 @@ function bindRecipeResults(root, today) {
   });
   root.querySelectorAll("[data-put]").forEach((btn) => {
     btn.addEventListener("click", () => {
-      state.plan[today][btn.dataset.slot] = btn.dataset.put;
+      const slotKey = btn.dataset.slot;
+      const previousId = state.plan[today][slotKey];
+      const newId = btn.dataset.put;
+      state.plan[today][slotKey] = newId;
       saveState();
       track("favorita-puesta-hoy");
       buzz(12);
       renderPlanDays();
       renderDashboard();
       renderCompra();
-      showToast("✅ ¡Hecho! Ya está en tu plan de hoy");
-      openRecipeSheet(today, btn.dataset.slot);
+      openRecipeSheet(today, slotKey);
+      // el plato que había hoy desaparecía sin vuelta atrás; «Deshacer» lo recupera
+      showToast("✅ ¡Hecho! Ya está en tu plan de hoy", {
+        label: "Deshacer",
+        run: () => {
+          if (state.plan[today][slotKey] !== newId) return;
+          state.plan[today][slotKey] = previousId;
+          saveState();
+          renderPlanDays();
+          renderDashboard();
+          renderCompra();
+          if (sheetIsOpen() && document.querySelector("#sheet-body #cook-open-btn") && document.querySelector(`#sheet-body .fav-btn[data-fav="${newId}"]`)) openRecipeSheet(today, slotKey);
+        },
+      });
     });
   });
 }
