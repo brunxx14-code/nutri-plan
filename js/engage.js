@@ -183,8 +183,9 @@ function badgeShelfHtml() {
       <div class="badge-grid">
         ${BADGES.map((b, i) => `
           <div class="badge ${state.badges[b.id] ? "won" : "locked"}" style="animation-delay:${i * 0.04}s">
-            <span class="badge-emoji">${state.badges[b.id] ? b.emoji : "🔒"}</span>
+            <span class="badge-emoji" aria-hidden="true">${state.badges[b.id] ? b.emoji : "🔒"}</span>
             <span class="badge-name">${b.name}</span>
+            <span class="sr-only">${state.badges[b.id] ? "Conseguido" : "Por conseguir"}</span>
             <span class="badge-desc">${b.desc}</span>
           </div>`).join("")}
       </div>

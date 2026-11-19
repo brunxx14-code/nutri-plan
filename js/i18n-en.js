@@ -301,6 +301,8 @@ I18N.en = {
     "¡Logro desbloqueado!": "Achievement unlocked!",
     "Genial": "Great",
     "Logros": "Achievements",
+    "Conseguido": "Unlocked",
+    "Por conseguir": "Not unlocked yet",
     "Comida hecha": "Meal done", "Día completo": "Full day", "Reto del día": "Daily challenge", "Pesarte": "Weigh in",
     "¡Reto superado!": "Challenge complete!",
     "¡Reto del día superado!": "Daily challenge complete!",
