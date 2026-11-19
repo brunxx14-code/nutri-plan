@@ -231,7 +231,8 @@ function recipeShareText(recipeId, factor = 1) {
     `${Math.round(info.kcal * factor)} kcal · ${Math.round(info.prot * factor)} g ${tr("proteína")}`,
     "",
     `🛒 ${tr("Ingredientes")}:`,
-    ...r.ingredients.map(([id, qty]) => `• ${FOODS[id].name}: ${formatQty(qty * factor, FOODS[id].unit)}`),
+    // tr(): «3½ ud» sale «3½ pcs» en inglés, como en la receta en pantalla
+    ...r.ingredients.map(([id, qty]) => `• ${FOODS[id].name}: ${tr(formatQty(qty * factor, FOODS[id].unit))}`),
     "",
     `👩‍🍳 ${tr("Preparación")}:`,
     ...r.steps.map((s, i) => `${i + 1}. ${s}`),
