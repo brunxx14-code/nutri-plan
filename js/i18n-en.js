@@ -41,6 +41,7 @@ I18N.en = {
     "Lun": "Mon", "Mar": "Tue", "Mié": "Wed", "Jue": "Thu", "Vie": "Fri", "Sáb": "Sat", "Dom": "Sun",
     "Desayuno": "Breakfast", "Comida": "Lunch", "Cena": "Dinner", "Merienda": "Snack",
     "desayuno": "breakfast", "comida": "lunch", "cena": "dinner", "merienda": "snack",
+    "Ya tomé el desayuno": "I had breakfast", "Ya tomé la comida": "I had lunch", "Ya tomé la cena": "I had dinner", "Ya tomé la merienda": "I had my snack",
 
     // Formulario
     "Tus características": "About you",
@@ -462,8 +463,8 @@ I18N.en = {
     "Hoy · {day}": "Today · {day}",
 
     // Hoy y comidas fuera del plan
-    "Comí otra cosa en {slot}": "I ate something else for {slot}",
-    "Marcar {slot} como hecha": "Mark {slot} as done",
+    "Comí otra cosa en el {slot}": "I ate something else for {slot}",
+    "Comí otra cosa en la {slot}": "I ate something else for {slot}",
     "{slot} · fuera del plan": "{slot} · off plan",
     "En tu {x} de hoy": "In today's {x}",
     "{slot} de hoy": "Today's {slot}",

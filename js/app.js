@@ -1160,8 +1160,8 @@ function renderTodayCard() {
                   <span class="today-meal-name">${off ? `${off.name} · ${off.kcal} kcal` : info.recipe.name}</span>
                 </span>
               </button>
-              <button type="button" class="off-btn" data-off="${slot.key}" aria-label="Comí otra cosa en ${slot.label.toLowerCase()}">✏️</button>
-              <button type="button" class="eat-btn" data-eat="${slot.key}" aria-pressed="${eaten}" aria-label="Marcar ${slot.label.toLowerCase()} como hecha">${eaten ? "✓" : ""}</button>
+              <button type="button" class="off-btn" data-off="${slot.key}" aria-label="Comí otra cosa en ${slot.key === "desayuno" ? "el" : "la"} ${slot.label.toLowerCase()}">✏️</button>
+              <button type="button" class="eat-btn" data-eat="${slot.key}" aria-pressed="${eaten}" aria-label="Ya tomé ${slot.key === "desayuno" ? "el" : "la"} ${slot.label.toLowerCase()}">${eaten ? "✓" : ""}</button>
             </div>`;
         }).join("")}
       </div>
