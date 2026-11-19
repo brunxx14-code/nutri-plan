@@ -237,7 +237,7 @@ function explainRecipe(recipe, info, profile, slotLabel) {
   if (profile.goal === "perder") {
     sentences.push(
       proteinKcalShare > 0.25
-        ? `Como tu objetivo es perder grasa, en la ${slotLabel.toLowerCase()} priorizamos platos con bastante proteína (${Math.round(info.prot)} g): ayuda a saciarte y a conservar músculo mientras comes por debajo de tu gasto.`
+        ? `Como tu objetivo es perder grasa, en ${slotLabel === "Desayuno" ? "el" : "la"} ${slotLabel.toLowerCase()} priorizamos platos con bastante proteína (${Math.round(info.prot)} g): ayuda a saciarte y a conservar músculo mientras comes por debajo de tu gasto.`
         : `Es una opción ligera (${Math.round(info.kcal)} kcal) que encaja con el déficit calórico que necesitas para perder grasa sin pasar hambre.`
     );
   } else if (profile.goal === "ganar") {

@@ -464,6 +464,7 @@ I18N.en = {
 
     // Hoy y comidas fuera del plan
     "Comí otra cosa en el {slot}": "I ate something else for {slot}",
+    "Comí otra cosa en la merienda": "I ate something else for my snack",
     "Comí otra cosa en la {slot}": "I ate something else for {slot}",
     "{slot} · fuera del plan": "{slot} · off plan",
     "En tu {x} de hoy": "In today's {x}",
@@ -487,7 +488,8 @@ I18N.en = {
     "{a} g prot · {b} €": "{a} g prot · €{b}",
     "Cambiar {name}": "Swap {name}",
     "{food} es tu {role} principal aquí: {why}": "{food} is your main {role} here: {why}",
-    "Como tu objetivo es perder grasa, en la {slot} priorizamos platos con bastante proteína ({n} g): ayuda a saciarte y a conservar músculo mientras comes por debajo de tu gasto.": "As your goal is to lose fat, for {slot} we prioritise dishes with plenty of protein ({n} g): it keeps you full and protects muscle while you eat below what you burn.",
+    "Como tu objetivo es perder grasa, en la {slot} priorizamos platos con bastante proteína ({n} g): ayuda a saciarte y a conservar músculo mientras comes por debajo de tu gasto.": "As your goal is to lose fat, for your {slot} we prioritise dishes with plenty of protein ({n} g): it keeps you full and protects muscle while you eat below what you burn.",
+    "Como tu objetivo es perder grasa, en el {slot} priorizamos platos con bastante proteína ({n} g): ayuda a saciarte y a conservar músculo mientras comes por debajo de tu gasto.": "As your goal is to lose fat, for your {slot} we prioritise dishes with plenty of protein ({n} g): it keeps you full and protects muscle while you eat below what you burn.",
     "Es una opción ligera ({n} kcal) que encaja con el déficit calórico que necesitas para perder grasa sin pasar hambre.": "It's a light option ({n} kcal) that fits the calorie deficit you need to lose fat without going hungry.",
     "Como tu objetivo es ganar músculo, esta receta aporta {p} g de proteína y {c} g de carbohidratos: la combinación que ayuda a recuperarte del entrenamiento y a crecer.": "As your goal is to build muscle, this recipe gives you {p} g of protein and {c} g of carbs: the combination that helps you recover from training and grow.",
     "Mantiene un buen equilibrio entre proteína ({p} g), carbohidratos ({c} g) y grasas ({f} g), acorde a tu objetivo de mantenimiento.": "It keeps a good balance of protein ({p} g), carbs ({c} g) and fat ({f} g), in line with your maintenance goal.",
