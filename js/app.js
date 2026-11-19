@@ -1092,8 +1092,22 @@ function showToast(text, action) {
   });
   document.getElementById("app-shell").appendChild(toast);
   const ms = action ? 5000 : 2400;
-  setTimeout(() => toast.classList.add("hide"), ms);
-  setTimeout(() => toast.remove(), ms + 500);
+  // mientras el ratón está encima o el foco dentro (p. ej. en «Deshacer»), no se va
+  let timer = null;
+  const arm = () => {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      toast.classList.add("hide");
+      timer = setTimeout(() => toast.remove(), 500);
+    }, ms);
+  };
+  const hold = () => { clearTimeout(timer); toast.classList.remove("hide"); };
+  const release = () => { if (!toast.matches(":hover") && !toast.contains(document.activeElement)) arm(); };
+  toast.addEventListener("mouseenter", hold);
+  toast.addEventListener("focusin", hold);
+  toast.addEventListener("mouseleave", release);
+  toast.addEventListener("focusout", () => setTimeout(release, 0));
+  arm();
 }
 
 function renderStreakChip() {
