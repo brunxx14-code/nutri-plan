@@ -328,6 +328,7 @@ I18N.en = {
     // Tu semana y compartir
     "Tu semana": "Your week",
     "Compartir mi semana": "Share my week",
+    "Preparando tu imagen…": "Preparing your image…",
     "Invitar a un amigo": "Invite a friend",
     "comidas": "meals", "vasos": "glasses", "racha": "streak", "nivel": "level",
     "Mi semana": "My week",

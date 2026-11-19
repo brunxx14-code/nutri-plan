@@ -181,7 +181,12 @@ function drawRecapImage() {
 
 async function shareRecap(btn) {
   track("compartir-semana");
+  if (btn.disabled) return;
   btn.disabled = true;
+  // mientras se dibuja la imagen, el botón dice qué está pasando
+  const label = btn.textContent;
+  btn.textContent = "⏳ Preparando tu imagen…";
+  btn.setAttribute("aria-busy", "true");
   try {
     if (document.fonts && document.fonts.ready) await document.fonts.ready;
     const canvas = drawRecapImage();
@@ -202,6 +207,8 @@ async function shareRecap(btn) {
     if (!e || e.name !== "AbortError") showToast("No se pudo compartir ahora");
   } finally {
     btn.disabled = false;
+    btn.textContent = label;
+    btn.removeAttribute("aria-busy");
   }
 }
 
