@@ -467,6 +467,8 @@ I18N.en = {
     "Comí otra cosa en la merienda": "I ate something else for my snack",
     "Comí otra cosa en la {slot}": "I ate something else for {slot}",
     "{slot} · fuera del plan": "{slot} · off plan",
+    "En tu desayuno de hoy": "Today's breakfast", "En tu comida de hoy": "Today's lunch", "En tu cena de hoy": "Today's dinner", "En tu merienda de hoy": "Today's snack",
+    "Desayuno de hoy": "Today's breakfast", "Comida de hoy": "Today's lunch", "Cena de hoy": "Today's dinner", "Merienda de hoy": "Today's snack",
     "En tu {x} de hoy": "In today's {x}",
     "{slot} de hoy": "Today's {slot}",
     "~{n} kcal": "~{n} kcal",
