@@ -240,7 +240,9 @@ function checkChallenge() {
   const entry = dailyEntry();
   const card = document.getElementById("challenge-card");
   const [done, goal] = todayChallenge().progress(entry);
+  let justCompleted = false;
   if (!entry.challengeDone && done >= goal) {
+    justCompleted = true;
     entry.challengeDone = true;
     saveState();
     track(`reto-${todayChallenge().id}`);
@@ -248,11 +250,17 @@ function checkChallenge() {
     showToast("🎯 ¡Reto del día superado!");
     if (bumpCounter("challenges") >= 3) unlockBadge("retador");
   }
-  if (card) {
-    card.outerHTML = challengeCardHtml();
-    const fresh = document.getElementById("challenge-card");
-    if (entry.challengeDone && done >= goal && fresh) fresh.classList.add("just-done");
+  if (!card) return;
+  // si el reto sigue a medias, solo se mueve la barra (así se ve avanzar con su transición)
+  if (!justCompleted && card.classList.contains("complete") === !!entry.challengeDone) {
+    const bar = card.querySelector(".challenge-bar i");
+    if (bar) bar.style.width = `${Math.min(100, (done / goal) * 100)}%`;
+    return;
   }
+  card.outerHTML = challengeCardHtml();
+  const fresh = document.getElementById("challenge-card");
+  // la celebración de la tarjeta solo al superarlo, no en cada acción posterior
+  if (justCompleted && fresh) fresh.classList.add("just-done");
 }
 
 // ---------- Ganchos desde las acciones de la app ----------
