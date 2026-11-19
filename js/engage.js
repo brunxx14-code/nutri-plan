@@ -56,6 +56,7 @@ function floatXp(amount, anchor) {
   const shellBox = shell.getBoundingClientRect();
   const el = document.createElement("span");
   el.className = "xp-float";
+  el.setAttribute("aria-hidden", "true");
   el.textContent = `+${amount} XP`;
   el.style.left = `${box.left - shellBox.left + box.width / 2}px`;
   el.style.top = `${box.top - shellBox.top}px`;
@@ -149,7 +150,7 @@ function nextCelebration() {
 function levelChipHtml() {
   const { idx, level, pct } = levelFor(state.xp);
   return `
-    <button type="button" class="level-chip" id="level-chip">
+    <button type="button" class="level-chip" id="level-chip" aria-label="Ver tus logros: nivel ${idx + 1}, ${state.xp} XP">
       <span class="level-emoji">${level.emoji}</span>
       <span class="level-text">Nv. ${idx + 1}</span>
       <span class="level-bar"><i style="width:${Math.round(pct * 100)}%"></i></span>
@@ -163,6 +164,7 @@ function updateLevelChip() {
   chip.querySelector(".level-emoji").textContent = level.emoji;
   chip.querySelector(".level-text").textContent = `Nv. ${idx + 1}`;
   chip.querySelector(".level-bar i").style.width = `${Math.round(pct * 100)}%`;
+  chip.setAttribute("aria-label", `Ver tus logros: nivel ${idx + 1}, ${state.xp} XP`);
   chip.classList.remove("pop");
   void chip.offsetWidth;
   chip.classList.add("pop");

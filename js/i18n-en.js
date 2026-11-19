@@ -525,6 +525,7 @@ I18N.en = {
     "Te faltan {n} XP para {e} {name}.": "{n} XP to go until {e} {name}.",
     "Nivel {n}": "Level {n}",
     "Nv. {n}": "Lv. {n}",
+    "Ver tus logros: nivel {n}, {xp} XP": "See your achievements: level {n}, {xp} XP",
     "{n} g proteína": "{n} g protein",
     "{n} platos": "{n} dishes",
 
