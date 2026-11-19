@@ -76,6 +76,7 @@ function openCookMode(dayIdx, slotKey) {
     </div>
     <div class="cook-dots" id="cook-dots" role="group" aria-label="Pasos"></div>
     <div class="cook-stage" id="cook-stage"></div>
+    <div class="sr-only" id="cook-live" aria-live="polite"></div>
     <div class="cook-nav">
       <button type="button" class="btn ghost" id="cook-prev">← Anterior</button>
       <button type="button" class="btn" id="cook-next">Siguiente →</button>
@@ -129,6 +130,18 @@ function goCookStep(idx) {
   const dir = idx > cook.idx ? "fwd" : "back";
   buzz(6);
   renderCookStep(idx, dir);
+  announceCookStep(idx);
+}
+
+/* El lector de pantalla lee el paso nuevo al cambiar (botones, flechas,
+   deslizar o puntos), sin tener que ir a buscarlo. Va en una zona aparte
+   porque el reloj del temporizador cambia cada segundo. */
+function announceCookStep(idx) {
+  const live = document.getElementById("cook-live");
+  if (!live) return;
+  live.innerHTML = idx === 0
+    ? "<span>Prepara los ingredientes</span>"
+    : `<span>Paso ${idx} de ${cook.recipe.steps.length}</span>. <span>${cook.recipe.steps[idx - 1]}</span>`;
 }
 
 function renderCookDots() {
