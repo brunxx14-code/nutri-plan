@@ -50,7 +50,7 @@ function recapCardHtml() {
       </div>
       <div class="recap-days">
         ${r.days.map((d) => `
-          <div class="recap-day ${d.onPlan ? "on" : ""} ${d.future ? "future" : ""}" style="animation-delay:${d.i * 0.05}s" role="img" aria-label="${recapDayLabel(d)}">
+          <div class="recap-day ${d.onPlan ? "on" : ""} ${d.future ? "future" : ""} ${d.i === todayPlanIndex() ? "today" : ""}" style="animation-delay:${d.i * 0.05}s" role="img" aria-label="${recapDayLabel(d)}">
             <span class="recap-dot">${d.onPlan ? "✓" : d.future ? "" : d.done || ""}</span>
             <span class="recap-letter">${dayInitial(d.i)}</span>
           </div>`).join("")}

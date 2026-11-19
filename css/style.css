@@ -1246,6 +1246,9 @@ input:focus, select:focus { outline: 2px solid var(--coral); outline-offset: 1px
 .recap-day.on .recap-dot { background: #fff; color: var(--brand-deep); }
 .recap-day.future .recap-dot { background: transparent; border: 2px dashed rgba(255,255,255,.4); }
 .recap-letter { font-size: 12px; font-weight: 700; opacity: .9; }
+/* hoy, con un aro blanco alrededor para ver de un vistazo dónde estás */
+.recap-day.today .recap-dot { outline: 2px solid #fff; outline-offset: 2px; }
+.recap-day.today .recap-letter { opacity: 1; font-weight: 800; }
 .recap-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 14px; }
 .recap-stats div { background: rgba(255,255,255,.16); border-radius: 14px; padding: 9px 4px; text-align: center; }
 .recap-stats b { display: block; font-size: 18px; font-weight: 800; }
