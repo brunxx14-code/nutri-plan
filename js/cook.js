@@ -59,7 +59,7 @@ function openCookMode(dayIdx, slotKey) {
   const info = getRecipeInfo(state.plan[dayIdx][slotKey]);
   cook = {
     recipe: info.recipe, dayIdx, slotKey, factor: dayFactor(dayIdx),
-    idx: 0, timers: {}, tick: null, wake: null, title: document.title,
+    idx: 0, timers: {}, got: new Set(), tick: null, wake: null, title: document.title,
     opener: document.activeElement, // al salir, el foco vuelve aquí
   };
   track("modo-cocina");
@@ -152,11 +152,13 @@ function renderCookStep(idx, dir = "fwd") {
       <div class="cook-kicker">Antes de empezar</div>
       <h2 class="cook-step-text small">Prepara los ingredientes</h2>
       <div class="cook-ings">
-        ${cook.recipe.ingredients.map(([id, qty]) => {
+        ${cook.recipe.ingredients.map(([id, qty], i) => {
           const food = FOODS[id];
+          // lo que ya marcaste sigue marcado si vuelves a este paso
+          const got = cook.got.has(i);
           return `
-            <label class="cook-ing">
-              <input type="checkbox">
+            <label class="cook-ing${got ? " got" : ""}">
+              <input type="checkbox" data-ing="${i}"${got ? " checked" : ""}>
               <span class="cook-ing-emoji" aria-hidden="true">${FOOD_EMOJI[id] || FOOD_ROLE_EMOJI[food.cat] || "•"}</span>
               <span class="cook-ing-name">${food.name}</span>
               <span class="cook-ing-qty">${formatQty(qty * cook.factor, food.unit)}</span>
@@ -176,6 +178,7 @@ function renderCookStep(idx, dir = "fwd") {
   stage.querySelectorAll(".cook-ing input").forEach((box) => {
     box.addEventListener("change", () => {
       box.closest(".cook-ing").classList.toggle("got", box.checked);
+      cook.got[box.checked ? "add" : "delete"](Number(box.dataset.ing));
       buzz(6);
     });
   });
