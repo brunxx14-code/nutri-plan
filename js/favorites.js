@@ -132,8 +132,8 @@ function openFavoritesSheet(view) {
   body.innerHTML = `
     <h3>📖 Tus recetas</h3>
     <div class="seg" role="tablist">
-      <button type="button" role="tab" class="seg-btn ${tab === "fav" ? "on" : ""}" data-tab="fav" aria-selected="${tab === "fav"}">❤️ Favoritas${favCount ? ` <span class="seg-count">${favCount}</span>` : ""}</button>
-      <button type="button" role="tab" class="seg-btn ${tab === "all" ? "on" : ""}" data-tab="all" aria-selected="${tab === "all"}">📖 Recetario</button>
+      <button type="button" role="tab" class="seg-btn ${tab === "fav" ? "on" : ""}" data-tab="fav" aria-selected="${tab === "fav"}" tabindex="${tab === "fav" ? 0 : -1}">❤️ Favoritas${favCount ? ` <span class="seg-count">${favCount}</span>` : ""}</button>
+      <button type="button" role="tab" class="seg-btn ${tab === "all" ? "on" : ""}" data-tab="all" aria-selected="${tab === "all"}" tabindex="${tab === "all" ? 0 : -1}">📖 Recetario</button>
     </div>
     ${tab === "all" ? `
       <label class="recipe-search">
@@ -156,7 +156,7 @@ function openFavoritesSheet(view) {
   bindRecipeResults(body, today);
   body.querySelectorAll("[data-sort]").forEach((btn) => btn.addEventListener("click", () => {
     buzz(6);
-    openFavoritesSheet({ sort: btn.dataset.sort });
+    rerenderRecipesSheet({ sort: btn.dataset.sort }, `[data-sort="${btn.dataset.sort}"]`);
   }));
   const search = body.querySelector("#recipe-search");
   if (search) {
@@ -172,15 +172,34 @@ function openFavoritesSheet(view) {
     });
     search.addEventListener("change", () => { if (search.value.trim()) track("receta-buscada"); });
   }
-  body.querySelectorAll("[data-tab]").forEach((btn) => btn.addEventListener("click", () => {
+  const goTab = (t) => {
     buzz(6);
-    openFavoritesSheet({ tab: btn.dataset.tab, filter: "all", query: "" });
+    openFavoritesSheet({ tab: t, filter: "all", query: "" });
+    document.querySelector(`#sheet-body [role="tab"][data-tab="${t}"]`)?.focus({ preventScroll: true });
+  };
+  body.querySelectorAll("[data-tab]").forEach((btn) => btn.addEventListener("click", () => goTab(btn.dataset.tab)));
+  // pestañas con teclado: ← y → pasan de «Favoritas» a «Recetario» y al revés
+  body.querySelectorAll('[role="tab"]').forEach((btn) => btn.addEventListener("keydown", (e) => {
+    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+    e.preventDefault();
+    goTab(btn.dataset.tab === "fav" ? "all" : "fav");
   }));
   body.querySelectorAll("[data-filter]").forEach((btn) => btn.addEventListener("click", () => {
     buzz(6);
-    openFavoritesSheet({ filter: btn.dataset.filter });
+    rerenderRecipesSheet({ filter: btn.dataset.filter }, `[data-filter="${btn.dataset.filter}"]`);
   }));
   openSheet();
+}
+
+/* Al cambiar filtro u orden con la hoja abierta, la hoja no sube arriba
+   y el foco se queda en el botón que tocaste. */
+function rerenderRecipesSheet(view, focusSelector) {
+  const card = document.querySelector("#recipe-sheet .sheet-card");
+  const top = card ? card.scrollTop : 0;
+  openFavoritesSheet(view);
+  if (card) card.scrollTop = top;
+  const target = document.querySelector(`#sheet-body ${focusSelector}`);
+  if (target) target.focus({ preventScroll: true });
 }
 
 function bindRecipeResults(root, today) {
