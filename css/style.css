@@ -554,7 +554,7 @@ input:focus, select:focus { outline: 2px solid var(--coral); outline-offset: 1px
 .streak-chip {
   display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 700;
   padding: 7px 12px; border-radius: 999px; background: var(--card); color: var(--muted);
-  box-shadow: var(--shadow-card); animation: riseIn .4s ease both .05s;
+  box-shadow: var(--shadow-card); animation: riseIn .4s ease backwards .05s;
 }
 .streak-chip.active { background: var(--amber-light); color: var(--amber-dark); }
 .streak-chip.pop { animation: popBig .5s ease; }
@@ -621,6 +621,12 @@ input:focus, select:focus { outline: 2px solid var(--coral); outline-offset: 1px
 .water-glasses.wave .glass { animation: glassWave .5s ease calc(var(--i) * 55ms) both; }
 @keyframes glassWave { 0%, 100% { transform: none; } 40% { transform: translateY(-6px) scale(1.06); } }
 @media (prefers-reduced-motion: reduce) { .water-glasses.wave .glass { animation: none; } }
+/* respuesta al pulsar: los botones pequeños que se tocan mucho se hunden un poco */
+.glass, .day-pill, .streak-chip, .fav-btn { transition: transform .12s ease; }
+.glass:active { transform: scale(.88); }
+.day-pill:active, .streak-chip:active { transform: scale(.94); }
+.fav-btn:active { transform: scale(.85); }
+@media (prefers-reduced-motion: reduce) { .glass:active, .day-pill:active, .streak-chip:active, .fav-btn:active { transform: none; } }
 :root[data-theme="dark"] #water-count.met { color: #7cc0ee; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) #water-count.met { color: #7cc0ee; } }
 
