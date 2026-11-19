@@ -124,12 +124,22 @@ function drawRecapImage() {
   r.days.forEach((d, i) => {
     const x = 80 + i * (size + gap);
     const y = 420;
-    ctx.fillStyle = d.onPlan ? "#ffffff" : "rgba(255,255,255,.22)";
-    ctx.beginPath(); ctx.arc(x + size / 2, y + size / 2, size / 2, 0, Math.PI * 2); ctx.fill();
+    // igual que en la tarjeta: ✓ si cumpliste, las comidas que hiciste si no,
+    // y un círculo discontinuo para los días que aún no han llegado
+    if (d.future) {
+      ctx.strokeStyle = "rgba(255,255,255,.45)";
+      ctx.lineWidth = 4;
+      ctx.setLineDash([12, 10]);
+      ctx.beginPath(); ctx.arc(x + size / 2, y + size / 2, size / 2 - 2, 0, Math.PI * 2); ctx.stroke();
+      ctx.setLineDash([]);
+    } else {
+      ctx.fillStyle = d.onPlan ? "#ffffff" : "rgba(255,255,255,.22)";
+      ctx.beginPath(); ctx.arc(x + size / 2, y + size / 2, size / 2, 0, Math.PI * 2); ctx.fill();
+    }
     ctx.textAlign = "center";
     ctx.fillStyle = d.onPlan ? "#c2452a" : "#fff";
     ctx.font = font(800, 48);
-    ctx.fillText(d.onPlan ? "✓" : "", x + size / 2, y + size / 2 + 17);
+    ctx.fillText(d.onPlan ? "✓" : d.future || !d.done ? "" : String(d.done), x + size / 2, y + size / 2 + 17);
     ctx.fillStyle = "#fff";
     ctx.font = font(700, 34);
     ctx.fillText(dayInitial(i), x + size / 2, y + size + 52);
