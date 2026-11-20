@@ -2084,6 +2084,16 @@ function bindSheetSwipe() {
       backdrop.style.opacity = String(1 - Math.min(dy / 500, 0.6));
     }
   }, { passive: true });
+  // Si el sistema interrumpe el gesto (una llamada, un gesto del móvil…), la
+  // hoja vuelve a su sitio en vez de quedarse a medio bajar.
+  card.addEventListener("touchcancel", () => {
+    if (startY === null) return;
+    card.style.transition = "";
+    backdrop.style.transition = "opacity .25s ease";
+    card.style.transform = "";
+    backdrop.style.opacity = "";
+    startY = null;
+  });
   card.addEventListener("touchend", () => {
     if (startY === null) return;
     card.style.transition = "";
