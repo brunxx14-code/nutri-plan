@@ -1329,7 +1329,13 @@ input:focus, select:focus { outline: 2px solid var(--coral); outline-offset: 1px
 .chip-btn {
   font: inherit; font-weight: 700; font-size: 15px; padding: 9px 16px; border-radius: 99px; cursor: pointer;
   background: var(--card); color: var(--ink); border: 1px solid var(--border);
+  /* los filtros del recetario cambiaban de color de golpe y no respondían al pulsar */
+  transition: background-color .18s ease, color .18s ease, border-color .18s ease, transform .12s ease;
 }
+.chip-btn:active { transform: scale(.95); }
+.chip-btn.chip-pick { animation: chipPick .28s cubic-bezier(.3,1.5,.5,1); }
+@keyframes chipPick { 0% { transform: scale(.92); } 60% { transform: scale(1.05); } 100% { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .chip-btn { transition: none; } .chip-btn:active { transform: none; } .chip-btn.chip-pick { animation: none; } }
 .cook-nav { display: flex; gap: 10px; }
 .cook-nav .btn { flex: 1; }
 .cook-nav .btn:disabled { opacity: .4; }

@@ -200,6 +200,8 @@ function rerenderRecipesSheet(view, focusSelector) {
   if (card) card.scrollTop = top;
   const target = document.querySelector(`#sheet-body ${focusSelector}`);
   if (target) target.focus({ preventScroll: true });
+  // la hoja se vuelve a dibujar, así que el filtro elegido «rebota» al encenderse
+  if (target && target.classList.contains("chip-btn")) target.classList.add("chip-pick");
 }
 
 function bindRecipeResults(root, today) {
