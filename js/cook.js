@@ -345,7 +345,12 @@ function onCookKey(e) {
 
 function bindCookSwipe(stage) {
   let x0 = null, y0 = 0;
-  stage.addEventListener("touchstart", (e) => { x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; }, { passive: true });
+  stage.addEventListener("touchstart", (e) => {
+    // con dos dedos (pellizcar para ampliar el texto) no es un deslizamiento
+    if (e.touches.length !== 1) { x0 = null; return; }
+    x0 = e.touches[0].clientX; y0 = e.touches[0].clientY;
+  }, { passive: true });
+  stage.addEventListener("touchcancel", () => { x0 = null; }, { passive: true });
   stage.addEventListener("touchend", (e) => {
     if (x0 === null) return;
     const dx = e.changedTouches[0].clientX - x0;
