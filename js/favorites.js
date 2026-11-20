@@ -138,7 +138,7 @@ function openFavoritesSheet(view) {
     ${tab === "all" ? `
       <label class="recipe-search">
         <span aria-hidden="true">🔍</span>
-        <input type="search" id="recipe-search" placeholder="Busca por plato o ingrediente" aria-label="Busca por plato o ingrediente" value="${query.replace(/"/g, "&quot;")}" autocomplete="off">
+        <input type="search" id="recipe-search" placeholder="Busca por plato o ingrediente" aria-label="Busca por plato o ingrediente" value="${query.replace(/"/g, "&quot;")}" autocomplete="off" enterkeyhint="search">
       </label>` : ""}
     ${tab === "all" || favCount ? `<div class="recipe-filters" role="group" aria-label="Tipo de plato">
       ${RECIPE_FILTERS.map((f) => `<button type="button" class="chip-btn filter ${f.key === filter ? "on" : ""}" data-filter="${f.key}" aria-pressed="${f.key === filter}">${f.label}</button>`).join("")}
@@ -161,14 +161,24 @@ function openFavoritesSheet(view) {
   const search = body.querySelector("#recipe-search");
   if (search) {
     let timer = null;
+    const applySearch = () => {
+      clearTimeout(timer);
+      recipesSheetView.query = search.value.trim();
+      const box = body.querySelector("#recipes-results");
+      box.innerHTML = recipesResultsHtml(recipesForView(), today, dayFactor(today));
+      bindRecipeResults(box, today);
+    };
     search.addEventListener("input", () => {
       clearTimeout(timer);
-      timer = setTimeout(() => {
-        recipesSheetView.query = search.value.trim();
-        const box = body.querySelector("#recipes-results");
-        box.innerHTML = recipesResultsHtml(recipesForView(), today, dayFactor(today));
-        bindRecipeResults(box, today);
-      }, 120);
+      timer = setTimeout(applySearch, 120);
+    });
+    // la tecla «Buscar» del móvil no hacía nada y el teclado seguía tapando
+    // los resultados: ahora busca al momento y lo esconde
+    search.addEventListener("keydown", (e) => {
+      if (e.key !== "Enter" || e.isComposing) return;
+      e.preventDefault();
+      applySearch();
+      search.blur();
     });
     search.addEventListener("change", () => { if (search.value.trim()) track("receta-buscada"); });
   }
