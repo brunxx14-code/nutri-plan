@@ -99,6 +99,7 @@ function renderReportTeaser() {
 function renderInformes() {
   const weekly = getWeeklyArticles(4);
   const weeklyIds = new Set(weekly.map((a) => a.id));
+  const readIds = new Set((state.counters && state.counters.articles) || []);
   const featured = weekly[0];
   const others = ARTICLES.filter((a) => a.id !== featured.id);
   const el = document.getElementById("informes-content");
@@ -118,7 +119,7 @@ function renderInformes() {
       ${others.map((a) => `
         <div class="report-tile" data-article="${a.id}">
           ${photoHtml(ARTICLE_CATEGORY_PHOTOS[a.category], { width: 300, className: "photo-tile", fallback: "📰" })}
-          ${weeklyIds.has(a.id) ? '<span class="report-new-badge">Nuevo</span>' : ""}
+          ${readIds.has(a.id) ? READ_BADGE : weeklyIds.has(a.id) ? '<span class="report-new-badge">Nuevo</span>' : ""}
           <span class="report-tile-title">${a.title}</span>
           <span class="report-row-meta">⏱ ${a.readMins} min</span>
         </div>`).join("")}
@@ -133,9 +134,24 @@ function renderInformes() {
   bindCalendarCard(el);
 }
 
+// los artículos que ya has leído llevan «✓ Leído» en la cuadrícula de Informes
+const READ_BADGE = '<span class="report-read-badge">✓ Leído</span>';
+
+// al abrir un artículo, su tarjeta de detrás cambia ya a «✓ Leído», con un
+// pequeño rebote, sin esperar a que vuelvas a la pestaña
+function markTileRead(articleId) {
+  const tile = document.querySelector(`#informes-content .report-tile[data-article="${articleId}"]`);
+  if (!tile || tile.querySelector(".report-read-badge")) return;
+  const old = tile.querySelector(".report-new-badge");
+  if (old) old.remove();
+  tile.insertAdjacentHTML("afterbegin", READ_BADGE);
+  tile.querySelector(".report-read-badge").classList.add("just-read");
+}
+
 function openArticleSheet(articleId) {
   const article = ARTICLES.find((a) => a.id === articleId);
   engage.articleRead(articleId);
+  markTileRead(articleId);
   const body = document.getElementById("sheet-body");
   body.innerHTML = `
     <span class="tag">${article.category}</span>
