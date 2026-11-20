@@ -528,6 +528,22 @@ function enhanceChoiceCards(select, choices, variant) {
   const grid = document.createElement("div");
   grid.className = `choice-grid ${variant}`;
   grid.setAttribute("role", "radiogroup");
+  // El grupo se llama como la etiqueta del select («Objetivo físico»…).
+  const label = select.closest("label");
+  const labelText = label && [...label.childNodes].filter((n) => n.nodeType === 3).map((n) => n.textContent).join("").trim();
+  if (labelText) grid.setAttribute("aria-label", labelText);
+  // Como un grupo de radios nativo: Tab entra solo en la elegida y las flechas cambian.
+  grid.addEventListener("keydown", (e) => {
+    const keys = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1, Home: "first", End: "last" };
+    if (!(e.key in keys) || !e.target.classList.contains("choice-card")) return;
+    e.preventDefault();
+    const cards = [...grid.querySelectorAll(".choice-card")];
+    const i = cards.indexOf(e.target);
+    const k = keys[e.key];
+    const next = k === "first" ? cards[0] : k === "last" ? cards[cards.length - 1] : cards[(i + k + cards.length) % cards.length];
+    next.click();
+    next.focus();
+  });
   for (const [value, c] of Object.entries(choices)) {
     const btn = document.createElement("button");
     btn.type = "button";
@@ -556,6 +572,7 @@ function syncChoiceCards() {
       const on = card.dataset.value === select.value;
       card.classList.toggle("selected", on);
       card.setAttribute("aria-checked", on);
+      card.tabIndex = on ? 0 : -1;
     });
   });
 }
@@ -2594,7 +2611,8 @@ document.addEventListener("DOMContentLoaded", () => {
     e.preventDefault();
     if (validateStep(wizardStep)) {
       goToWizardStep(wizardStep + 1);
-      const first = document.querySelector(`.wizard-step[data-step="${wizardStep}"] input, .wizard-step[data-step="${wizardStep}"] select`);
+      const sel = `.wizard-step[data-step="${wizardStep}"]`;
+      const first = document.querySelector(`${sel} .choice-card[tabindex="0"], ${sel} input, ${sel} select:not(.select-hidden)`);
       if (first) first.focus({ preventScroll: true });
     }
   });
