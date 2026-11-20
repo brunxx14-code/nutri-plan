@@ -318,7 +318,8 @@ function updateCookTitle() {
 
 // ---------- Gestos y final ----------
 
-/* Con teclado (o un mando bluetooth): flechas para pasar de paso, Esc para salir. */
+/* Con teclado (o un mando bluetooth): flechas para pasar de paso, Inicio y Fin
+   para ir al principio o al final, Esc para salir. */
 function onCookKey(e) {
   if (!cook || e.altKey || e.ctrlKey || e.metaKey) return;
   if (e.target && e.target.closest && e.target.closest("input, textarea, select")) return;
@@ -328,6 +329,11 @@ function onCookKey(e) {
   } else if (e.key === "ArrowLeft" || e.key === "PageUp") {
     e.preventDefault();
     goCookStep(cook.idx - 1);
+  } else if (e.key === "Home" || e.key === "End") {
+    // Inicio vuelve a los ingredientes y Fin salta al último paso
+    e.preventDefault();
+    const target = e.key === "Home" ? 0 : totalCookSteps() - 1;
+    if (target !== cook.idx) goCookStep(target);
   } else if (e.key === "Escape") {
     e.preventDefault();
     closeCookMode();
