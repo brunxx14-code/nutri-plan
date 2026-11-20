@@ -427,6 +427,7 @@ function createSportRow(prefill) {
 
   const select = document.createElement("select");
   select.className = "sport-type";
+  select.setAttribute("aria-label", "Deporte");
   for (const [key, sport] of Object.entries(SPORTS)) {
     const opt = document.createElement("option");
     opt.value = key;
@@ -441,6 +442,8 @@ function createSportRow(prefill) {
   freqInput.min = 0;
   freqInput.max = 14;
   freqInput.placeholder = "veces";
+  freqInput.inputMode = "numeric";
+  freqInput.setAttribute("aria-label", "Veces por semana");
   freqInput.value = prefill ? prefill.freq : "";
 
   const minsInput = document.createElement("input");
@@ -449,13 +452,21 @@ function createSportRow(prefill) {
   minsInput.min = 0;
   minsInput.max = 300;
   minsInput.placeholder = "min";
+  minsInput.inputMode = "numeric";
+  minsInput.setAttribute("aria-label", "Minutos por sesión");
   minsInput.value = prefill ? prefill.mins : "";
 
   const removeBtn = document.createElement("button");
   removeBtn.type = "button";
   removeBtn.className = "remove-sport";
   removeBtn.textContent = "✕";
-  removeBtn.addEventListener("click", () => row.remove());
+  removeBtn.setAttribute("aria-label", "Quitar deporte");
+  removeBtn.addEventListener("click", () => {
+    // El foco no se pierde: pasa al deporte siguiente, al anterior o a «+ Añadir deporte».
+    const next = row.nextElementSibling || row.previousElementSibling;
+    row.remove();
+    (next ? next.querySelector(".sport-type") : document.getElementById("add-sport-btn")).focus();
+  });
 
   row.append(select, freqInput, minsInput, removeBtn);
   return row;
@@ -504,7 +515,10 @@ function initOnboardingForm() {
   introLang.innerHTML = langPickerHtml();
   bindLangPicker(introLang);
   addSportRow();
-  document.getElementById("add-sport-btn").addEventListener("click", () => addSportRow());
+  document.getElementById("add-sport-btn").addEventListener("click", () => {
+    addSportRow();
+    document.querySelector("#sports-rows .sport-row:last-child .sport-type").focus();
+  });
 
   const progress = document.getElementById("wizard-progress");
   progress.innerHTML = "";
