@@ -119,7 +119,7 @@ body::after { width: 420px; height: 420px; background: rgba(39, 145, 90, .13); b
   }
 }
 
-#app-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+#app-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
 #app-scroll::-webkit-scrollbar { width: 0; height: 0; }
 
 /* ---------- Splash de bienvenida ---------- */
@@ -169,6 +169,10 @@ body::after { width: 420px; height: 420px; background: rgba(39, 145, 90, .13); b
 
 .wizard-step { display: none; animation: fadein .25s ease; }
 .wizard-step.active { display: block; }
+/* al avanzar o volver, el paso entra desde el lado hacia el que vas */
+.wizard-step.active.step-from-right { animation: viewFromRight .3s cubic-bezier(.22,.95,.4,1); }
+.wizard-step.active.step-from-left { animation: viewFromLeft .3s cubic-bezier(.22,.95,.4,1); }
+@media (prefers-reduced-motion: reduce) { .wizard-step, .wizard-step.active.step-from-right, .wizard-step.active.step-from-left { animation: none; } }
 @keyframes fadein { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 @keyframes riseIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 

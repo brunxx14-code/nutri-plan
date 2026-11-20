@@ -642,11 +642,16 @@ function setWizardMode(mode) {
 }
 
 function goToWizardStep(step) {
+  // El paso nuevo entra desde el lado hacia el que vas, como los días del Plan.
+  const dir = step > wizardStep ? "step-from-right" : step < wizardStep ? "step-from-left" : "";
   wizardStep = step;
   requestAnimationFrame(updateWizardPreview);
   syncChoiceCards();
   document.querySelectorAll(".wizard-step").forEach((el) => {
-    el.classList.toggle("active", Number(el.dataset.step) === step);
+    const on = Number(el.dataset.step) === step;
+    el.classList.toggle("active", on);
+    el.classList.remove("step-from-right", "step-from-left");
+    if (on && dir) el.classList.add(dir);
   });
   const progress = document.getElementById("wizard-progress");
   progress.setAttribute("aria-valuenow", String(step + 1));
