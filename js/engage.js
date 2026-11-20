@@ -118,30 +118,43 @@ function nextCelebration() {
   celebrating = true;
   const el = document.createElement("div");
   el.className = `celebrate celebrate-${item.type}`;
-  el.innerHTML = item.type === "level" ? `
+  // zona de aviso: el lector de pantalla lee el logro o el nivel nuevo al salir
+  // (el contenido se pone un instante después para que se anuncie)
+  el.setAttribute("role", "status");
+  const html = item.type === "level" ? `
       <div class="celebrate-card">
         <div class="celebrate-kicker">¡Subes de nivel!</div>
-        <div class="celebrate-emoji">${item.level.emoji}</div>
+        <div class="celebrate-emoji" aria-hidden="true">${item.level.emoji}</div>
         <div class="celebrate-title">Nivel ${item.idx + 1} · ${item.level.name}</div>
         <p class="celebrate-sub">${item.next ? `Siguiente: ${item.next.emoji} ${item.next.name} a ${item.next.xp} XP` : "Has llegado a lo más alto 👑"}</p>
         <button type="button" class="btn block">¡Vamos!</button>
       </div>` : `
       <div class="celebrate-card">
         <div class="celebrate-kicker">¡Logro desbloqueado!</div>
-        <div class="celebrate-emoji">${item.badge.emoji}</div>
+        <div class="celebrate-emoji" aria-hidden="true">${item.badge.emoji}</div>
         <div class="celebrate-title">${item.badge.name}</div>
         <p class="celebrate-sub">${item.badge.desc}</p>
         <button type="button" class="btn block">Genial</button>
       </div>`;
   document.getElementById("app-shell").appendChild(el);
+  requestAnimationFrame(() => { el.innerHTML = html; });
   burstConfetti();
   buzz(25);
+  // Esc la cierra, como tocarla, sin cerrar también la hoja que haya debajo
+  const onKey = (e) => {
+    if (e.key !== "Escape") return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    close();
+  };
   const close = () => {
     if (el.classList.contains("hide")) return;
+    document.removeEventListener("keydown", onKey, true);
     el.classList.add("hide");
     setTimeout(() => { el.remove(); nextCelebration(); }, 300);
   };
   el.addEventListener("click", close);
+  document.addEventListener("keydown", onKey, true);
   setTimeout(close, item.type === "level" ? 5000 : 3500);
 }
 
