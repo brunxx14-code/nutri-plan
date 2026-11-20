@@ -348,12 +348,17 @@ const TOUR_SLIDES = [
 function showTour() {
   const el = document.createElement("div");
   el.id = "tour";
+  // pantalla completa encima del cuestionario: para el lector de pantalla y el
+  // teclado es un diálogo, y solo se lee la diapositiva que se ve
+  el.setAttribute("role", "dialog");
+  el.setAttribute("aria-modal", "true");
+  el.setAttribute("aria-label", "Bienvenida");
   el.innerHTML = `
     <button type="button" class="tour-skip" id="tour-skip">Saltar</button>
     <div class="tour-track" id="tour-track">
       ${TOUR_SLIDES.map((s, i) => `
-        <section class="tour-slide" data-i="${i}">
-          <div class="tour-art">
+        <section class="tour-slide" data-i="${i}"${i ? ` aria-hidden="true"` : ""}>
+          <div class="tour-art" aria-hidden="true">
             <span class="tour-main">${s.art[0]}</span>
             ${s.art.slice(1).map((e, k) => `<span class="tour-orbit o${k}">${e}</span>`).join("")}
           </div>
@@ -361,7 +366,7 @@ function showTour() {
           <p>${s.text}</p>
         </section>`).join("")}
     </div>
-    <div class="tour-dots">${TOUR_SLIDES.map((_, i) => `<i class="${i === 0 ? "on" : ""}"></i>`).join("")}</div>
+    <div class="tour-dots" aria-hidden="true">${TOUR_SLIDES.map((_, i) => `<i class="${i === 0 ? "on" : ""}"></i>`).join("")}</div>
     <button type="button" class="btn block tour-next" id="tour-next">Siguiente</button>
     <p class="tour-free">Gratis · sin registro · 1 minuto</p>
   `;
@@ -377,6 +382,12 @@ function showTour() {
     track(`tour-${how}`);
     el.classList.add("hide");
     setTimeout(() => el.remove(), 450);
+    // el foco no se queda en el tour que desaparece: pasa al título del cuestionario
+    const h = document.querySelector(`.wizard-step[data-step="${wizardStep}"] h3`);
+    if (h && el.contains(document.activeElement)) {
+      h.setAttribute("tabindex", "-1");
+      h.focus({ preventScroll: true });
+    }
   };
   const go = (i) => slider.scrollTo({ left: i * slider.clientWidth, behavior: prefersReducedMotion() ? "auto" : "smooth" });
   slider.addEventListener("scroll", () => {
@@ -384,13 +395,30 @@ function showTour() {
     if (i === current) return;
     current = i;
     el.querySelectorAll(".tour-dots i").forEach((d, k) => d.classList.toggle("on", k === i));
-    el.querySelectorAll(".tour-slide").forEach((s, k) => s.classList.toggle("active", k === i));
+    el.querySelectorAll(".tour-slide").forEach((s, k) => {
+      s.classList.toggle("active", k === i);
+      if (k === i) s.removeAttribute("aria-hidden"); else s.setAttribute("aria-hidden", "true");
+    });
     next.textContent = i === TOUR_SLIDES.length - 1 ? "Crear mi plan gratis" : "Siguiente";
     buzz(6);
   });
   el.querySelector(".tour-slide").classList.add("active");
   next.addEventListener("click", () => (current < TOUR_SLIDES.length - 1 ? go(current + 1) : finish("completo")));
   el.querySelector("#tour-skip").addEventListener("click", () => finish("saltado"));
+  // con teclado: ← y → pasan de diapositiva, Esc hace lo mismo que «Saltar»
+  // y Tab se queda entre «Saltar» y «Siguiente»
+  el.addEventListener("keydown", (e) => {
+    if (el.classList.contains("hide")) return;
+    if (e.key === "ArrowRight" && current < TOUR_SLIDES.length - 1) { e.preventDefault(); go(current + 1); }
+    else if (e.key === "ArrowLeft" && current > 0) { e.preventDefault(); go(current - 1); }
+    else if (e.key === "Escape") { e.preventDefault(); finish("saltado"); }
+    else if (e.key === "Tab") {
+      const skip = el.querySelector("#tour-skip");
+      e.preventDefault();
+      (document.activeElement === next ? skip : next).focus();
+    }
+  });
+  next.focus({ preventScroll: true });
 }
 
 // ---------- "Creando tu plan" ----------

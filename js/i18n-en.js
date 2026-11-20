@@ -321,6 +321,7 @@ I18N.en = {
     "Se adapta a tu vida": "It fits your life",
     "¿Comiste fuera? Reajustamos tu semana. ¿Tu peso no se mueve? Ajustamos tus calorías.": "Ate out? We rebalance your week. Weight not moving? We adjust your calories.",
     "Saltar": "Skip",
+    "Bienvenida": "Welcome",
     "Gratis · sin registro · 1 minuto": "Free · no sign-up · 1 minute",
     "Crear mi plan gratis": "Create my free plan",
     "Calculando tus calorías": "Working out your calories",
