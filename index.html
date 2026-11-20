@@ -73,13 +73,13 @@
               </select>
             </label>
             <label>Edad
-              <input type="number" name="age" min="14" max="90" required placeholder="años">
+              <input type="number" name="age" inputmode="numeric" enterkeyhint="next" min="14" max="90" required placeholder="años">
             </label>
             <label>Peso
-              <input type="number" name="weightKg" min="30" max="300" step="0.1" required placeholder="kg">
+              <input type="number" name="weightKg" inputmode="decimal" enterkeyhint="next" min="30" max="300" step="0.1" required placeholder="kg">
             </label>
             <label>Altura
-              <input type="number" name="heightCm" min="120" max="230" required placeholder="cm">
+              <input type="number" name="heightCm" inputmode="numeric" enterkeyhint="next" min="120" max="230" required placeholder="cm">
             </label>
           </div>
         </div>
@@ -126,7 +126,7 @@
           <h3>Tu presupuesto</h3>
           <div class="form-grid single">
             <label>Presupuesto semanal para comida (€, opcional)
-              <input type="number" name="weeklyBudget" min="0" step="1" placeholder="ej. 60">
+              <input type="number" name="weeklyBudget" inputmode="numeric" enterkeyhint="go" min="0" step="1" placeholder="ej. 60">
             </label>
           </div>
           <p class="hint">Ajustamos el plan para no pasarnos.</p>
