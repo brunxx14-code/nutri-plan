@@ -86,7 +86,7 @@ function tr(text) {
   return text.replace(trimmed, out);
 }
 
-const TRANSLATED_ATTRS = ["placeholder", "aria-label", "title", "alt"];
+const TRANSLATED_ATTRS = ["placeholder", "aria-label", "aria-valuetext", "title", "alt"];
 const SKIP_TAGS = new Set(["SCRIPT", "STYLE", "TEXTAREA"]);
 
 function translateNode(node) {

@@ -2,6 +2,7 @@
 
 I18N.en = {
   ui: {
+    "Progreso del cuestionario": "Questionnaire progress",
     // General
     "NutriPlan · Tu objetivo, tu plan, tu compra": "NutriPlan · Your goal, your plan, your shopping",
     "Nutri": "Nutri",

@@ -508,9 +508,14 @@ function initOnboardingForm() {
 
   const progress = document.getElementById("wizard-progress");
   progress.innerHTML = "";
+  progress.setAttribute("role", "progressbar");
+  progress.setAttribute("aria-label", "Progreso del cuestionario");
+  progress.setAttribute("aria-valuemin", "1");
+  progress.setAttribute("aria-valuemax", "4");
   for (let i = 0; i < 4; i++) {
     const dot = document.createElement("span");
     dot.className = "dot";
+    dot.setAttribute("aria-hidden", "true");
     progress.appendChild(dot);
   }
 }
@@ -643,6 +648,9 @@ function goToWizardStep(step) {
   document.querySelectorAll(".wizard-step").forEach((el) => {
     el.classList.toggle("active", Number(el.dataset.step) === step);
   });
+  const progress = document.getElementById("wizard-progress");
+  progress.setAttribute("aria-valuenow", String(step + 1));
+  progress.setAttribute("aria-valuetext", `Paso ${step + 1} de 4`);
   document.querySelectorAll("#wizard-progress .dot").forEach((dot, i) => {
     dot.classList.toggle("active", i === step);
     dot.classList.toggle("done", i < step);
