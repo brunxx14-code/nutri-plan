@@ -745,6 +745,14 @@ function enterEditMode() {
   showView("onboarding");
 }
 
+/* Salir de «Editar perfil» sin guardar: vuelves al perfil con el foco en el
+   botón que lo abrió, para seguir con el teclado donde estabas. */
+function leaveEditMode() {
+  showView("perfil");
+  const btn = document.getElementById("edit-profile-btn");
+  if (btn) btn.focus({ preventScroll: true });
+}
+
 // ---------- Navegación ----------
 
 const TAB_ORDER = ["dashboard", "plan", "compra", "informes", "perfil"];
@@ -2027,6 +2035,11 @@ document.addEventListener("keydown", (e) => {
     return;
   }
   if (e.key === "Escape" && sheetIsOpen()) closeSheet();
+  // Esc en «Editar perfil» hace lo mismo que la ✕: salir sin guardar.
+  else if (e.key === "Escape" && currentView === "onboarding" && wizardMode === "edit" && !e.isComposing) {
+    e.preventDefault();
+    leaveEditMode();
+  }
   if (e.key === "Tab" && sheetIsOpen()) trapSheetFocus(e);
 });
 
@@ -2637,12 +2650,10 @@ document.addEventListener("DOMContentLoaded", () => {
       goToWizardStep(wizardStep - 1);
       focusStepTitle();
     } else if (wizardMode === "edit") {
-      showView("perfil");
+      leaveEditMode();
     }
   });
-  document.getElementById("wizard-cancel").addEventListener("click", () => {
-    showView("perfil");
-  });
+  document.getElementById("wizard-cancel").addEventListener("click", leaveEditMode);
 
   ["input", "change", "click"].forEach((ev) => form.addEventListener(ev, () => requestAnimationFrame(updateWizardPreview)));
 
