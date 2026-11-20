@@ -134,7 +134,7 @@
 
       </form>
 
-      <div class="wizard-preview hidden" id="wizard-preview" aria-live="polite">
+      <div class="wizard-preview hidden" id="wizard-preview" aria-hidden="true">
         <div class="wp-main">
           <span class="wp-label">Tu objetivo diario</span>
           <span class="wp-kcal"><b id="wp-kcal">0</b> kcal</span>
@@ -145,6 +145,7 @@
           <span>🥑 <b id="wp-fat">0</b> g</span>
         </div>
       </div>
+      <p class="sr-only" id="wp-live" aria-live="polite"></p>
 
       <div class="wizard-nav">
         <button id="wizard-back" type="button" class="btn ghost">Atrás</button>

@@ -654,8 +654,16 @@ function updateWizardPreview() {
   const p = readProfileFromForm(form);
   const ok = p.age >= 14 && p.age <= 90 && p.weightKg >= 30 && p.weightKg <= 300 && p.heightCm >= 120 && p.heightCm <= 230;
   box.classList.toggle("hidden", !ok);
-  if (!ok) return;
+  const live = document.getElementById("wp-live");
+  clearTimeout(updateWizardPreview.timer);
+  if (!ok) { if (live) live.textContent = ""; return; }
   const t = calcTargets(p);
+  // La cifra animada cambia en cada fotograma; el lector de pantalla oye solo el
+  // resultado, una vez que dejas de teclear.
+  if (live) {
+    const msg = `Tu objetivo diario: ${Math.round(t.calories)} kcal, ${Math.round(t.protein)} g de proteína, ${Math.round(t.carbs)} g de hidratos y ${Math.round(t.fat)} g de grasa`;
+    updateWizardPreview.timer = setTimeout(() => { if (live.textContent !== msg) live.textContent = msg; }, 700);
+  }
   if (!wizardPreviewShown.done) {
     wizardPreviewShown.done = true;
     track("vista-previa-calorias");

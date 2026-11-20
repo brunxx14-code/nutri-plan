@@ -459,6 +459,7 @@ I18N.en = {
     "{d}: sin comidas": "{d}: no meals",
     "{d}: 1 comida": "{d}: 1 meal",
     "{d}: {n} comidas": "{d}: {n} meals",
+    "Tu objetivo diario: {k} kcal, {p} g de proteína, {c} g de hidratos y {f} g de grasa": "Your daily target: {k} kcal, {p} g protein, {c} g carbs and {f} g fat",
     // Bienvenida y racha
     "Lo siguiente · {slot}": "Up next · {slot}",
     "Llevas {n} días seguidos. ¡No rompas la racha!": "{n} days in a row. Don't break the streak!",
