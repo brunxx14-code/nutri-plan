@@ -144,8 +144,28 @@ function openArticleSheet(articleId) {
     <div class="sheet-section article-body">
       ${article.body.map((p) => `<p>${p}</p>`).join("")}
     </div>
+    ${nextArticleHtml(article)}
   `;
+  const next = body.querySelector(".article-next");
+  if (next) next.addEventListener("click", () => openArticleSheet(next.dataset.article));
   openSheet();
+}
+
+// al terminar un informe, el siguiente que aún no has leído (o el siguiente
+// sin más, si ya los has leído todos), para seguir leyendo sin cerrar la hoja
+function nextArticleHtml(article) {
+  if (ARTICLES.length < 2) return "";
+  const read = new Set((state.counters && state.counters.articles) || []);
+  const start = ARTICLES.indexOf(article);
+  const after = Array.from({ length: ARTICLES.length - 1 }, (_, i) => ARTICLES[(start + 1 + i) % ARTICLES.length]);
+  const next = after.find((a) => !read.has(a.id)) || after[0];
+  return `
+    <button type="button" class="article-next" data-article="${next.id}">
+      <span class="article-next-label">Sigue leyendo</span>
+      <span class="article-next-title">${next.title}</span>
+      <span class="report-meta">${next.category} · ⏱ ${next.readMins} min</span>
+      <span class="article-next-arrow" aria-hidden="true">→</span>
+    </button>`;
 }
 
 // ---------- Suscripción (simulada) ----------
