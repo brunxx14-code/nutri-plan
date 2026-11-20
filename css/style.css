@@ -1507,3 +1507,15 @@ button.streak-chip { font: inherit; border: none; cursor: pointer; }
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
   overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0;
 }
+
+/* Con «reducir movimiento», las entradas que no tienen su propia regla
+   (tarjetas que suben al aparecer, la bienvenida, los pulsos que se repiten…)
+   pasan al estado final al momento, sin moverse ni repetirse. Se acortan en
+   vez de quitarse para que lo que empieza invisible acabe visible. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
+  }
+}
