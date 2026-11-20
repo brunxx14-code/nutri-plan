@@ -131,10 +131,11 @@ function openFavoritesSheet(view) {
   const body = document.getElementById("sheet-body");
   body.innerHTML = `
     <h3>📖 Tus recetas</h3>
-    <div class="seg" role="tablist">
-      <button type="button" role="tab" class="seg-btn ${tab === "fav" ? "on" : ""}" data-tab="fav" aria-selected="${tab === "fav"}" tabindex="${tab === "fav" ? 0 : -1}">❤️ Favoritas${favCount ? ` <span class="seg-count">${favCount}</span>` : ""}</button>
-      <button type="button" role="tab" class="seg-btn ${tab === "all" ? "on" : ""}" data-tab="all" aria-selected="${tab === "all"}" tabindex="${tab === "all" ? 0 : -1}">📖 Recetario</button>
+    <div class="seg" role="tablist" aria-label="Tus recetas">
+      <button type="button" role="tab" id="recipes-tab-fav" aria-controls="recipes-panel" class="seg-btn ${tab === "fav" ? "on" : ""}" data-tab="fav" aria-selected="${tab === "fav"}" tabindex="${tab === "fav" ? 0 : -1}">❤️ Favoritas${favCount ? ` <span class="seg-count">${favCount}</span>` : ""}</button>
+      <button type="button" role="tab" id="recipes-tab-all" aria-controls="recipes-panel" class="seg-btn ${tab === "all" ? "on" : ""}" data-tab="all" aria-selected="${tab === "all"}" tabindex="${tab === "all" ? 0 : -1}">📖 Recetario</button>
     </div>
+    <div role="tabpanel" id="recipes-panel" aria-labelledby="recipes-tab-${tab}">
     ${tab === "all" ? `
       <label class="recipe-search">
         <span aria-hidden="true">🔍</span>
@@ -152,6 +153,7 @@ function openFavoritesSheet(view) {
         <p>Aún no tienes favoritas. Toca el corazón de cualquier receta para guardarla aquí.</p>
         <button type="button" class="btn secondary" data-tab="all">📖 Ver el recetario</button>
       </div>` : `<div id="recipes-results">${recipesResultsHtml(list, today, factor)}</div>`}
+    </div>
   `;
   bindRecipeResults(body, today);
   body.querySelectorAll("[data-sort]").forEach((btn) => btn.addEventListener("click", () => {
