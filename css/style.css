@@ -199,7 +199,11 @@ input:focus, select:focus { outline: 2px solid var(--coral); outline-offset: 1px
 
 .dislikes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; max-height: 240px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 10px; background: var(--card); }
 .dislikes-grid label { flex-direction: row; align-items: center; gap: 8px; font-size: 13px; font-weight: 400; padding: 4px; }
-.dislikes-grid input { width: 16px; height: 16px; padding: 0; }
+.dislikes-grid label { border-radius: var(--radius-sm); transition: background-color .15s ease, color .15s ease; }
+.dislikes-grid input { width: 16px; height: 16px; padding: 0; accent-color: var(--coral); }
+/* lo que no te gusta se ve tachado, así de un vistazo sabes qué has quitado */
+.dislikes-grid label:has(input:checked) { background: var(--coral-light); text-decoration: line-through; text-decoration-color: var(--coral); }
+@media (prefers-reduced-motion: reduce) { .dislikes-grid label { transition: none; } }
 
 /* ---------- Deporte (en el wizard) ---------- */
 .sport-hint { margin-top: -4px; margin-bottom: 10px; }
