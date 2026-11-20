@@ -212,7 +212,13 @@ async function shareRecap(btn) {
   }
 }
 
+/* El navegador solo deja abrir un «Compartir» a la vez: un segundo toque
+   mientras el primero sigue abierto fallaba con «No se pudo compartir ahora». */
+let shareInFlight = false;
+
 async function inviteFriend() {
+  if (shareInFlight) return;
+  shareInFlight = true;
   track("invitar-amigo");
   const text = tr("Estoy usando NutriPlan: te hace un plan de comidas a tu medida y la lista de la compra con precios. Pruébala gratis:");
   try {
@@ -224,6 +230,8 @@ async function inviteFriend() {
     showToast("🔗 Enlace copiado, ¡pégalo donde quieras!");
   } catch (e) {
     if (!e || e.name !== "AbortError") showToast(`🔗 ${APP_URL}`);
+  } finally {
+    shareInFlight = false;
   }
 }
 
@@ -257,6 +265,8 @@ function bindShareRecipe(root, factor) {
   root.querySelectorAll("[data-share-recipe]").forEach((btn) => {
     btn.addEventListener("click", async (e) => {
       e.stopPropagation();
+      if (shareInFlight) return;
+      shareInFlight = true;
       track("receta-compartida");
       buzz(8);
       const text = recipeShareText(btn.dataset.shareRecipe, factor);
@@ -269,6 +279,8 @@ function bindShareRecipe(root, factor) {
         showToast("📋 Receta copiada, ¡pégala donde quieras!");
       } catch (err) {
         if (!err || err.name !== "AbortError") showToast("No se pudo compartir ahora");
+      } finally {
+        shareInFlight = false;
       }
     });
   });
