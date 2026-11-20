@@ -2560,12 +2560,22 @@ document.addEventListener("DOMContentLoaded", () => {
   initOnboardingForm();
   const form = document.getElementById("onboarding-form");
 
+  // Al cambiar de paso con los botones, el foco pasa al título del paso nuevo:
+  // así el lector de pantalla lo anuncia, y no se pierde cuando «Siguiente»
+  // (en el último paso) o «Atrás» (en el primero) desaparecen.
+  const focusStepTitle = () => {
+    const h = document.querySelector(`.wizard-step[data-step="${wizardStep}"] h3`);
+    if (!h) return;
+    h.setAttribute("tabindex", "-1");
+    h.focus({ preventScroll: true });
+  };
   document.getElementById("wizard-next").addEventListener("click", () => {
-    if (validateStep(wizardStep)) goToWizardStep(wizardStep + 1);
+    if (validateStep(wizardStep)) { goToWizardStep(wizardStep + 1); focusStepTitle(); }
   });
   document.getElementById("wizard-back").addEventListener("click", () => {
     if (wizardStep > 0) {
       goToWizardStep(wizardStep - 1);
+      focusStepTitle();
     } else if (wizardMode === "edit") {
       showView("perfil");
     }
