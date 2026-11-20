@@ -87,6 +87,7 @@ I18N.en = {
     "Vegetariano": "Vegetarian",
     "Vegano": "Vegan",
     "Alimentos que NO te gustan (opcional)": "Foods you DON'T like (optional)",
+    "1 quitado": "1 removed",
     "Tu presupuesto": "Your budget",
     "Presupuesto semanal para comida (€, opcional)": "Weekly food budget (€, optional)",
     "ej. 60": "e.g. 60",
@@ -459,6 +460,7 @@ I18N.en = {
     "{d}: sin comidas": "{d}: no meals",
     "{d}: 1 comida": "{d}: 1 meal",
     "{d}: {n} comidas": "{d}: {n} meals",
+    "{n} quitados": "{n} removed",
     "Tu objetivo diario: {k} kcal, {p} g de proteína, {c} g de hidratos y {f} g de grasa": "Your daily target: {k} kcal, {p} g protein, {c} g carbs and {f} g fat",
     // Bienvenida y racha
     "Lo siguiente · {slot}": "Up next · {slot}",

@@ -198,6 +198,10 @@ input:focus, select:focus { outline: 2px solid var(--coral); outline-offset: 1px
 .hint { color: var(--muted); font-size: 12.5px; margin-top: 8px; line-height: 1.4; }
 
 .dislikes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; max-height: 240px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 10px; background: var(--card); }
+.dislikes-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.dislikes-count { flex-shrink: 0; font-size: 12.5px; font-weight: 600; color: var(--ink); background: var(--coral-light); padding: 2px 10px; border-radius: 999px; font-variant-numeric: tabular-nums; }
+.dislikes-count.bump { animation: popCheck .28s ease; }
+@media (prefers-reduced-motion: reduce) { .dislikes-count.bump { animation: none; } }
 .dislikes-grid label { flex-direction: row; align-items: center; gap: 8px; font-size: 13px; font-weight: 400; padding: 4px; }
 .dislikes-grid label { border-radius: var(--radius-sm); transition: background-color .15s ease, color .15s ease; }
 .dislikes-grid input { width: 16px; height: 16px; padding: 0; accent-color: var(--coral); }

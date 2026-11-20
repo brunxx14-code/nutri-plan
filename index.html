@@ -118,8 +118,11 @@
               </select>
             </label>
           </div>
-          <label class="block-label" id="dislikes-label">Alimentos que NO te gustan (opcional)</label>
-          <div id="dislikes-grid" class="dislikes-grid" role="group" aria-labelledby="dislikes-label"></div>
+          <div class="dislikes-head">
+            <label class="block-label" id="dislikes-label">Alimentos que NO te gustan (opcional)</label>
+            <span class="dislikes-count hidden" id="dislikes-count"></span>
+          </div>
+          <div id="dislikes-grid" class="dislikes-grid" role="group" aria-labelledby="dislikes-label dislikes-count"></div>
         </div>
 
         <div class="wizard-step" data-step="3">

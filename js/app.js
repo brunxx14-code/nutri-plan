@@ -419,6 +419,26 @@ function buildDislikesGrid() {
     label.appendChild(document.createTextNode(food.name));
     grid.appendChild(label);
   }
+  grid.addEventListener("change", () => updateDislikesCount(true));
+}
+
+/* Cuántos alimentos has quitado, junto al título de la lista: con 40 casillas
+   es fácil perder la cuenta, sobre todo al bajar por la lista. */
+function updateDislikesCount(bump) {
+  const el = document.getElementById("dislikes-count");
+  if (!el) return;
+  const n = document.querySelectorAll('#dislikes-grid input:checked').length;
+  el.classList.toggle("hidden", n === 0);
+  if (!n) { el.textContent = ""; return; }
+  const text = n === 1 ? "1 quitado" : `${n} quitados`;
+  if (el.textContent !== text) {
+    el.textContent = text;
+    if (bump && !prefersReducedMotion()) {
+      el.classList.remove("bump");
+      void el.offsetWidth;
+      el.classList.add("bump");
+    }
+  }
 }
 
 function createSportRow(prefill) {
@@ -628,6 +648,7 @@ function fillFormFromProfile(form, profile) {
   form.querySelectorAll('input[name="dislikes"]').forEach((cb) => {
     cb.checked = profile.dislikes.includes(cb.value);
   });
+  updateDislikesCount(false);
 }
 
 /* Mientras rellenas el formulario ves tus calorías y macros al momento:
