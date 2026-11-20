@@ -2563,6 +2563,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
   ["input", "change", "click"].forEach((ev) => form.addEventListener(ev, () => requestAnimationFrame(updateWizardPreview)));
 
+  // Intro en un campo de un paso intermedio avanza al siguiente paso en vez de
+  // enviar el formulario entero y saltarse el resto de preguntas.
+  form.addEventListener("keydown", (e) => {
+    if (e.key !== "Enter" || e.isComposing || wizardStep >= 3) return;
+    if (!(e.target instanceof HTMLInputElement)) return;
+    e.preventDefault();
+    if (validateStep(wizardStep)) {
+      goToWizardStep(wizardStep + 1);
+      const first = document.querySelector(`.wizard-step[data-step="${wizardStep}"] input, .wizard-step[data-step="${wizardStep}"] select`);
+      if (first) first.focus({ preventScroll: true });
+    }
+  });
+
   form.addEventListener("submit", (e) => {
     e.preventDefault();
     if (!validateStep(3)) return;
