@@ -407,13 +407,16 @@ function showPlanReveal(onDone) {
   ];
   const el = document.createElement("div");
   el.id = "plan-reveal";
+  el.setAttribute("role", "dialog");
+  el.setAttribute("aria-modal", "true");
+  el.setAttribute("aria-labelledby", "reveal-title");
   el.innerHTML = `
-    <div class="reveal-spinner"><span>🥗</span></div>
-    <h2 class="reveal-title">Creando tu plan…</h2>
+    <div class="reveal-spinner" aria-hidden="true"><span>🥗</span></div>
+    <h2 class="reveal-title" id="reveal-title" aria-live="polite">Creando tu plan…</h2>
     <div class="reveal-steps">
       ${steps.map((s, i) => `
         <div class="reveal-step" data-i="${i}">
-          <span class="reveal-icon">${s.emoji}</span>
+          <span class="reveal-icon" aria-hidden="true">${s.emoji}</span>
           <span class="reveal-text">${s.text}</span>
           <span class="reveal-value">${s.value}</span>
           <span class="reveal-check">✓</span>
@@ -430,7 +433,10 @@ function showPlanReveal(onDone) {
   setTimeout(() => {
     el.classList.add("ready");
     el.querySelector(".reveal-title").textContent = "¡Tu plan está listo! 🎉";
-    el.querySelector("#reveal-go").classList.remove("hidden");
+    const go = el.querySelector("#reveal-go");
+    go.classList.remove("hidden");
+    // El foco pasa al botón, así Intro abre el plan y el lector de pantalla lo anuncia.
+    go.focus({ preventScroll: true });
     burstConfetti();
   }, 250 + steps.length * stepMs + 200);
   el.querySelector("#reveal-go").addEventListener("click", () => {
