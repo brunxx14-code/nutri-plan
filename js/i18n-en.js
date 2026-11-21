@@ -504,6 +504,7 @@ I18N.en = {
     "{a} g prot · {b} € · ⏱ {c} min": "{a} g prot · €{b} · ⏱ {c} min",
     "{a} g prot · {b} € · ⏱\u00a0{c}\u00a0min": "{a} g prot · €{b} · ⏱\u00a0{c}\u00a0min",
     "{a} kcal · {b} €": "{a} kcal · €{b}",
+    "{a} kcal · {b} € · ⏱\u00a0{c}\u00a0min": "{a} kcal · €{b} · ⏱\u00a0{c}\u00a0min",
     "Cambiar {name}": "Swap {name}",
     "{food} es tu {role} principal aquí: {why}": "{food} is your main {role} here: {why}",
     "Como tu objetivo es perder grasa, en la {slot} priorizamos platos con bastante proteína ({n} g): ayuda a saciarte y a conservar músculo mientras comes por debajo de tu gasto.": "As your goal is to lose fat, for your {slot} we prioritise dishes with plenty of protein ({n} g): it keeps you full and protects muscle while you eat below what you burn.",

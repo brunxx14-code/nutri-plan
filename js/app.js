@@ -1890,7 +1890,7 @@ function renderPlanDays() {
             <div class="meal-info">
               <div class="slot-label">${slot.label}${isFavorite(info.recipe.id) ? ` <span class="fav-mark" aria-label="Favorita">❤️</span>` : ""}${done ? ` <span class="done-mark">Hecha</span>` : ""}</div>
               <div class="recipe-name">${info.recipe.name}</div>
-              <div class="kcal">${Math.round(info.kcal * factor)} kcal · ${euro(info.cost * factor)} €</div>
+              <div class="kcal">${Math.round(info.kcal * factor)} kcal · ${euro(info.cost * factor)} €${recipeCookMins(info.recipe) ? ` · ⏱\u00a0${recipeCookMins(info.recipe)}\u00a0min` : ""}</div>
             </div>
             <div class="chevron-right" aria-hidden="true">›</div>
           </div>`;
