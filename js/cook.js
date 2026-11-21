@@ -193,6 +193,7 @@ function renderCookStep(idx, dir = "fwd") {
       box.closest(".cook-ing").classList.toggle("got", box.checked);
       cook.got[box.checked ? "add" : "delete"](Number(box.dataset.ing));
       buzz(6);
+      markIngredientsReady();
     });
   });
   renderCookTimer();
@@ -208,6 +209,23 @@ function renderCookStep(idx, dir = "fwd") {
   }
   next.textContent = idx === 0 ? "Empezar →" : idx === total ? "✅ ¡Listo!" : "Siguiente →";
   next.classList.toggle("done", idx === total);
+  markIngredientsReady(false);
+}
+
+/* Con todos los ingredientes marcados, «Empezar →» se pone verde y da un
+   pequeño salto, para que se vea que ya puedes ponerte a cocinar. */
+function markIngredientsReady(animate = true) {
+  const next = document.getElementById("cook-next");
+  if (!next || !cook) return;
+  const ready = cook.idx === 0 && cook.got.size === cook.recipe.ingredients.length;
+  const was = next.classList.contains("ready");
+  next.classList.toggle("ready", ready);
+  if (ready && !was && animate) {
+    next.classList.remove("ready-pop");
+    void next.offsetWidth;
+    next.classList.add("ready-pop");
+    buzz([8, 40, 8]);
+  } else if (!ready) next.classList.remove("ready-pop");
 }
 
 // ---------- Temporizadores ----------

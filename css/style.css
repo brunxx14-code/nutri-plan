@@ -1371,6 +1371,9 @@ input:focus, select:focus { outline: 2px solid var(--coral); outline-offset: 1px
 .cook-nav .btn { flex: 1; }
 .cook-nav .btn:disabled { opacity: .4; }
 .cook-nav .btn.done { background: var(--green); }
+.cook-nav .btn.ready { background: var(--green); transition: background-color .25s ease; }
+.cook-nav .btn.ready-pop { animation: popCheck .4s cubic-bezier(.3,1.5,.5,1); }
+@media (prefers-reduced-motion: reduce) { .cook-nav .btn.ready { transition: none; } .cook-nav .btn.ready-pop { animation: none; } }
 @media (prefers-reduced-motion: reduce) {
   .cook, .cook-in-fwd, .cook-in-back, .cook-ring.rang, .cook-dot.timing { animation: none; transition: none; }
 }
