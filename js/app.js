@@ -838,7 +838,18 @@ function showView(name) {
     else b.removeAttribute("aria-current");
   });
   moveTabIndicator();
+  updateViewTitle(name);
   document.getElementById("app-scroll").scrollTop = 0;
+}
+
+/* El título de la pestaña del navegador (y del selector de apps) dice dónde
+   estás: «Plan · NutriPlan». En el registro se queda el título completo. */
+let baseTitle = null;
+
+function updateViewTitle(name) {
+  if (baseTitle === null) baseTitle = document.title;
+  const tab = document.querySelector(`.tab-btn[data-view="${name}"] span`);
+  document.title = tab ? `${tab.textContent.trim()} · NutriPlan` : baseTitle;
 }
 
 /* Desde la barra de pestañas: cada pestaña recuerda hasta dónde bajaste, y
