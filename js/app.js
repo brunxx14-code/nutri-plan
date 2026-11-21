@@ -1783,11 +1783,15 @@ function mealEmoji(slotKey) {
 
 /* Si el día elegido queda fuera de la fila de días (p. ej. el domingo en un
    móvil estrecho), la fila se desplaza hasta él. */
-function centerActiveDay() {
+/* Al cambiar de día (tocando, con las flechas o deslizando), la fila se
+   desliza con suavidad hasta la pastilla nueva en vez de saltar de golpe.
+   Al dibujar el Plan, y con «reducir movimiento», va directa. */
+function centerActiveDay(smooth = false) {
   const dayTabs = document.getElementById("day-tabs");
   const pill = dayTabs && dayTabs.querySelector(".day-pill.active");
   if (!pill || dayTabs.scrollWidth <= dayTabs.clientWidth) return;
-  dayTabs.scrollLeft = pill.offsetLeft - dayTabs.offsetLeft - (dayTabs.clientWidth - pill.offsetWidth) / 2;
+  const left = pill.offsetLeft - dayTabs.offsetLeft - (dayTabs.clientWidth - pill.offsetWidth) / 2;
+  dayTabs.scrollTo({ left, behavior: smooth && !prefersReducedMotion() ? "smooth" : "auto" });
 }
 
 function renderPlan() {
@@ -1804,7 +1808,7 @@ function renderPlan() {
       e.preventDefault();
       selectPlanDay(Math.max(0, Math.min(DAYS.length - 1, to)));
       const pill = dayTabs.querySelector(`.day-pill[data-day="${selectedDay}"]`);
-      if (pill) pill.focus();
+      if (pill) pill.focus({ preventScroll: true }); // la fila ya se desliza sola hasta ella
     });
   });
   renderPlanDays();
@@ -1826,7 +1830,7 @@ function selectPlanDay(day) {
     p.classList.toggle("active", on);
     if (on) p.classList.add(dir);
   });
-  centerActiveDay();
+  centerActiveDay(true);
 }
 
 /* En el móvil, deslizar el plan a los lados pasa al día anterior o siguiente. */
