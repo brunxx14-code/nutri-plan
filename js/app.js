@@ -1924,15 +1924,19 @@ const TAG_COLOR_CLASS = {
   vegetariano: "", vegano: "", alto_proteina: "tag-rose", sin_gluten: "tag-amber", economico: "tag-purple",
 };
 
+// los minutos que dicen los pasos («cocina 8-10 minutos»), para saber de un vistazo cuánto lleva;
+// un paso que va «los últimos 12 minutos» («the last 12 minutes») de otro ya está dentro de ese tiempo
+function recipeCookMins(r) {
+  return r.steps.reduce((sum, step) => sum + (/\s(últimos|last)\s/i.test(step) ? 0 : stepMinutes(step)), 0);
+}
+
 function openRecipeSheet(dayIdx, slotKey) {
   const slotLabel = MEAL_SLOTS.find((s) => s.key === slotKey).label;
   const info = getRecipeInfo(state.plan[dayIdx][slotKey]);
   const r = info.recipe;
   const factor = dayFactor(dayIdx);
   const whySentences = explainRecipe(r, info, state.profile, slotLabel);
-  // los minutos que dicen los pasos («cocina 8-10 minutos»), para saber de un vistazo cuánto lleva;
-  // un paso que va «los últimos 12 minutos» («the last 12 minutes») de otro ya está dentro de ese tiempo
-  const cookMins = r.steps.reduce((sum, step) => sum + (/\s(últimos|last)\s/i.test(step) ? 0 : stepMinutes(step)), 0);
+  const cookMins = recipeCookMins(r);
   const body = document.getElementById("sheet-body");
   track("receta-vista");
   body.innerHTML = `
@@ -2018,8 +2022,8 @@ function openSwapSheet(dayIdx, slotKey) {
       ${options.map((info) => `
         <button type="button" class="swap-option" data-recipe="${info.recipe.id}">
           ${recipePhoto(info.recipe.id, { width: 120, className: "photo-thumb", fallback: mealEmoji(slotKey) })}
-          <span class="swap-name">${isFavorite(info.recipe.id) ? "❤️ " : ""}${info.recipe.name}</span>
-          <span class="swap-meta">${Math.round(info.prot * factor)} g prot · ${euro(info.cost * factor)} €</span>
+          <span class="swap-text"><span class="swap-name">${isFavorite(info.recipe.id) ? "❤️ " : ""}${info.recipe.name}</span>
+          <span class="swap-meta">${Math.round(info.prot * factor)} g prot · ${euro(info.cost * factor)} €${recipeCookMins(info.recipe) ? ` · ⏱ ${recipeCookMins(info.recipe)} min` : ""}</span></span>
         </button>`).join("")}
     </div>` : `<p class="hint">No hay otros platos de este tipo que encajen con tu dieta y tus gustos.</p>`}
     <button type="button" class="btn ghost block" id="swap-back-btn">Volver a la receta</button>

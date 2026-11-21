@@ -501,6 +501,7 @@ I18N.en = {
     "Destacado · {cat}": "Featured · {cat}",
     "Cantidades ajustadas a tus calorías (×{n} la ración estándar).": "Quantities adjusted to your calories (×{n} the standard portion).",
     "{a} g prot · {b} €": "{a} g prot · €{b}",
+    "{a} g prot · {b} € · ⏱ {c} min": "{a} g prot · €{b} · ⏱ {c} min",
     "Cambiar {name}": "Swap {name}",
     "{food} es tu {role} principal aquí: {why}": "{food} is your main {role} here: {why}",
     "Como tu objetivo es perder grasa, en la {slot} priorizamos platos con bastante proteína ({n} g): ayuda a saciarte y a conservar músculo mientras comes por debajo de tu gasto.": "As your goal is to lose fat, for your {slot} we prioritise dishes with plenty of protein ({n} g): it keeps you full and protects muscle while you eat below what you burn.",
