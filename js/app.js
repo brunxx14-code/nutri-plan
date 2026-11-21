@@ -80,7 +80,11 @@ function getWeeklyArticles(count = 4) {
 }
 
 function renderReportTeaser() {
-  const featured = getWeeklyArticles(1)[0];
+  // el artículo del resumen es el primero de la semana que aún no has leído,
+  // así no se queda enseñando uno que ya leíste hasta el lunes
+  const read = new Set((state.counters && state.counters.articles) || []);
+  const order = getWeeklyArticles(ARTICLES.length);
+  const featured = order.find((a) => !read.has(a.id)) || order[0];
   return `
     <div class="report-teaser">
       <div class="report-teaser-main photo-card" data-article="${featured.id}">
