@@ -519,6 +519,13 @@ input:focus, select:focus { outline: 2px solid var(--coral); outline-offset: 1px
 }
 #tab-indicator.hidden { display: none; }
 .tab-btn:active svg { transform: scale(.88); }
+.tab-dot {
+  position: absolute; top: 5px; left: calc(50% + 8px); width: 8px; height: 8px; border-radius: 50%;
+  background: var(--coral); box-shadow: 0 0 0 2px var(--card); pointer-events: none;
+  animation: popCheck .35s ease;
+}
+.tab-dot.going { transform: scale(0); opacity: 0; transition: transform .25s ease, opacity .25s ease; }
+@media (prefers-reduced-motion: reduce) { .tab-dot { animation: none; } .tab-dot.going { transition: none; } }
 
 /* ---------- Progreso de peso ---------- */
 .progress-card {

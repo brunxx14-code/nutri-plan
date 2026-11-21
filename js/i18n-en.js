@@ -16,6 +16,7 @@ I18N.en = {
     "Atrás": "Back",
     "Siguiente": "Next",
     "Nuevo": "New",
+    "Artículos sin leer": "Unread articles",
     "✓ Leído": "✓ Read",
     "Sigue leyendo": "Keep reading",
     "Ahora no": "Not now",

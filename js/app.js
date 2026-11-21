@@ -101,6 +101,7 @@ function renderReportTeaser() {
 }
 
 function renderInformes() {
+  updateInformesDot();
   const weekly = getWeeklyArticles(4);
   const weeklyIds = new Set(weekly.map((a) => a.id));
   const readIds = new Set((state.counters && state.counters.articles) || []);
@@ -153,10 +154,27 @@ function markTileRead(articleId) {
   tile.querySelector(".report-read-badge").classList.add("just-read");
 }
 
+/* Un puntito coral en la pestaña Informes mientras queden artículos de esta
+   semana sin leer; se apaga al leer el último. Solo lee la lista de leídos. */
+function updateInformesDot() {
+  const tab = document.querySelector('.tab-btn[data-view="informes"]');
+  if (!tab) return;
+  const read = new Set((state.counters && state.counters.articles) || []);
+  const unread = getWeeklyArticles(4).some((a) => !read.has(a.id));
+  let dot = tab.querySelector(".tab-dot");
+  if (unread && !dot) {
+    tab.insertAdjacentHTML("beforeend", '<span class="tab-dot"><span class="sr-only">Artículos sin leer</span></span>');
+  } else if (!unread && dot) {
+    dot.classList.add("going");
+    setTimeout(() => dot.remove(), prefersReducedMotion() ? 0 : 250);
+  }
+}
+
 function openArticleSheet(articleId) {
   const article = ARTICLES.find((a) => a.id === articleId);
   engage.articleRead(articleId);
   markTileRead(articleId);
+  updateInformesDot();
   const body = document.getElementById("sheet-body");
   body.innerHTML = `
     <span class="tag">${article.category}</span>
