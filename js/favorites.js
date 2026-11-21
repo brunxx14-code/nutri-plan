@@ -142,7 +142,8 @@ function openFavoritesSheet(view) {
       <label class="recipe-search">
         <span aria-hidden="true">🔍</span>
         <input type="search" id="recipe-search" placeholder="Busca por plato o ingrediente" aria-label="Busca por plato o ingrediente" value="${query.replace(/"/g, "&quot;")}" autocomplete="off" enterkeyhint="search">
-      </label>` : ""}
+      </label>
+      <p class="sr-only" id="recipe-search-status" role="status" aria-live="polite"></p>` : ""}
     ${tab === "all" || favCount ? `<div class="recipe-filters" role="group" aria-label="Tipo de plato">
       ${RECIPE_FILTERS.map((f) => `<button type="button" class="chip-btn filter ${f.key === filter ? "on" : ""}" data-filter="${f.key}" aria-pressed="${f.key === filter}">${f.label}</button>`).join("")}
     </div>` : ""}
@@ -165,12 +166,24 @@ function openFavoritesSheet(view) {
   const search = body.querySelector("#recipe-search");
   if (search) {
     let timer = null;
+    let sayTimer = null;
+    // el lector de pantalla no se enteraba de cuántas recetas quedaban al
+    // escribir: cuando dejas de teclear, la zona de estado lo dice una vez
+    const sayCount = (n) => {
+      clearTimeout(sayTimer);
+      sayTimer = setTimeout(() => {
+        const status = body.querySelector("#recipe-search-status");
+        if (status) status.textContent = !n ? "No hay recetas que coincidan con tu búsqueda." : n === 1 ? "1 receta encontrada" : `${n} recetas encontradas`;
+      }, 600);
+    };
     const applySearch = () => {
       clearTimeout(timer);
       recipesSheetView.query = search.value.trim();
+      const list = recipesForView();
       const box = body.querySelector("#recipes-results");
-      box.innerHTML = recipesResultsHtml(recipesForView(), today, dayFactor(today));
+      box.innerHTML = recipesResultsHtml(list, today, dayFactor(today));
       bindRecipeResults(box, today);
+      sayCount(list.length);
     };
     search.addEventListener("input", () => {
       clearTimeout(timer);

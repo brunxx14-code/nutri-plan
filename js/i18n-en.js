@@ -574,6 +574,7 @@ I18N.en = {
     "{n} min de cocción": "{n} min cooking",
     "{n} recetas que encajan con tu dieta. Guarda las que te gusten con el corazón.": "{n} recipes that fit your diet. Save the ones you like with the heart.",
     "1 receta que encaja con tu dieta. Guárdala con el corazón si te gusta.": "1 recipe that fits your diet. Save it with the heart if you like it.",
+    "1 receta encontrada": "1 recipe found", "{n} recetas encontradas": "{n} recipes found",
     "{n} fuera del plan": "{n} off plan",
     "Ahora toca · {slot}": "Up next · {slot}",
     "Protector usado: tu racha de {n} días sigue viva": "Freeze used: your {n}-day streak is still alive",
