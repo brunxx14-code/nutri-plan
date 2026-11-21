@@ -16,6 +16,11 @@ function earliestCalOffset() {
   return Math.min(0, (y - now.getFullYear()) * 12 + (m - 1 - now.getMonth()));
 }
 
+// «1 vaso», no «1 vasos» (en inglés, «1 glass»)
+function waterLabel(n) {
+  return n === 1 ? "1 vaso" : `${n} vasos`;
+}
+
 function calendarMonth(offset) {
   const now = new Date();
   const first = new Date(now.getFullYear(), now.getMonth() + offset, 1);
@@ -95,7 +100,7 @@ function bindCalendarCard(root) {
       card.querySelector("#cal-detail").innerHTML = `
         <b class="cal-date">${label}</b>
         <span>🍽️ ${mealsDone(entry)}/${MEAL_SLOTS.length} comidas</span>
-        <span>💧 ${(entry && entry.water) || 0} vasos</span>
+        <span>💧 ${waterLabel((entry && entry.water) || 0)}</span>
         ${off ? `<span>🍔 ${off} fuera del plan</span>` : ""}
         ${entry && entry.frozen ? "<span>🧊 Racha salvada con un protector</span>" : ""}`;
     });
