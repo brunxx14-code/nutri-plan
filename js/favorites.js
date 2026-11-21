@@ -118,7 +118,7 @@ function recipesResultsHtml(list, today, factor) {
   const { tab, query } = recipesSheetView;
   if (!list.length) return `<p class="hint fav-none">${tab === "all" && query ? "No hay recetas que coincidan con tu búsqueda." : "No hay recetas de este tipo."}</p>${tab === "all" && query ? `<button type="button" class="chip-btn small" id="recipe-search-clear">✕ Borrar búsqueda</button>` : ""}`;
   return `
-    ${tab === "fav" ? `<p class="hint">Salen más a menudo cuando regeneras el plan. También puedes ponerlas hoy mismo.</p>` : `<p class="hint">${list.length} recetas que encajan con tu dieta. Guarda las que te gusten con el corazón.</p>`}
+    ${tab === "fav" ? `<p class="hint">Salen más a menudo cuando regeneras el plan. También puedes ponerlas hoy mismo.</p>` : `<p class="hint">${list.length === 1 ? "1 receta que encaja con tu dieta. Guárdala con el corazón si te gusta." : `${list.length} recetas que encajan con tu dieta. Guarda las que te gusten con el corazón.`}</p>`}
     <div class="fav-list">${list.map((info) => recipeListItemHtml(info, today, factor)).join("")}</div>`;
 }
 
