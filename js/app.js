@@ -1858,12 +1858,12 @@ function renderPlanDays() {
     const chip = perDay && i > today
       ? `<div class="rebalance-chip ${perDay < 0 ? "down" : "up"}">🔄 Raciones reajustadas: ${perDay > 0 ? "+" : "−"}${Math.abs(perDay)} kcal por lo que comiste fuera</div>`
       : "";
-    return `
-    <div class="day-panel ${i === selectedDay ? "active" : ""}" data-day="${i}">
-      ${chip}
-      ${MEAL_SLOTS.map((slot) => {
+    // al pie de cada día, lo que suman sus comidas
+    let dayKcal = 0, dayCost = 0;
+    const meals = MEAL_SLOTS.map((slot) => {
         const off = i === today && offToday[slot.key];
         if (off) {
+          dayKcal += off.kcal;
           return `
           <div class="meal-card off-plan" data-day="${i}" data-slot="${slot.key}" data-off="1">
             <div class="photo photo-thumb big off"><span class="photo-fallback" aria-hidden="true">${off.emoji}</span></div>
@@ -1878,6 +1878,8 @@ function renderPlanDays() {
         const info = getRecipeInfo(state.plan[i][slot.key]);
         // las comidas de hoy que ya marcaste salen con «✓ Hecha» y un poco atenuadas
         const done = i === today && eatenToday[slot.key];
+        dayKcal += Math.round(info.kcal * factor);
+        dayCost += info.cost * factor;
         return `
           <div class="meal-card ${done ? "done" : ""}" data-day="${i}" data-slot="${slot.key}">
             ${recipePhoto(info.recipe.id, { width: 160, className: `photo-thumb big ${slot.key}`, fallback: mealEmoji(slot.key) })}
@@ -1888,7 +1890,12 @@ function renderPlanDays() {
             </div>
             <div class="chevron-right" aria-hidden="true">›</div>
           </div>`;
-      }).join("")}
+      }).join("");
+    return `
+    <div class="day-panel ${i === selectedDay ? "active" : ""}" data-day="${i}">
+      ${chip}
+      ${meals}
+      <div class="day-total"><span>Total del día</span><span class="day-total-num">${dayKcal} kcal · ${euro(dayCost)} €</span></div>
     </div>
   `;
   }).join("");
