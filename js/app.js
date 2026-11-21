@@ -2816,8 +2816,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
   trackDailyOpen(isStandalone());
 
+  // Accesos directos del icono de la app (mantener pulsado): «?tab=plan» abre
+  // esa pestaña directamente, sin pasar por la bienvenida.
+  let shortcutTab = null;
+  try {
+    const tab = new URLSearchParams(location.search).get("tab");
+    if (TAB_ORDER.includes(tab) && tab !== "dashboard") shortcutTab = tab;
+    if (location.search) history.replaceState(history.state, "", location.pathname + location.hash);
+  } catch (e) { /* sin acceso directo */ }
+
   if (state.profile && state.plan) {
     enterApp();
+    if (shortcutTab) showView(shortcutTab);
   } else {
     setWizardMode("create");
     goToWizardStep(0);
@@ -2832,7 +2842,7 @@ document.addEventListener("DOMContentLoaded", () => {
   } catch (e) { /* almacenamiento no disponible, mostramos el splash igualmente */ }
 
   const returning = !!(state.profile && state.plan);
-  if (splashAlreadyShown) {
+  if (splashAlreadyShown || (returning && shortcutTab)) {
     const splash = document.getElementById("splash");
     if (splash) splash.remove();
   } else if (returning) {
