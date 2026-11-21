@@ -1044,7 +1044,10 @@ function refreshIfNewDay() {
   if (a && a.matches && a.matches("input, textarea, select")) return; // no molestar mientras escribe
   selectedDay = todayPlanIndex();
   renderAll();
+  // los lunes cambian los artículos de la semana: el puntito de Informes
+  // vuelve a salir aunque no estés en esa pestaña
   if (currentView === "informes") renderInformes();
+  else updateInformesDot();
 }
 
 document.addEventListener("visibilitychange", () => {
