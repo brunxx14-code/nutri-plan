@@ -346,7 +346,7 @@ function upNextCardHtml() {
         <span class="up-next-text">
           <span class="up-next-kicker">⏰ Ahora toca · ${slot.label}</span>
           <span class="up-next-name">${info.recipe.name}</span>
-          <span class="up-next-meta">${Math.round(info.kcal * factor)} kcal · <span>${UP_NEXT_HINT[slotKey]}</span></span>
+          <span class="up-next-meta">${Math.round(info.kcal * factor)} kcal · ${recipeCookMins(info.recipe) ? `<span class="up-next-time">⏱ ${recipeCookMins(info.recipe)} min</span> · ` : ""}<span>${UP_NEXT_HINT[slotKey]}</span></span>
         </span>
       </button>
       <div class="up-next-actions">

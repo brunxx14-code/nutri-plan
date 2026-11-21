@@ -1480,6 +1480,7 @@ input:focus, select:focus { outline: 2px solid var(--coral); outline-offset: 1px
 .up-next-kicker { font-size: 12px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--coral); }
 .up-next-name { font-weight: 800; font-size: 16px; line-height: 1.25; }
 .up-next-meta { font-size: 13px; color: var(--muted); }
+.up-next-time { white-space: nowrap; }
 .up-next-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
 .up-next-actions .btn { width: 100%; }
 @media (prefers-reduced-motion: reduce) { .up-next, .up-next.entering { transition: none; animation: none; } }
