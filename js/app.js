@@ -1930,6 +1930,9 @@ function openRecipeSheet(dayIdx, slotKey) {
   const r = info.recipe;
   const factor = dayFactor(dayIdx);
   const whySentences = explainRecipe(r, info, state.profile, slotLabel);
+  // los minutos que dicen los pasos («cocina 8-10 minutos»), para saber de un vistazo cuánto lleva;
+  // un paso que va «los últimos 12 minutos» («the last 12 minutes») de otro ya está dentro de ese tiempo
+  const cookMins = r.steps.reduce((sum, step) => sum + (/\s(últimos|last)\s/i.test(step) ? 0 : stepMinutes(step)), 0);
   const body = document.getElementById("sheet-body");
   track("receta-vista");
   body.innerHTML = `
@@ -1964,7 +1967,7 @@ function openRecipeSheet(dayIdx, slotKey) {
       }).join("")}
     </div>
     <div class="sheet-section">
-      <h4>Preparación</h4>
+      <h4>Preparación${cookMins ? ` <span class="prep-time">⏱ ${cookMins} min de cocción</span>` : ""}</h4>
       <ol class="steps-list">${r.steps.map((s) => `<li>${s}</li>`).join("")}</ol>
     </div>
   `;
