@@ -1433,7 +1433,7 @@ function bindTodayCard() {
       document.getElementById("streak-chip").outerHTML = renderStreakChip();
       if (eaten && mealsDone(entry) === MEAL_SLOTS.length) {
         burstConfetti();
-        showToast(`¡Día completado! 🔥 Llevas ${currentStreak()} ${currentStreak() === 1 ? "día" : "días"} seguidos`);
+        showToast(`¡Día completado! 🔥 Llevas ${currentStreak()} ${currentStreak() === 1 ? "día seguido" : "días seguidos"}`);
         track("dia-completado");
       } else if (eaten && nowComplete && !wasComplete) {
         const chip = document.getElementById("streak-chip");

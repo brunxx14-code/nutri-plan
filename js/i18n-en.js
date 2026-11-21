@@ -469,7 +469,8 @@ I18N.en = {
     // Bienvenida y racha
     "Lo siguiente · {slot}": "Up next · {slot}",
     "Llevas {n} días seguidos. ¡No rompas la racha!": "{n} days in a row. Don't break the streak!",
-    "¡Día completado! 🔥 Llevas {n} {d} seguidos": "Day complete! 🔥 {n} {d} in a row",
+    "¡Día completado! 🔥 Llevas {n} día seguido": "Day complete! 🔥 {n} day in a row",
+    "¡Día completado! 🔥 Llevas {n} días seguidos": "Day complete! 🔥 {n} days in a row",
     "Racha de {n} {d}. ¡Sigue así!": "{n}-{d} streak. Keep it up!",
     "Hoy · {day}": "Today · {day}",
 
