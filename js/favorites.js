@@ -82,6 +82,7 @@ const RECIPE_SORTS = [
   { key: "prot", label: "💪 Más proteína" },
   { key: "cost", label: "💶 Más baratas" },
   { key: "kcal", label: "🔥 Menos kcal" },
+  { key: "time", label: "⏱ Más rápidas" },
 ];
 
 function normalizeText(t) {
@@ -107,6 +108,7 @@ function recipesForView() {
     prot: (a, b) => b.prot / b.kcal - a.prot / a.kcal,
     cost: (a, b) => a.cost - b.cost,
     kcal: (a, b) => a.kcal - b.kcal,
+    time: (a, b) => recipeCookMins(a.recipe) - recipeCookMins(b.recipe) || b.prot / b.kcal - a.prot / a.kcal,
   }[sort];
   if (tab === "all" && by) list.sort(by);
   return list;
