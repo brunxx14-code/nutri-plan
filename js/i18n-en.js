@@ -502,6 +502,7 @@ I18N.en = {
     "Cantidades ajustadas a tus calorías (×{n} la ración estándar).": "Quantities adjusted to your calories (×{n} the standard portion).",
     "{a} g prot · {b} €": "{a} g prot · €{b}",
     "{a} g prot · {b} € · ⏱ {c} min": "{a} g prot · €{b} · ⏱ {c} min",
+    "{a} g prot · {b} € · ⏱\u00a0{c}\u00a0min": "{a} g prot · €{b} · ⏱\u00a0{c}\u00a0min",
     "{a} kcal · {b} €": "{a} kcal · €{b}",
     "Cambiar {name}": "Swap {name}",
     "{food} es tu {role} principal aquí: {why}": "{food} is your main {role} here: {why}",
