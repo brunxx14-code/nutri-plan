@@ -112,6 +112,7 @@ function renderInformes() {
     ${recapCardHtml()}
     ${calendarCardHtml()}
     <div class="report-hero photo-card" data-article="${featured.id}">
+      ${readIds.has(featured.id) ? READ_BADGE : ""}
       ${photoHtml(ARTICLE_CATEGORY_PHOTOS[featured.category], { width: 600, className: "photo-cover", fallback: "📰" })}
       <div class="photo-card-text">
         <span class="report-cat">⭐ Destacado · ${featured.category}</span>
@@ -138,13 +139,13 @@ function renderInformes() {
   bindCalendarCard(el);
 }
 
-// los artículos que ya has leído llevan «✓ Leído» en la cuadrícula de Informes
+// los artículos que ya has leído llevan «✓ Leído» en Informes, también el destacado
 const READ_BADGE = '<span class="report-read-badge">✓ Leído</span>';
 
 // al abrir un artículo, su tarjeta de detrás cambia ya a «✓ Leído», con un
 // pequeño rebote, sin esperar a que vuelvas a la pestaña
 function markTileRead(articleId) {
-  const tile = document.querySelector(`#informes-content .report-tile[data-article="${articleId}"]`);
+  const tile = document.querySelector(`#informes-content :is(.report-tile, .report-hero)[data-article="${articleId}"]`);
   if (!tile || tile.querySelector(".report-read-badge")) return;
   const old = tile.querySelector(".report-new-badge");
   if (old) old.remove();
