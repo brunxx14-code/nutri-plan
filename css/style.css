@@ -177,6 +177,7 @@ body::after { width: 420px; height: 420px; background: rgba(39, 145, 90, .13); b
 @keyframes riseIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 
 .wizard-step h3:focus { outline: none; }
+#view-dashboard h2:focus { outline: none; }
 .wizard-step h3 { margin: 0 0 14px; font-size: 13px; color: var(--coral-dark); text-transform: uppercase; letter-spacing: .04em; }
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 4px; }
 .form-grid.single { grid-template-columns: 1fr; }

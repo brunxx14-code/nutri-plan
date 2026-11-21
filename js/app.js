@@ -397,13 +397,18 @@ function showWelcome() {
 
   const el = document.createElement("div");
   el.id = "welcome";
+  // para el teclado y el lector de pantalla es un diálogo: el foco entra en
+  // «Empezar mi día», Esc lo cierra y Tab no se escapa a la app de detrás
+  el.setAttribute("role", "dialog");
+  el.setAttribute("aria-modal", "true");
+  el.setAttribute("aria-labelledby", "welcome-hello");
   el.innerHTML = `
-    <div class="welcome-bg">${heroId ? `<img src="${unsplashUrl(heroId, 800)}" alt="" onload="this.classList.add('loaded')" onerror="this.remove()">` : ""}</div>
+    <div class="welcome-bg" aria-hidden="true">${heroId ? `<img src="${unsplashUrl(heroId, 800)}" alt="" onload="this.classList.add('loaded')" onerror="this.remove()">` : ""}</div>
     <div class="welcome-shade"></div>
     <div class="welcome-top"><span class="welcome-logo">🥗 Nutri<b>Plan</b></span><span class="welcome-day">${DAYS[dayIdx]}</span></div>
     <div class="welcome-main">
-      <div class="welcome-emoji">${greet.emoji}</div>
-      <h1 class="welcome-hello">${greet.text}</h1>
+      <div class="welcome-emoji" aria-hidden="true">${greet.emoji}</div>
+      <h1 class="welcome-hello" id="welcome-hello">${greet.text}</h1>
       <p class="welcome-msg">${welcomeMessage(entry)}</p>
       ${info ? `
         <div class="welcome-next">
@@ -419,18 +424,31 @@ function showWelcome() {
         ${streak ? `<span>🔥 ${streak} ${streak === 1 ? "día" : "días"}</span>` : ""}
       </div>
     </div>
-    <button type="button" class="welcome-go" id="welcome-go">Empezar mi día <span>→</span></button>
-    <div class="welcome-hint">o toca en cualquier sitio</div>
+    <button type="button" class="welcome-go" id="welcome-go">Empezar mi día <span aria-hidden="true">→</span></button>
+    <div class="welcome-hint" aria-hidden="true">o toca en cualquier sitio</div>
   `;
   document.getElementById("app-shell").appendChild(el);
+  const go = el.querySelector("#welcome-go");
+  const onKey = (e) => {
+    if (e.key === "Escape") { e.preventDefault(); close(); }
+    else if (e.key === "Tab") { e.preventDefault(); go.focus(); }
+  };
   const close = () => {
     if (el.classList.contains("hide")) return;
     buzz(10);
     track("bienvenida-entrar");
     el.classList.add("hide");
+    document.removeEventListener("keydown", onKey, true);
+    // el foco pasa al título del resumen, en vez de perderse con la pantalla
+    if (el.contains(document.activeElement)) {
+      const title = document.querySelector("#view-dashboard h2");
+      if (title) { title.setAttribute("tabindex", "-1"); title.focus({ preventScroll: true }); }
+    }
     setTimeout(() => el.remove(), 550);
   };
   el.addEventListener("click", close);
+  document.addEventListener("keydown", onKey, true);
+  go.focus({ preventScroll: true });
 }
 
 // ---------- Formulario / wizard de onboarding ----------
