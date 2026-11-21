@@ -180,6 +180,7 @@ I18N.en = {
     "Cambiar por otro plato": "Swap for another dish",
     "Ingredientes (tu ración)": "Ingredients (your portion)",
     "Toca cada ingrediente cuando lo tengas a mano.": "Tap each ingredient once you have it ready.",
+    "✓ Todo a mano. ¡A cocinar!": "✓ All set. Time to cook!",
     "Preparación": "Method",
     "coste": "cost",
     "kcal": "kcal",

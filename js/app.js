@@ -1983,6 +1983,14 @@ function openRecipeSheet(dayIdx, slotKey) {
       const on = row.classList.toggle("got");
       row.setAttribute("aria-checked", String(on));
       if (on) buzz(8);
+      // con todo a mano, la pista de arriba lo celebra y anima a cocinar
+      const tip = body.querySelector(".ing-tip");
+      const rows = body.querySelectorAll(".ingredient-row");
+      const all = [...rows].every((x) => x.classList.contains("got"));
+      if (all !== tip.classList.contains("all-got")) {
+        tip.classList.toggle("all-got", all);
+        tip.textContent = all ? "✓ Todo a mano. ¡A cocinar!" : "Toca cada ingrediente cuando lo tengas a mano.";
+      }
     });
   });
   bindFavButtons(body);
