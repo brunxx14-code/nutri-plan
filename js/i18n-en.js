@@ -565,6 +565,7 @@ I18N.en = {
     "Paso {n}": "Step {n}",
     "Iniciar {n} min": "Start {n} min",
     "¡Tiempo! Paso {n} listo": "Time's up! Step {n} done",
+    "Ir al paso": "Go to step",
     "{n} recetas que encajan con tu dieta. Guarda las que te gusten con el corazón.": "{n} recipes that fit your diet. Save the ones you like with the heart.",
     "{n} fuera del plan": "{n} off plan",
     "Ahora toca · {slot}": "Up next · {slot}",

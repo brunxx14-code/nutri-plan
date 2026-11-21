@@ -311,7 +311,12 @@ function tickCookTimers() {
     t.rangAt = Date.now();
     beep();
     if (navigator.vibrate) navigator.vibrate([250, 120, 250, 120, 250]);
-    showToast(`⏰ ¡Tiempo! Paso ${i} listo`);
+    // si estás en otro paso, el aviso lleva «Ir al paso» para volver al que ha sonado
+    const step = Number(i);
+    showToast(`⏰ ¡Tiempo! Paso ${i} listo`, step === cook.idx ? undefined : {
+      label: "Ir al paso",
+      run: () => { if (cook) goCookStep(step); },
+    });
     if (Number(i) === cook.idx) renderCookTimer();
     renderCookDots();
   }
