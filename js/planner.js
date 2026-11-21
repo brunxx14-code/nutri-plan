@@ -283,6 +283,11 @@ function euro(n) {
   return localDecimal(Number(n).toFixed(2));
 }
 
+/* Precio con su símbolo: «1,42 €» en español y «€1.42» en inglés */
+function euroLabel(n) {
+  return typeof currentLang !== "undefined" && currentLang === "en" ? `€${euro(n)}` : `${euro(n)} €`;
+}
+
 function localDecimal(s) {
   return typeof currentLang === "undefined" || currentLang === "es" ? s.replace(".", ",") : s;
 }
