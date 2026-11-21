@@ -16,6 +16,11 @@ function earliestCalOffset() {
   return Math.min(0, (y - now.getFullYear()) * 12 + (m - 1 - now.getMonth()));
 }
 
+// «1 vaso», no «1 vasos» (en inglés, «1 glass»)
+function waterLabel(n) {
+  return n === 1 ? "1 vaso" : `${n} vasos`;
+}
+
 function calendarMonth(offset) {
   const now = new Date();
   const first = new Date(now.getFullYear(), now.getMonth() + offset, 1);
@@ -51,14 +56,14 @@ function calendarCardHtml() {
         ${DAYS.map((_, i) => `<span class="cal-wd">${dayInitial(i)}</span>`).join("")}
         ${"<span></span>".repeat(m.lead)}
         ${m.cells.map((c, i) => `
-          <button type="button" class="cal-day lvl-${c.future ? "f" : c.done} ${c.today ? "today" : ""} ${c.frozen ? "frozen" : ""}" data-iso="${c.iso}" ${c.future ? "disabled" : ""} style="animation-delay:${i * 0.012}s">
+          <button type="button" class="cal-day lvl-${c.future ? "f" : c.done} ${c.today ? "today" : ""} ${c.frozen ? "frozen" : ""}" data-iso="${c.iso}" aria-pressed="false" ${c.today ? 'aria-current="date"' : ""} ${c.future ? "disabled" : ""} style="animation-delay:${i * 0.012}s">
             <span>${c.d}</span>${c.off ? '<i class="cal-off" aria-hidden="true"></i>' : ""}
           </button>`).join("")}
       </div>
       <div class="cal-legend">
         <span>Menos</span>${[0, 1, 2, 3, 4].map((l) => `<i class="cal-swatch lvl-${l}"></i>`).join("")}<span>Más</span>
       </div>
-      <div class="cal-detail" id="cal-detail">Toca un día para ver el detalle</div>
+      <div class="cal-detail" id="cal-detail" aria-live="polite">Toca un día para ver el detalle</div>
       <div class="cal-stats">
         <div><b>${m.onPlan}</b><span>días cumplidos</span></div>
         <div><b>${m.best}</b><span>mejor racha</span></div>
@@ -74,13 +79,18 @@ function bindCalendarCard(root) {
     buzz(6);
     card.outerHTML = calendarCardHtml();
     bindCalendarCard(root);
+    // el foco se queda en la flecha que pulsaste; si ya no se puede ir más allá, pasa a la otra
+    const same = root.querySelector(delta < 0 ? "#cal-prev" : "#cal-next");
+    const other = root.querySelector(delta < 0 ? "#cal-next" : "#cal-prev");
+    (same.disabled ? other : same).focus({ preventScroll: true });
   };
   card.querySelector("#cal-prev").addEventListener("click", () => rerender(-1));
   card.querySelector("#cal-next").addEventListener("click", () => rerender(1));
   card.querySelectorAll(".cal-day[data-iso]").forEach((btn) => {
     btn.addEventListener("click", () => {
-      card.querySelectorAll(".cal-day.sel").forEach((b) => b.classList.remove("sel"));
+      card.querySelectorAll(".cal-day.sel").forEach((b) => { b.classList.remove("sel"); b.setAttribute("aria-pressed", "false"); });
       btn.classList.add("sel");
+      btn.setAttribute("aria-pressed", "true");
       buzz(5);
       const iso = btn.dataset.iso;
       const entry = state.daily[iso];
@@ -90,7 +100,7 @@ function bindCalendarCard(root) {
       card.querySelector("#cal-detail").innerHTML = `
         <b class="cal-date">${label}</b>
         <span>🍽️ ${mealsDone(entry)}/${MEAL_SLOTS.length} comidas</span>
-        <span>💧 ${(entry && entry.water) || 0} vasos</span>
+        <span>💧 ${waterLabel((entry && entry.water) || 0)}</span>
         ${off ? `<span>🍔 ${off} fuera del plan</span>` : ""}
         ${entry && entry.frozen ? "<span>🧊 Racha salvada con un protector</span>" : ""}`;
     });

@@ -30,12 +30,16 @@ function dayOfYear(d = new Date()) {
   return Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 86400000);
 }
 
+function currentTip() {
+  return TIPS[(dayOfYear() + tipOffset) % TIPS.length];
+}
+
 function tipCardHtml() {
-  const tip = TIPS[(dayOfYear() + tipOffset) % TIPS.length];
+  const tip = currentTip();
   return `
     <div class="tip-card" id="tip-card">
       <div class="tip-emoji" aria-hidden="true">${tip.emoji}</div>
-      <div class="tip-body">
+      <div class="tip-body" aria-live="polite">
         <span class="tip-kicker">💡 Consejo del día</span>
         <p class="tip-text">${tip.text}</p>
       </div>
@@ -50,13 +54,18 @@ function bindTipCard(root) {
     tipOffset++;
     buzz(6);
     track("consejo-siguiente");
+    // se cambia el contenido sin rehacer la tarjeta: el foco se queda en ↻
+    // y el lector de pantalla lee el consejo nuevo
     const card = document.getElementById("tip-card");
+    card.classList.remove("enter");
     card.classList.add("swap");
     setTimeout(() => {
-      card.outerHTML = tipCardHtml();
-      const fresh = document.getElementById("tip-card");
-      fresh.classList.add("enter");
-      bindTipCard(fresh.parentNode);
+      const tip = currentTip();
+      card.querySelector(".tip-emoji").textContent = tip.emoji;
+      card.querySelector(".tip-text").textContent = tip.text;
+      card.classList.remove("swap");
+      void card.offsetWidth; // reinicia la animación de entrada
+      card.classList.add("enter");
     }, prefersReducedMotion() ? 0 : 180);
   });
 }

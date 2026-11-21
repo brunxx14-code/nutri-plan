@@ -10,7 +10,7 @@ if (!("adjustDecisionAt" in state)) state.adjustDecisionAt = null;
 if (!state.daily || typeof state.daily !== "object") state.daily = {};
 let wizardStep = 0;
 let wizardMode = "create"; // 'create' | 'edit'
-let selectedDay = 0;
+let selectedDay = todayPlanIndex(); // el Plan se abre en el día de hoy
 
 const PLANS = {
   semanal: { label: "Semanal", price: 2.49, period: "semana", periodShort: "/sem" },
@@ -80,7 +80,11 @@ function getWeeklyArticles(count = 4) {
 }
 
 function renderReportTeaser() {
-  const featured = getWeeklyArticles(1)[0];
+  // el artículo del resumen es el primero de la semana que aún no has leído,
+  // así no se queda enseñando uno que ya leíste hasta el lunes
+  const read = new Set((state.counters && state.counters.articles) || []);
+  const order = getWeeklyArticles(ARTICLES.length);
+  const featured = order.find((a) => !read.has(a.id)) || order[0];
   return `
     <div class="report-teaser">
       <div class="report-teaser-main photo-card" data-article="${featured.id}">
@@ -97,8 +101,10 @@ function renderReportTeaser() {
 }
 
 function renderInformes() {
+  updateInformesDot();
   const weekly = getWeeklyArticles(4);
   const weeklyIds = new Set(weekly.map((a) => a.id));
+  const readIds = new Set((state.counters && state.counters.articles) || []);
   const featured = weekly[0];
   const others = ARTICLES.filter((a) => a.id !== featured.id);
   const el = document.getElementById("informes-content");
@@ -107,6 +113,7 @@ function renderInformes() {
     ${recapCardHtml()}
     ${calendarCardHtml()}
     <div class="report-hero photo-card" data-article="${featured.id}">
+      ${readIds.has(featured.id) ? READ_BADGE : ""}
       ${photoHtml(ARTICLE_CATEGORY_PHOTOS[featured.category], { width: 600, className: "photo-cover", fallback: "📰" })}
       <div class="photo-card-text">
         <span class="report-cat">⭐ Destacado · ${featured.category}</span>
@@ -118,7 +125,7 @@ function renderInformes() {
       ${others.map((a) => `
         <div class="report-tile" data-article="${a.id}">
           ${photoHtml(ARTICLE_CATEGORY_PHOTOS[a.category], { width: 300, className: "photo-tile", fallback: "📰" })}
-          ${weeklyIds.has(a.id) ? '<span class="report-new-badge">Nuevo</span>' : ""}
+          ${readIds.has(a.id) ? READ_BADGE : weeklyIds.has(a.id) ? '<span class="report-new-badge">Nuevo</span>' : ""}
           <span class="report-tile-title">${a.title}</span>
           <span class="report-row-meta">⏱ ${a.readMins} min</span>
         </div>`).join("")}
@@ -127,14 +134,47 @@ function renderInformes() {
 
   el.querySelectorAll("[data-article]").forEach((b) => {
     b.addEventListener("click", () => openArticleSheet(b.dataset.article));
+    actLikeButton(b);
   });
   bindRecapCard(el);
   bindCalendarCard(el);
 }
 
+// los artículos que ya has leído llevan «✓ Leído» en Informes, también el destacado
+const READ_BADGE = '<span class="report-read-badge">✓ Leído</span>';
+
+// al abrir un artículo, su tarjeta de detrás cambia ya a «✓ Leído», con un
+// pequeño rebote, sin esperar a que vuelvas a la pestaña
+function markTileRead(articleId) {
+  const tile = document.querySelector(`#informes-content :is(.report-tile, .report-hero)[data-article="${articleId}"]`);
+  if (!tile || tile.querySelector(".report-read-badge")) return;
+  const old = tile.querySelector(".report-new-badge");
+  if (old) old.remove();
+  tile.insertAdjacentHTML("afterbegin", READ_BADGE);
+  tile.querySelector(".report-read-badge").classList.add("just-read");
+}
+
+/* Un puntito coral en la pestaña Informes mientras queden artículos de esta
+   semana sin leer; se apaga al leer el último. Solo lee la lista de leídos. */
+function updateInformesDot() {
+  const tab = document.querySelector('.tab-btn[data-view="informes"]');
+  if (!tab) return;
+  const read = new Set((state.counters && state.counters.articles) || []);
+  const unread = getWeeklyArticles(4).some((a) => !read.has(a.id));
+  let dot = tab.querySelector(".tab-dot");
+  if (unread && !dot) {
+    tab.insertAdjacentHTML("beforeend", '<span class="tab-dot"><span class="sr-only">Artículos sin leer</span></span>');
+  } else if (!unread && dot) {
+    dot.classList.add("going");
+    setTimeout(() => dot.remove(), prefersReducedMotion() ? 0 : 250);
+  }
+}
+
 function openArticleSheet(articleId) {
   const article = ARTICLES.find((a) => a.id === articleId);
   engage.articleRead(articleId);
+  markTileRead(articleId);
+  updateInformesDot();
   const body = document.getElementById("sheet-body");
   body.innerHTML = `
     <span class="tag">${article.category}</span>
@@ -143,8 +183,28 @@ function openArticleSheet(articleId) {
     <div class="sheet-section article-body">
       ${article.body.map((p) => `<p>${p}</p>`).join("")}
     </div>
+    ${nextArticleHtml(article)}
   `;
+  const next = body.querySelector(".article-next");
+  if (next) next.addEventListener("click", () => openArticleSheet(next.dataset.article));
   openSheet();
+}
+
+// al terminar un informe, el siguiente que aún no has leído (o el siguiente
+// sin más, si ya los has leído todos), para seguir leyendo sin cerrar la hoja
+function nextArticleHtml(article) {
+  if (ARTICLES.length < 2) return "";
+  const read = new Set((state.counters && state.counters.articles) || []);
+  const start = ARTICLES.indexOf(article);
+  const after = Array.from({ length: ARTICLES.length - 1 }, (_, i) => ARTICLES[(start + 1 + i) % ARTICLES.length]);
+  const next = after.find((a) => !read.has(a.id)) || after[0];
+  return `
+    <button type="button" class="article-next" data-article="${next.id}">
+      <span class="article-next-label">Sigue leyendo</span>
+      <span class="article-next-title">${next.title}</span>
+      <span class="report-meta">${next.category} · ⏱ ${next.readMins} min</span>
+      <span class="article-next-arrow" aria-hidden="true">→</span>
+    </button>`;
 }
 
 // ---------- Suscripción (simulada) ----------
@@ -291,7 +351,7 @@ function upNextCardHtml() {
       </button>
       <div class="up-next-actions">
         <button type="button" class="btn small" data-upnext-cook>👩‍🍳 Cocinar</button>
-        <button type="button" class="btn secondary small" data-upnext-done>✓ Ya la hice</button>
+        <button type="button" class="btn secondary small" data-upnext-done>✓ ${slotKey === "desayuno" ? "Ya lo tomé" : "Ya la tomé"}</button>
       </div>
     </div>`;
 }
@@ -314,14 +374,22 @@ function refreshUpNext() {
   if (!old) return;
   const next = nextMealSlot(dailyEntry());
   if ((old.dataset.slot || null) === next) return;
+  const doneSlot = old.dataset.slot;
   old.classList.add("leaving");
   setTimeout(() => {
     const cur = document.getElementById("up-next");
     if (!cur) return;
+    // si el foco estaba en la tarjeta (p. ej. en «Ya la tomé»), no se pierde al cambiarla
+    const hadFocus = cur.contains(document.activeElement);
     cur.outerHTML = upNextCardHtml();
     const fresh = document.getElementById("up-next");
     fresh.classList.add("entering");
     bindUpNextCard(fresh.parentNode);
+    if (hadFocus) {
+      const target = fresh.querySelector("[data-upnext-done]")
+        || document.querySelector(`#dashboard-content [data-eat="${doneSlot}"]`);
+      if (target) target.focus({ preventScroll: true });
+    }
   }, prefersReducedMotion() ? 0 : 260);
 }
 
@@ -347,13 +415,18 @@ function showWelcome() {
 
   const el = document.createElement("div");
   el.id = "welcome";
+  // para el teclado y el lector de pantalla es un diálogo: el foco entra en
+  // «Empezar mi día», Esc lo cierra y Tab no se escapa a la app de detrás
+  el.setAttribute("role", "dialog");
+  el.setAttribute("aria-modal", "true");
+  el.setAttribute("aria-labelledby", "welcome-hello");
   el.innerHTML = `
-    <div class="welcome-bg">${heroId ? `<img src="${unsplashUrl(heroId, 800)}" alt="" onload="this.classList.add('loaded')" onerror="this.remove()">` : ""}</div>
+    <div class="welcome-bg" aria-hidden="true">${heroId ? `<img src="${unsplashUrl(heroId, 800)}" alt="" onload="this.classList.add('loaded')" onerror="this.remove()">` : ""}</div>
     <div class="welcome-shade"></div>
     <div class="welcome-top"><span class="welcome-logo">🥗 Nutri<b>Plan</b></span><span class="welcome-day">${DAYS[dayIdx]}</span></div>
     <div class="welcome-main">
-      <div class="welcome-emoji">${greet.emoji}</div>
-      <h1 class="welcome-hello">${greet.text}</h1>
+      <div class="welcome-emoji" aria-hidden="true">${greet.emoji}</div>
+      <h1 class="welcome-hello" id="welcome-hello">${greet.text}</h1>
       <p class="welcome-msg">${welcomeMessage(entry)}</p>
       ${info ? `
         <div class="welcome-next">
@@ -369,18 +442,31 @@ function showWelcome() {
         ${streak ? `<span>🔥 ${streak} ${streak === 1 ? "día" : "días"}</span>` : ""}
       </div>
     </div>
-    <button type="button" class="welcome-go" id="welcome-go">Empezar mi día <span>→</span></button>
-    <div class="welcome-hint">o toca en cualquier sitio</div>
+    <button type="button" class="welcome-go" id="welcome-go">Empezar mi día <span aria-hidden="true">→</span></button>
+    <div class="welcome-hint" aria-hidden="true">o toca en cualquier sitio</div>
   `;
   document.getElementById("app-shell").appendChild(el);
+  const go = el.querySelector("#welcome-go");
+  const onKey = (e) => {
+    if (e.key === "Escape") { e.preventDefault(); close(); }
+    else if (e.key === "Tab") { e.preventDefault(); go.focus(); }
+  };
   const close = () => {
     if (el.classList.contains("hide")) return;
     buzz(10);
     track("bienvenida-entrar");
     el.classList.add("hide");
+    document.removeEventListener("keydown", onKey, true);
+    // el foco pasa al título del resumen, en vez de perderse con la pantalla
+    if (el.contains(document.activeElement)) {
+      const title = document.querySelector("#view-dashboard h2");
+      if (title) { title.setAttribute("tabindex", "-1"); title.focus({ preventScroll: true }); }
+    }
     setTimeout(() => el.remove(), 550);
   };
   el.addEventListener("click", close);
+  document.addEventListener("keydown", onKey, true);
+  go.focus({ preventScroll: true });
 }
 
 // ---------- Formulario / wizard de onboarding ----------
@@ -410,6 +496,26 @@ function buildDislikesGrid() {
     label.appendChild(document.createTextNode(food.name));
     grid.appendChild(label);
   }
+  grid.addEventListener("change", () => updateDislikesCount(true));
+}
+
+/* Cuántos alimentos has quitado, junto al título de la lista: con 40 casillas
+   es fácil perder la cuenta, sobre todo al bajar por la lista. */
+function updateDislikesCount(bump) {
+  const el = document.getElementById("dislikes-count");
+  if (!el) return;
+  const n = document.querySelectorAll('#dislikes-grid input:checked').length;
+  el.classList.toggle("hidden", n === 0);
+  if (!n) { el.textContent = ""; return; }
+  const text = n === 1 ? "1 quitado" : `${n} quitados`;
+  if (el.textContent !== text) {
+    el.textContent = text;
+    if (bump && !prefersReducedMotion()) {
+      el.classList.remove("bump");
+      void el.offsetWidth;
+      el.classList.add("bump");
+    }
+  }
 }
 
 function createSportRow(prefill) {
@@ -418,6 +524,7 @@ function createSportRow(prefill) {
 
   const select = document.createElement("select");
   select.className = "sport-type";
+  select.setAttribute("aria-label", "Deporte");
   for (const [key, sport] of Object.entries(SPORTS)) {
     const opt = document.createElement("option");
     opt.value = key;
@@ -432,6 +539,8 @@ function createSportRow(prefill) {
   freqInput.min = 0;
   freqInput.max = 14;
   freqInput.placeholder = "veces";
+  freqInput.inputMode = "numeric";
+  freqInput.setAttribute("aria-label", "Veces por semana");
   freqInput.value = prefill ? prefill.freq : "";
 
   const minsInput = document.createElement("input");
@@ -440,13 +549,21 @@ function createSportRow(prefill) {
   minsInput.min = 0;
   minsInput.max = 300;
   minsInput.placeholder = "min";
+  minsInput.inputMode = "numeric";
+  minsInput.setAttribute("aria-label", "Minutos por sesión");
   minsInput.value = prefill ? prefill.mins : "";
 
   const removeBtn = document.createElement("button");
   removeBtn.type = "button";
   removeBtn.className = "remove-sport";
   removeBtn.textContent = "✕";
-  removeBtn.addEventListener("click", () => row.remove());
+  removeBtn.setAttribute("aria-label", "Quitar deporte");
+  removeBtn.addEventListener("click", () => {
+    // El foco no se pierde: pasa al deporte siguiente, al anterior o a «+ Añadir deporte».
+    const next = row.nextElementSibling || row.previousElementSibling;
+    row.remove();
+    (next ? next.querySelector(".sport-type") : document.getElementById("add-sport-btn")).focus();
+  });
 
   row.append(select, freqInput, minsInput, removeBtn);
   return row;
@@ -495,13 +612,21 @@ function initOnboardingForm() {
   introLang.innerHTML = langPickerHtml();
   bindLangPicker(introLang);
   addSportRow();
-  document.getElementById("add-sport-btn").addEventListener("click", () => addSportRow());
+  document.getElementById("add-sport-btn").addEventListener("click", () => {
+    addSportRow();
+    document.querySelector("#sports-rows .sport-row:last-child .sport-type").focus();
+  });
 
   const progress = document.getElementById("wizard-progress");
   progress.innerHTML = "";
+  progress.setAttribute("role", "progressbar");
+  progress.setAttribute("aria-label", "Progreso del cuestionario");
+  progress.setAttribute("aria-valuemin", "1");
+  progress.setAttribute("aria-valuemax", "4");
   for (let i = 0; i < 4; i++) {
     const dot = document.createElement("span");
     dot.className = "dot";
+    dot.setAttribute("aria-hidden", "true");
     progress.appendChild(dot);
   }
 }
@@ -514,6 +639,22 @@ function enhanceChoiceCards(select, choices, variant) {
   const grid = document.createElement("div");
   grid.className = `choice-grid ${variant}`;
   grid.setAttribute("role", "radiogroup");
+  // El grupo se llama como la etiqueta del select («Objetivo físico»…).
+  const label = select.closest("label");
+  const labelText = label && [...label.childNodes].filter((n) => n.nodeType === 3).map((n) => n.textContent).join("").trim();
+  if (labelText) grid.setAttribute("aria-label", labelText);
+  // Como un grupo de radios nativo: Tab entra solo en la elegida y las flechas cambian.
+  grid.addEventListener("keydown", (e) => {
+    const keys = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1, Home: "first", End: "last" };
+    if (!(e.key in keys) || !e.target.classList.contains("choice-card")) return;
+    e.preventDefault();
+    const cards = [...grid.querySelectorAll(".choice-card")];
+    const i = cards.indexOf(e.target);
+    const k = keys[e.key];
+    const next = k === "first" ? cards[0] : k === "last" ? cards[cards.length - 1] : cards[(i + k + cards.length) % cards.length];
+    next.click();
+    next.focus();
+  });
   for (const [value, c] of Object.entries(choices)) {
     const btn = document.createElement("button");
     btn.type = "button";
@@ -542,6 +683,7 @@ function syncChoiceCards() {
       const on = card.dataset.value === select.value;
       card.classList.toggle("selected", on);
       card.setAttribute("aria-checked", on);
+      card.tabIndex = on ? 0 : -1;
     });
   });
 }
@@ -583,6 +725,7 @@ function fillFormFromProfile(form, profile) {
   form.querySelectorAll('input[name="dislikes"]').forEach((cb) => {
     cb.checked = profile.dislikes.includes(cb.value);
   });
+  updateDislikesCount(false);
 }
 
 /* Mientras rellenas el formulario ves tus calorías y macros al momento:
@@ -609,8 +752,16 @@ function updateWizardPreview() {
   const p = readProfileFromForm(form);
   const ok = p.age >= 14 && p.age <= 90 && p.weightKg >= 30 && p.weightKg <= 300 && p.heightCm >= 120 && p.heightCm <= 230;
   box.classList.toggle("hidden", !ok);
-  if (!ok) return;
+  const live = document.getElementById("wp-live");
+  clearTimeout(updateWizardPreview.timer);
+  if (!ok) { if (live) live.textContent = ""; return; }
   const t = calcTargets(p);
+  // La cifra animada cambia en cada fotograma; el lector de pantalla oye solo el
+  // resultado, una vez que dejas de teclear.
+  if (live) {
+    const msg = `Tu objetivo diario: ${Math.round(t.calories)} kcal, ${Math.round(t.protein)} g de proteína, ${Math.round(t.carbs)} g de hidratos y ${Math.round(t.fat)} g de grasa`;
+    updateWizardPreview.timer = setTimeout(() => { if (live.textContent !== msg) live.textContent = msg; }, 700);
+  }
   if (!wizardPreviewShown.done) {
     wizardPreviewShown.done = true;
     track("vista-previa-calorias");
@@ -628,12 +779,20 @@ function setWizardMode(mode) {
 }
 
 function goToWizardStep(step) {
+  // El paso nuevo entra desde el lado hacia el que vas, como los días del Plan.
+  const dir = step > wizardStep ? "step-from-right" : step < wizardStep ? "step-from-left" : "";
   wizardStep = step;
   requestAnimationFrame(updateWizardPreview);
   syncChoiceCards();
   document.querySelectorAll(".wizard-step").forEach((el) => {
-    el.classList.toggle("active", Number(el.dataset.step) === step);
+    const on = Number(el.dataset.step) === step;
+    el.classList.toggle("active", on);
+    el.classList.remove("step-from-right", "step-from-left");
+    if (on && dir) el.classList.add(dir);
   });
+  const progress = document.getElementById("wizard-progress");
+  progress.setAttribute("aria-valuenow", String(step + 1));
+  progress.setAttribute("aria-valuetext", `Paso ${step + 1} de 4`);
   document.querySelectorAll("#wizard-progress .dot").forEach((dot, i) => {
     dot.classList.toggle("active", i === step);
     dot.classList.toggle("done", i < step);
@@ -663,6 +822,14 @@ function enterEditMode() {
   showView("onboarding");
 }
 
+/* Salir de «Editar perfil» sin guardar: vuelves al perfil con el foco en el
+   botón que lo abrió, para seguir con el teclado donde estabas. */
+function leaveEditMode() {
+  showView("perfil");
+  const btn = document.getElementById("edit-profile-btn");
+  if (btn) btn.focus({ preventScroll: true });
+}
+
 // ---------- Navegación ----------
 
 const TAB_ORDER = ["dashboard", "plan", "compra", "informes", "perfil"];
@@ -680,9 +847,46 @@ function showView(name) {
   view.classList.add(enter);
   currentView = name;
   if (name === "informes" && state.plan) renderInformes(); // el resumen de la semana, al día
-  document.querySelectorAll(".tab-btn").forEach((b) => b.classList.toggle("active", b.dataset.view === name));
+  if (name === "plan") centerActiveDay();
+  document.querySelectorAll(".tab-btn").forEach((b) => {
+    const on = b.dataset.view === name;
+    b.classList.toggle("active", on);
+    // los lectores de pantalla anuncian en qué pestaña estás
+    if (on) b.setAttribute("aria-current", "page");
+    else b.removeAttribute("aria-current");
+  });
   moveTabIndicator();
+  updateViewTitle(name);
   document.getElementById("app-scroll").scrollTop = 0;
+}
+
+/* El título de la pestaña del navegador (y del selector de apps) dice dónde
+   estás: «Plan · NutriPlan». En el registro se queda el título completo. */
+let baseTitle = null;
+
+function updateViewTitle(name) {
+  if (baseTitle === null) baseTitle = document.title;
+  const tab = document.querySelector(`.tab-btn[data-view="${name}"] span`);
+  document.title = tab ? `${tab.textContent.trim()} · NutriPlan` : baseTitle;
+}
+
+/* Desde la barra de pestañas: cada pestaña recuerda hasta dónde bajaste, y
+   tocar la pestaña en la que ya estás sube arriba con suavidad. */
+const tabScroll = {};
+
+function openTab(name) {
+  const scroller = document.getElementById("app-scroll");
+  if (name === currentView) {
+    if (scroller.scrollTop > 0) {
+      scroller.scrollTo({ top: 0, behavior: prefersReducedMotion() ? "auto" : "smooth" });
+      buzz(6);
+    }
+    return;
+  }
+  if (currentView) tabScroll[currentView] = scroller.scrollTop;
+  showView(name);
+  const saved = tabScroll[name] || 0;
+  if (saved) scroller.scrollTop = Math.min(saved, scroller.scrollHeight - scroller.clientHeight);
 }
 
 function moveTabIndicator() {
@@ -741,11 +945,11 @@ function renderDashboard() {
     budgetHtml = `
       <div class="budget-banner ${ok ? "ok" : "warn"}">
         ${ok
-          ? `🛒 <b>${grandTotal.toFixed(2)} €</b> esta semana · ✅ dentro de tus ${profile.weeklyBudget} €`
-          : `🛒 <b>${grandTotal.toFixed(2)} €</b> esta semana · ⚠️ ${Math.abs(diff).toFixed(2)} € por encima, prueba 🔄 en Plan`}
+          ? `🛒 <b>${euro(grandTotal)} €</b> esta semana · ✅ dentro de tus ${profile.weeklyBudget} €`
+          : `🛒 <b>${euro(grandTotal)} €</b> esta semana · ⚠️ ${euro(Math.abs(diff))} € por encima, prueba 🔄 en Plan`}
       </div>`;
   } else {
-    budgetHtml = `<div class="budget-banner ok">🛒 <b>${grandTotal.toFixed(2)} €</b> de compra esta semana</div>`;
+    budgetHtml = `<div class="budget-banner ok">🛒 <b>${euro(grandTotal)} €</b> de compra esta semana</div>`;
   }
 
   el.innerHTML = `
@@ -811,6 +1015,7 @@ function renderDashboard() {
   });
   el.querySelectorAll("[data-article]").forEach((b) => {
     b.addEventListener("click", () => openArticleSheet(b.dataset.article));
+    actLikeButton(b);
   });
 
   animateCountUp(document.getElementById("ring-kcal-value"), targets.calories);
@@ -820,11 +1025,35 @@ function renderDashboard() {
 }
 
 function renderAll() {
+  renderedDay = todayIso();
   renderDashboard();
   renderPlan();
   renderCompra();
   renderPerfil();
 }
+
+/* Si la app se queda abierta de un día para otro (p. ej. instalada en el
+   móvil), al volver a ella se pasa al día nuevo: comidas, agua y racha de hoy,
+   y el Plan en el día de hoy. */
+let renderedDay = todayIso();
+
+function refreshIfNewDay() {
+  if (todayIso() === renderedDay) return;
+  if (!state.profile || !state.plan) { renderedDay = todayIso(); return; }
+  const a = document.activeElement;
+  if (a && a.matches && a.matches("input, textarea, select")) return; // no molestar mientras escribe
+  selectedDay = todayPlanIndex();
+  renderAll();
+  // los lunes cambian los artículos de la semana: el puntito de Informes
+  // vuelve a salir aunque no estés en esa pestaña
+  if (currentView === "informes") renderInformes();
+  else updateInformesDot();
+}
+
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") refreshIfNewDay();
+});
+setInterval(refreshIfNewDay, 60000);
 
 // ---------- Hoy: comidas hechas, agua y racha ----------
 
@@ -991,20 +1220,74 @@ function burstConfetti() {
   setTimeout(() => layer.remove(), 1800);
 }
 
-function showToast(text) {
+/* Avisa cuando se pierde o vuelve la conexión: la app sigue funcionando con la
+   copia guardada, pero así no sorprende que no carguen fotos o súper cercanos. */
+window.addEventListener("offline", () => showToast("📴 Sin conexión: sigues con tu plan guardado"));
+window.addEventListener("online", () => showToast("📶 Conexión recuperada"));
+
+/* Una tarjeta que se toca (un div con clic) también se usa con teclado y
+   lector de pantalla: recibe el foco y se abre con Intro o espacio. */
+function actLikeButton(el) {
+  el.setAttribute("role", "button");
+  el.tabIndex = 0;
+  el.addEventListener("keydown", (e) => {
+    if (e.target !== el) return;
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      el.click();
+    }
+  });
+}
+
+/* `action` ({ label, run }) añade un botón al aviso, p. ej. «Deshacer»; el
+   aviso dura entonces más, para dar tiempo a tocarlo. */
+function showToast(text, action) {
   const old = document.querySelector(".toast");
   if (old) old.remove();
   const toast = document.createElement("div");
   toast.className = "toast";
+  toast.setAttribute("role", "status"); // los lectores de pantalla lo leen sin mover el foco
+  toast.setAttribute("aria-live", "polite");
   toast.textContent = text;
+  if (action) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "toast-action";
+    btn.textContent = action.label;
+    btn.addEventListener("click", () => action.run());
+    toast.appendChild(btn);
+  }
+  // tocarlo lo quita al momento
+  toast.addEventListener("click", () => {
+    toast.classList.add("hide");
+    setTimeout(() => toast.remove(), 400);
+  });
   document.getElementById("app-shell").appendChild(toast);
-  setTimeout(() => toast.classList.add("hide"), 2400);
-  setTimeout(() => toast.remove(), 2900);
+  const ms = action ? 5000 : 2400;
+  // mientras el ratón está encima o el foco dentro (p. ej. en «Deshacer»), no se va
+  let timer = null;
+  const arm = () => {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      toast.classList.add("hide");
+      timer = setTimeout(() => toast.remove(), 500);
+    }, ms);
+  };
+  const hold = () => { clearTimeout(timer); toast.classList.remove("hide"); };
+  const release = () => { if (!toast.matches(":hover") && !toast.contains(document.activeElement)) arm(); };
+  toast.addEventListener("mouseenter", hold);
+  toast.addEventListener("focusin", hold);
+  toast.addEventListener("mouseleave", release);
+  toast.addEventListener("focusout", () => setTimeout(release, 0));
+  arm();
 }
 
 function renderStreakChip() {
   const streak = currentStreak();
-  return `<button type="button" class="streak-chip ${streak ? "active" : ""}" id="streak-chip">🔥 ${streak} ${streak === 1 ? "día" : "días"}${freezeChipHtml()}</button>`;
+  // el lector de pantalla oía «fuego 3 días cubito de hielo por 2»; ahora lo dice en palabras
+  const freezes = streakFreezes();
+  const label = `Racha: ${streak} ${streak === 1 ? "día seguido" : "días seguidos"}${freezes ? `. Protectores: ${freezes}` : ""}`;
+  return `<button type="button" class="streak-chip ${streak ? "active" : ""}" id="streak-chip" aria-label="${label}">🔥 ${streak} ${streak === 1 ? "día" : "días"}${freezeChipHtml()}</button>`;
 }
 
 function renderTodayCard() {
@@ -1049,8 +1332,8 @@ function renderTodayCard() {
                   <span class="today-meal-name">${off ? `${off.name} · ${off.kcal} kcal` : info.recipe.name}</span>
                 </span>
               </button>
-              <button type="button" class="off-btn" data-off="${slot.key}" aria-label="Comí otra cosa en ${slot.label.toLowerCase()}">✏️</button>
-              <button type="button" class="eat-btn" data-eat="${slot.key}" aria-pressed="${eaten}" aria-label="Marcar ${slot.label.toLowerCase()} como hecha">${eaten ? "✓" : ""}</button>
+              <button type="button" class="off-btn" data-off="${slot.key}" aria-label="Comí otra cosa en ${slot.key === "desayuno" ? "el" : "la"} ${slot.label.toLowerCase()}">✏️</button>
+              <button type="button" class="eat-btn" data-eat="${slot.key}" aria-pressed="${eaten}" aria-label="Ya tomé ${slot.key === "desayuno" ? "el" : "la"} ${slot.label.toLowerCase()}">${eaten ? "✓" : ""}</button>
             </div>`;
         }).join("")}
       </div>
@@ -1058,9 +1341,9 @@ function renderTodayCard() {
         ? `🔄 Semana reajustada por comidas fuera del plan: <b>${rebalanceText(rebalance.perDay)}</b>.`
         : "¿Comiste otra cosa? Pulsa ✏️ y reajustamos el resto de tu semana."}</p>
       <div class="water-row">
-        <div class="today-bar-label"><span>💧 Agua</span><span id="water-count">${entry.water}/${glasses} vasos</span></div>
+        <div class="today-bar-label"><span>💧 Agua</span><span id="water-count" class="${entry.water >= glasses ? "met" : ""}">${entry.water}/${glasses} vasos</span></div>
         <div class="water-glasses">
-          ${Array.from({ length: glasses }, (_, i) => `<button type="button" class="glass ${i < entry.water ? "full" : ""}" data-glass="${i + 1}" aria-label="${i + 1} vasos"></button>`).join("")}
+          ${Array.from({ length: glasses }, (_, i) => `<button type="button" class="glass ${i < entry.water ? "full" : ""}" style="--i:${i}" data-glass="${i + 1}" aria-label="${i === 0 ? "1 vaso" : `${i + 1} vasos`}" aria-pressed="${i < entry.water}"></button>`).join("")}
         </div>
       </div>
     </div>`;
@@ -1071,14 +1354,40 @@ function updateTodayProgress(animate = true) {
   const { kcal, prot } = todayTotals();
   const kcalPct = Math.min(100, (kcal / targets.calories) * 100);
   const protPct = Math.min(100, (prot / targets.protein) * 100);
-  document.getElementById("today-kcal").textContent = `${Math.round(kcal)} / ${targets.calories} kcal`;
-  document.getElementById("today-prot").textContent = `${Math.round(prot)} / ${targets.protein} g`;
+  // si te pasas de calorías, la barra cambia de color y dice cuánto («+180»)
+  const over = Math.round(kcal - targets.calories);
+  const isOver = over > targets.calories * 0.05;
+  document.getElementById("today-kcal").textContent = `${Math.round(kcal)} / ${targets.calories} kcal${isOver ? ` · +${over}` : ""}`;
+  document.getElementById("today-kcal").classList.toggle("over", isOver);
+  document.getElementById("today-kcal-bar").classList.toggle("over", isOver);
+  // proteína cumplida: la barra se pone verde, sale un ✓ y da un saltito la primera vez
+  const protEl = document.getElementById("today-prot");
+  const protMet = prot >= targets.protein;
+  const justMet = protMet && protEl.dataset.met === "false";
+  protEl.dataset.met = String(protMet);
+  protEl.textContent = `${Math.round(prot)} / ${targets.protein} g${protMet ? " ✓" : ""}`;
+  protEl.classList.toggle("met", protMet);
+  document.getElementById("today-prot-bar").classList.toggle("met", protMet);
+  if (justMet) {
+    protEl.classList.remove("pop");
+    void protEl.offsetWidth;
+    protEl.classList.add("pop");
+  }
   const set = () => {
     document.getElementById("today-kcal-bar").style.width = `${kcalPct}%`;
     document.getElementById("today-prot-bar").style.width = `${protPct}%`;
   };
   if (animate) requestAnimationFrame(() => requestAnimationFrame(set)); else set();
-  document.getElementById("today-done").textContent = mealsDone(dailyEntry());
+  // el contador de comidas «rueda»: el número nuevo entra desde abajo al subir y desde arriba al bajar
+  const doneEl = document.getElementById("today-done");
+  const prev = Number(doneEl.textContent);
+  const now = mealsDone(dailyEntry());
+  doneEl.textContent = now;
+  if (now !== prev && !prefersReducedMotion()) {
+    doneEl.classList.remove("roll-up", "roll-down");
+    void doneEl.offsetWidth;
+    doneEl.classList.add(now > prev ? "roll-up" : "roll-down");
+  }
 }
 
 function bindTodayCard() {
@@ -1121,12 +1430,13 @@ function bindTodayCard() {
       }
       updateTodayProgress(false);
       refreshUpNext();
+      renderPlanDays();
 
       const nowComplete = mealsDone(entry) >= MEALS_FOR_STREAK;
       document.getElementById("streak-chip").outerHTML = renderStreakChip();
       if (eaten && mealsDone(entry) === MEAL_SLOTS.length) {
         burstConfetti();
-        showToast(`¡Día completado! 🔥 Llevas ${currentStreak()} ${currentStreak() === 1 ? "día" : "días"} seguidos`);
+        showToast(`¡Día completado! 🔥 Llevas ${currentStreak()} ${currentStreak() === 1 ? "día seguido" : "días seguidos"}`);
         track("dia-completado");
       } else if (eaten && nowComplete && !wasComplete) {
         const chip = document.getElementById("streak-chip");
@@ -1148,11 +1458,24 @@ function bindTodayCard() {
       saveState();
       buzz(8);
       const goal = waterGoalGlasses();
-      card.querySelectorAll("[data-glass]").forEach((g) => g.classList.toggle("full", Number(g.dataset.glass) <= entry.water));
+      card.querySelectorAll("[data-glass]").forEach((g) => {
+        const full = Number(g.dataset.glass) <= entry.water;
+        g.classList.toggle("full", full);
+        g.setAttribute("aria-pressed", String(full)); // el lector de pantalla dice si el vaso está lleno
+      });
       btn.classList.remove("pop");
       void btn.offsetWidth;
       btn.classList.add("pop");
-      document.getElementById("water-count").textContent = `${entry.water}/${goal} vasos`;
+      const count = document.getElementById("water-count");
+      count.textContent = `${entry.water}/${goal} vasos`;
+      count.classList.toggle("met", entry.water >= goal);
+      // al llenar el último vaso, los vasos hacen una ola de izquierda a derecha
+      const row = card.querySelector(".water-glasses");
+      row.classList.remove("wave");
+      if (entry.water === goal && n === goal && !prefersReducedMotion()) {
+        void row.offsetWidth;
+        row.classList.add("wave");
+      }
       track("agua");
       engage.water(entry.water === n, entry.water === goal && n === goal, btn);
       if (entry.water === goal && n === goal) showToast("💧 ¡Objetivo de agua cumplido!");
@@ -1186,11 +1509,11 @@ function openOffPlanSheet(slotKey) {
       </button>
     </div>
     <div class="off-custom hidden" id="off-custom">
-      <input type="text" id="off-custom-name" placeholder="¿Qué era? (opcional)" maxlength="40">
-      <input type="number" id="off-custom-kcal" inputmode="numeric" min="50" max="3000" placeholder="kcal aprox.">
+      <input type="text" id="off-custom-name" placeholder="¿Qué era? (opcional)" aria-label="¿Qué era? (opcional)" maxlength="40">
+      <input type="number" id="off-custom-kcal" inputmode="numeric" min="50" max="3000" placeholder="kcal aprox." aria-label="kcal aprox.">
     </div>
     <div class="section-kicker off-size-kicker">¿Cuánto?</div>
-    <div class="size-row">
+    <div class="size-row" role="group" aria-label="¿Cuánto?">
       ${Object.entries(OFF_PLAN_SIZES).map(([k, v]) => `<button type="button" class="size-chip" data-size="${k}">${v.label}</button>`).join("")}
     </div>
     <button type="button" class="btn block" id="off-save" disabled>Guardar y reajustar</button>
@@ -1198,8 +1521,17 @@ function openOffPlanSheet(slotKey) {
   `;
 
   const sync = () => {
-    body.querySelectorAll(".off-option").forEach((b) => b.classList.toggle("selected", b.dataset.preset === selected));
-    body.querySelectorAll(".size-chip").forEach((b) => b.classList.toggle("selected", b.dataset.size === size));
+    // aria-pressed: el lector de pantalla dice qué opción y qué tamaño están elegidos
+    body.querySelectorAll(".off-option").forEach((b) => {
+      const on = b.dataset.preset === selected;
+      b.classList.toggle("selected", on);
+      b.setAttribute("aria-pressed", String(on));
+    });
+    body.querySelectorAll(".size-chip").forEach((b) => {
+      const on = b.dataset.size === size;
+      b.classList.toggle("selected", on);
+      b.setAttribute("aria-pressed", String(on));
+    });
     document.getElementById("off-custom").classList.toggle("hidden", selected !== "otro");
     document.getElementById("off-save").disabled = !selected;
   };
@@ -1449,17 +1781,74 @@ function mealEmoji(slotKey) {
   return { desayuno: "☀️", comida: "🍽️", cena: "🌙", merienda: "🍎" }[slotKey] || "🍽️";
 }
 
+/* Si el día elegido queda fuera de la fila de días (p. ej. el domingo en un
+   móvil estrecho), la fila se desplaza hasta él. */
+/* Al cambiar de día (tocando, con las flechas o deslizando), la fila se
+   desliza con suavidad hasta la pastilla nueva en vez de saltar de golpe.
+   Al dibujar el Plan, y con «reducir movimiento», va directa. */
+function centerActiveDay(smooth = false) {
+  const dayTabs = document.getElementById("day-tabs");
+  const pill = dayTabs && dayTabs.querySelector(".day-pill.active");
+  if (!pill || dayTabs.scrollWidth <= dayTabs.clientWidth) return;
+  const left = pill.offsetLeft - dayTabs.offsetLeft - (dayTabs.clientWidth - pill.offsetWidth) / 2;
+  dayTabs.scrollTo({ left, behavior: smooth && !prefersReducedMotion() ? "smooth" : "auto" });
+}
+
 function renderPlan() {
   const dayTabs = document.getElementById("day-tabs");
-  dayTabs.innerHTML = DAYS.map((d, i) => `<button type="button" class="day-pill ${i === selectedDay ? "active" : ""}" data-day="${i}">${d.slice(0, 3)}</button>`).join("");
+  const today = todayPlanIndex();
+  dayTabs.innerHTML = DAYS.map((d, i) => `<button type="button" class="day-pill ${i === selectedDay ? "active" : ""} ${i === today ? "today" : ""}" data-day="${i}" aria-pressed="${i === selectedDay}" aria-label="${i === today ? `${d} (hoy)` : d}">${d.slice(0, 3)}</button>`).join("");
+  centerActiveDay();
   dayTabs.querySelectorAll(".day-pill").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      selectedDay = Number(btn.dataset.day);
-      dayTabs.querySelectorAll(".day-pill").forEach((b) => b.classList.toggle("active", Number(b.dataset.day) === selectedDay));
-      document.querySelectorAll(".day-panel").forEach((p) => p.classList.toggle("active", Number(p.dataset.day) === selectedDay));
+    btn.addEventListener("click", () => selectPlanDay(Number(btn.dataset.day)));
+    // con teclado, ← y → pasan de día (Inicio y Fin van al lunes y al domingo)
+    btn.addEventListener("keydown", (e) => {
+      const to = { ArrowLeft: selectedDay - 1, ArrowRight: selectedDay + 1, Home: 0, End: DAYS.length - 1 }[e.key];
+      if (to === undefined || e.altKey || e.ctrlKey || e.metaKey) return;
+      e.preventDefault();
+      selectPlanDay(Math.max(0, Math.min(DAYS.length - 1, to)));
+      const pill = dayTabs.querySelector(`.day-pill[data-day="${selectedDay}"]`);
+      if (pill) pill.focus({ preventScroll: true }); // la fila ya se desliza sola hasta ella
     });
   });
   renderPlanDays();
+}
+
+/* Cambia el día del Plan; el día nuevo entra desde el lado hacia el que vas. */
+function selectPlanDay(day) {
+  if (day < 0 || day >= DAYS.length || day === selectedDay) return;
+  const dir = day > selectedDay ? "day-from-right" : "day-from-left";
+  selectedDay = day;
+  document.querySelectorAll("#day-tabs .day-pill").forEach((b) => {
+    const on = Number(b.dataset.day) === day;
+    b.classList.toggle("active", on);
+    b.setAttribute("aria-pressed", String(on)); // el lector de pantalla dice qué día ves
+  });
+  document.querySelectorAll(".day-panel").forEach((p) => {
+    const on = Number(p.dataset.day) === day;
+    p.classList.remove("day-from-right", "day-from-left");
+    p.classList.toggle("active", on);
+    if (on) p.classList.add(dir);
+  });
+  centerActiveDay(true);
+}
+
+/* En el móvil, deslizar el plan a los lados pasa al día anterior o siguiente. */
+function bindPlanSwipe() {
+  const el = document.getElementById("plan-content");
+  let x0 = null, y0 = 0;
+  el.addEventListener("touchstart", (e) => {
+    if (e.touches.length !== 1) { x0 = null; return; }
+    x0 = e.touches[0].clientX; y0 = e.touches[0].clientY;
+  }, { passive: true });
+  el.addEventListener("touchend", (e) => {
+    if (x0 === null) return;
+    const dx = e.changedTouches[0].clientX - x0;
+    const dy = e.changedTouches[0].clientY - y0;
+    x0 = null;
+    if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return; // era scroll, no un deslizamiento
+    selectPlanDay(selectedDay + (dx < 0 ? 1 : -1));
+  }, { passive: true });
 }
 
 function renderPlanDays() {
@@ -1467,17 +1856,18 @@ function renderPlanDays() {
   const { perDay } = weekRebalance();
   const today = todayPlanIndex();
   const offToday = (dailyEntry().offPlan) || {};
+  const eatenToday = dailyEntry().eaten || {};
   el.innerHTML = DAYS.map((day, i) => {
     const factor = dayFactor(i);
     const chip = perDay && i > today
       ? `<div class="rebalance-chip ${perDay < 0 ? "down" : "up"}">🔄 Raciones reajustadas: ${perDay > 0 ? "+" : "−"}${Math.abs(perDay)} kcal por lo que comiste fuera</div>`
       : "";
-    return `
-    <div class="day-panel ${i === selectedDay ? "active" : ""}" data-day="${i}">
-      ${chip}
-      ${MEAL_SLOTS.map((slot) => {
+    // al pie de cada día, lo que suman sus comidas
+    let dayKcal = 0, dayCost = 0;
+    const meals = MEAL_SLOTS.map((slot) => {
         const off = i === today && offToday[slot.key];
         if (off) {
+          dayKcal += off.kcal;
           return `
           <div class="meal-card off-plan" data-day="${i}" data-slot="${slot.key}" data-off="1">
             <div class="photo photo-thumb big off"><span class="photo-fallback" aria-hidden="true">${off.emoji}</span></div>
@@ -1486,21 +1876,30 @@ function renderPlanDays() {
               <div class="recipe-name">${off.name}</div>
               <div class="kcal">${off.kcal} kcal</div>
             </div>
-            <div class="chevron-right">›</div>
+            <div class="chevron-right" aria-hidden="true">›</div>
           </div>`;
         }
         const info = getRecipeInfo(state.plan[i][slot.key]);
+        // las comidas de hoy que ya marcaste salen con «✓ Hecha» y un poco atenuadas
+        const done = i === today && eatenToday[slot.key];
+        dayKcal += Math.round(info.kcal * factor);
+        dayCost += info.cost * factor;
         return `
-          <div class="meal-card" data-day="${i}" data-slot="${slot.key}">
+          <div class="meal-card ${done ? "done" : ""}" data-day="${i}" data-slot="${slot.key}">
             ${recipePhoto(info.recipe.id, { width: 160, className: `photo-thumb big ${slot.key}`, fallback: mealEmoji(slot.key) })}
             <div class="meal-info">
-              <div class="slot-label">${slot.label}${isFavorite(info.recipe.id) ? ` <span class="fav-mark" aria-label="Favorita">❤️</span>` : ""}</div>
+              <div class="slot-label">${slot.label}${isFavorite(info.recipe.id) ? ` <span class="fav-mark" aria-label="Favorita">❤️</span>` : ""}${done ? ` <span class="done-mark">Hecha</span>` : ""}</div>
               <div class="recipe-name">${info.recipe.name}</div>
-              <div class="kcal">${Math.round(info.kcal * factor)} kcal · ${(info.cost * factor).toFixed(2)} €</div>
+              <div class="kcal">${Math.round(info.kcal * factor)} kcal · ${euro(info.cost * factor)} €</div>
             </div>
-            <div class="chevron-right">›</div>
+            <div class="chevron-right" aria-hidden="true">›</div>
           </div>`;
-      }).join("")}
+      }).join("");
+    return `
+    <div class="day-panel ${i === selectedDay ? "active" : ""}" data-day="${i}">
+      ${chip}
+      ${meals}
+      <div class="day-total"><span>Total del día</span><span class="day-total-num">${dayKcal} kcal · ${euro(dayCost)} €</span></div>
     </div>
   `;
   }).join("");
@@ -1512,12 +1911,24 @@ function renderPlanDays() {
       if (card.dataset.off) openOffPlanSheet(slotKey);
       else openRecipeSheet(day, slotKey);
     });
+    actLikeButton(card);
   });
 }
+
+// etiquetas de la receta con tildes, en vez del identificador interno
+const TAG_LABEL = {
+  vegetariano: "vegetariano", vegano: "vegano", alto_proteina: "alto en proteína", sin_gluten: "sin gluten", economico: "económico",
+};
 
 const TAG_COLOR_CLASS = {
   vegetariano: "", vegano: "", alto_proteina: "tag-rose", sin_gluten: "tag-amber", economico: "tag-purple",
 };
+
+// los minutos que dicen los pasos («cocina 8-10 minutos»), para saber de un vistazo cuánto lleva;
+// un paso que va «los últimos 12 minutos» («the last 12 minutes») de otro ya está dentro de ese tiempo
+function recipeCookMins(r) {
+  return r.steps.reduce((sum, step) => sum + (/\s(últimos|last)\s/i.test(step) ? 0 : stepMinutes(step)), 0);
+}
 
 function openRecipeSheet(dayIdx, slotKey) {
   const slotLabel = MEAL_SLOTS.find((s) => s.key === slotKey).label;
@@ -1525,27 +1936,29 @@ function openRecipeSheet(dayIdx, slotKey) {
   const r = info.recipe;
   const factor = dayFactor(dayIdx);
   const whySentences = explainRecipe(r, info, state.profile, slotLabel);
+  const cookMins = recipeCookMins(r);
   const body = document.getElementById("sheet-body");
   track("receta-vista");
   body.innerHTML = `
-    ${recipePhoto(r.id, { width: 700, className: "photo-hero", fallback: mealEmoji(slotKey) })}
+    ${recipePhoto(r.id, { width: 700, className: "photo-hero", fallback: mealEmoji(slotKey), eager: true })}
     ${favButtonHtml(r.id)}
     ${shareButtonHtml(r.id)}
     <h3>${r.name}</h3>
-    <div class="modal-tags">${r.tags.map((t) => `<span class="tag ${TAG_COLOR_CLASS[t] || ""}">${t.replace("_", " ")}</span>`).join("")}</div>
+    <div class="modal-tags">${r.tags.map((t) => `<span class="tag ${TAG_COLOR_CLASS[t] || ""}">${TAG_LABEL[t] || t.replace("_", " ")}</span>`).join("")}</div>
     <div class="macro-tiles">
       <div class="macro-tile kcal"><b>${Math.round(info.kcal * factor)}</b><span>🔥 kcal</span></div>
       <div class="macro-tile prot"><b>${Math.round(info.prot * factor)} g</b><span>🍗 prot</span></div>
       <div class="macro-tile carbs"><b>${Math.round(info.carbs * factor)} g</b><span>🌾 carbs</span></div>
       <div class="macro-tile fat"><b>${Math.round(info.fat * factor)} g</b><span>🥑 grasa</span></div>
-      <div class="macro-tile cost"><b>${(info.cost * factor).toFixed(2)} €</b><span>🛒 coste</span></div>
+      <div class="macro-tile cost"><b>${euroLabel(info.cost * factor)}</b><span>🛒 coste</span></div>
     </div>
     <button type="button" class="btn block cook-open-btn" id="cook-open-btn">👩‍🍳 Cocinar paso a paso</button>
     <button type="button" class="btn secondary block swap-open-btn" id="swap-open-btn">🔄 Cambiar por otro plato</button>
     <div class="why-block why-short"><p>💡 ${whySentences[0]}</p></div>
     <div class="sheet-section">
       <h4>Ingredientes (tu ración)</h4>
-      ${Math.abs(factor - 1) >= 0.05 ? `<p class="hint portion-hint">Cantidades ajustadas a tus calorías (×${factor.toFixed(2).replace(".", ",")} la ración estándar).</p>` : ""}
+      <p class="hint ing-tip">Toca cada ingrediente cuando lo tengas a mano.</p>
+      ${Math.abs(factor - 1) >= 0.05 ? `<p class="hint portion-hint">Cantidades ajustadas a tus calorías (×${localDecimal(factor.toFixed(2))} la ración estándar).</p>` : ""}
       ${r.ingredients.map(([id, qty]) => {
         const food = FOODS[id];
         const role = FOOD_ROLES[food.cat];
@@ -1558,12 +1971,32 @@ function openRecipeSheet(dayIdx, slotKey) {
       }).join("")}
     </div>
     <div class="sheet-section">
-      <h4>Preparación</h4>
+      <h4>Preparación${cookMins ? ` <span class="prep-time">⏱ ${cookMins} min de cocción</span>` : ""}</h4>
       <ol class="steps-list">${r.steps.map((s) => `<li>${s}</li>`).join("")}</ol>
     </div>
   `;
   document.getElementById("swap-open-btn").addEventListener("click", () => openSwapSheet(dayIdx, slotKey));
   document.getElementById("cook-open-btn").addEventListener("click", () => openCookMode(dayIdx, slotKey));
+  // preparar la cocina: tachar los ingredientes que ya tienes a mano (solo
+  // mientras la receta está abierta, no se guarda)
+  body.querySelectorAll(".ingredient-row").forEach((row) => {
+    actLikeButton(row);
+    row.setAttribute("role", "checkbox");
+    row.setAttribute("aria-checked", "false");
+    row.addEventListener("click", () => {
+      const on = row.classList.toggle("got");
+      row.setAttribute("aria-checked", String(on));
+      if (on) buzz(8);
+      // con todo a mano, la pista de arriba lo celebra y anima a cocinar
+      const tip = body.querySelector(".ing-tip");
+      const rows = body.querySelectorAll(".ingredient-row");
+      const all = [...rows].every((x) => x.classList.contains("got"));
+      if (all !== tip.classList.contains("all-got")) {
+        tip.classList.toggle("all-got", all);
+        tip.textContent = all ? "✓ Todo a mano. ¡A cocinar!" : "Toca cada ingrediente cuando lo tengas a mano.";
+      }
+    });
+  });
   bindFavButtons(body);
   bindShareRecipe(body, factor);
   openSheet();
@@ -1589,15 +2022,17 @@ function openSwapSheet(dayIdx, slotKey) {
       ${options.map((info) => `
         <button type="button" class="swap-option" data-recipe="${info.recipe.id}">
           ${recipePhoto(info.recipe.id, { width: 120, className: "photo-thumb", fallback: mealEmoji(slotKey) })}
-          <span class="swap-name">${isFavorite(info.recipe.id) ? "❤️ " : ""}${info.recipe.name}</span>
-          <span class="swap-meta">${Math.round(info.prot * factor)} g prot · ${(info.cost * factor).toFixed(2)} €</span>
+          <span class="swap-text"><span class="swap-name">${isFavorite(info.recipe.id) ? "❤️ " : ""}${info.recipe.name}</span>
+          <span class="swap-meta">${Math.round(info.prot * factor)} g prot · ${euro(info.cost * factor)} €${recipeCookMins(info.recipe) ? ` · ⏱ ${recipeCookMins(info.recipe)} min` : ""}</span></span>
         </button>`).join("")}
     </div>` : `<p class="hint">No hay otros platos de este tipo que encajen con tu dieta y tus gustos.</p>`}
     <button type="button" class="btn ghost block" id="swap-back-btn">Volver a la receta</button>
   `;
   body.querySelectorAll(".swap-option").forEach((btn) => {
     btn.addEventListener("click", () => {
-      state.plan[dayIdx][slotKey] = btn.dataset.recipe;
+      const previousId = state.plan[dayIdx][slotKey];
+      const newId = btn.dataset.recipe;
+      state.plan[dayIdx][slotKey] = newId;
       saveState();
       track("plato-cambiado");
       engage.swapped();
@@ -1605,6 +2040,20 @@ function openSwapSheet(dayIdx, slotKey) {
       renderDashboard();
       renderCompra();
       openRecipeSheet(dayIdx, slotKey);
+      // por si te equivocas de plato: «Deshacer» vuelve a dejar el que tenías
+      showToast("🔄 Plato cambiado", {
+        label: "Deshacer",
+        run: () => {
+          if (state.plan[dayIdx][slotKey] !== newId) return;
+          state.plan[dayIdx][slotKey] = previousId;
+          saveState();
+          renderPlanDays();
+          renderDashboard();
+          renderCompra();
+          // si sigues viendo la receta nueva, la hoja pasa a la de antes
+          if (sheetIsOpen() && document.querySelector(`#sheet-body #cook-open-btn`) && document.querySelector(`#sheet-body .fav-btn[data-fav="${newId}"]`)) openRecipeSheet(dayIdx, slotKey);
+        },
+      });
     });
   });
   document.getElementById("swap-back-btn").addEventListener("click", () => openRecipeSheet(dayIdx, slotKey));
@@ -1612,29 +2061,129 @@ function openSwapSheet(dayIdx, slotKey) {
 
 let sheetCloseTimer = null;
 
+/* La hoja se apunta en el historial: el botón «atrás» del móvil (o Esc)
+   la cierra en vez de salir de la app. */
+let sheetInHistory = false;   // hay una entrada nuestra en el historial
+let ignoreNextPop = false;    // el próximo popstate lo provocamos nosotros
+let repushAfterPop = false;   // se reabrió la hoja mientras volvíamos atrás
+
+function sheetIsOpen() {
+  const sheet = document.getElementById("recipe-sheet");
+  return !sheet.classList.contains("hidden") && !sheet.classList.contains("closing");
+}
+
+/* Foco: al abrir la hoja pasa a la ✕ y al cerrarla vuelve a lo que la abrió,
+   así quien usa teclado o lector de pantalla no se queda perdido detrás. */
+let sheetOpener = null;
+
 function openSheet() {
   clearTimeout(sheetCloseTimer);
   const sheet = document.getElementById("recipe-sheet");
   const card = sheet.querySelector(".sheet-card");
-  sheet.classList.remove("hidden", "closing");
+  const wasClosed = sheet.classList.contains("hidden") || sheet.classList.contains("closing");
+  if (wasClosed && !sheet.contains(document.activeElement)) sheetOpener = document.activeElement;
+  sheet.classList.remove("hidden", "closing", "dragged");
+  sheet.querySelector(".sheet-backdrop").style.opacity = "";
   card.style.transform = "";
   card.scrollTop = 0;
+  try { document.getElementById("sheet-close").focus({ preventScroll: true }); } catch (e) { /* sin foco */ }
+  if (ignoreNextPop) repushAfterPop = true;
+  else if (!sheetInHistory) {
+    try { history.pushState({ nutriSheet: true }, ""); sheetInHistory = true; } catch (e) { /* sin historial */ }
+  }
 }
 
-function closeSheet() {
+function closeSheet(fromHistory = false) {
   const sheet = document.getElementById("recipe-sheet");
   if (sheet.classList.contains("hidden")) return;
+  if (sheetInHistory && fromHistory !== true) {
+    sheetInHistory = false;
+    ignoreNextPop = true;
+    history.back();
+  }
+  if (fromHistory === true) sheetInHistory = false;
   sheet.classList.add("closing");
   sheetCloseTimer = setTimeout(() => {
     sheet.classList.add("hidden");
-    sheet.classList.remove("closing");
+    sheet.classList.remove("closing", "dragged");
     sheet.querySelector(".sheet-card").style.transform = "";
+    sheet.querySelector(".sheet-backdrop").style.opacity = "";
+    const opener = sheetOpener;
+    sheetOpener = null;
+    // solo si sigue en pantalla y nadie ha movido el foco a otro sitio
+    if (opener && opener.isConnected && opener.offsetParent && opener !== document.body &&
+        (sheet.contains(document.activeElement) || document.activeElement === document.body)) {
+      try { opener.focus({ preventScroll: true }); } catch (e) { /* sin foco */ }
+    }
   }, prefersReducedMotion() ? 0 : 220);
+}
+
+window.addEventListener("popstate", () => {
+  if (ignoreNextPop) {
+    ignoreNextPop = false;
+    if (repushAfterPop) {
+      repushAfterPop = false;
+      if (sheetIsOpen()) {
+        try { history.pushState({ nutriSheet: true }, ""); sheetInHistory = true; } catch (e) { /* sin historial */ }
+      }
+    }
+    return;
+  }
+  // Con el modo cocina abierto, «atrás» cierra solo el modo cocina y deja la receta
+  if (typeof cook !== "undefined" && cook) {
+    closeCookMode();
+    sheetInHistory = false;
+    if (sheetIsOpen()) {
+      try { history.pushState({ nutriSheet: true }, ""); sheetInHistory = true; } catch (e) { /* sin historial */ }
+    }
+    return;
+  }
+  if (sheetInHistory || sheetIsOpen()) closeSheet(true);
+});
+
+document.addEventListener("keydown", (e) => {
+  if (typeof cook !== "undefined" && cook) return; // el modo cocina gestiona sus teclas
+  // Esc en un buscador con texto lo borra (como hace el navegador) en vez de cerrar la hoja
+  const t = e.target;
+  if (e.key === "Escape" && t && t.type === "search" && t.value) {
+    e.preventDefault();
+    t.value = "";
+    t.dispatchEvent(new Event("input", { bubbles: true }));
+    return;
+  }
+  if (e.key === "Escape" && sheetIsOpen()) closeSheet();
+  // Esc en «Editar perfil» hace lo mismo que la ✕: salir sin guardar.
+  else if (e.key === "Escape" && currentView === "onboarding" && wizardMode === "edit" && !e.isComposing) {
+    e.preventDefault();
+    leaveEditMode();
+  }
+  if (e.key === "Tab" && sheetIsOpen()) trapSheetFocus(e);
+});
+
+/* Con la hoja abierta, Tab da la vuelta dentro de ella en vez de irse a la
+   pantalla de detrás, que queda tapada. */
+function trapSheetFocus(e) {
+  const card = document.querySelector("#recipe-sheet .sheet-card");
+  const items = [...card.querySelectorAll('button, a[href], input, select, textarea, [tabindex]:not([tabindex="-1"])')]
+    .filter((el) => !el.disabled && el.offsetParent !== null);
+  if (!items.length) return;
+  const first = items[0];
+  const last = items[items.length - 1];
+  const inside = card.contains(document.activeElement);
+  if (e.shiftKey && (document.activeElement === first || !inside)) {
+    e.preventDefault();
+    last.focus();
+  } else if (!e.shiftKey && (document.activeElement === last || !inside)) {
+    e.preventDefault();
+    first.focus();
+  }
 }
 
 /* Arrastrar la hoja hacia abajo la cierra (si está arriba del todo). */
 function bindSheetSwipe() {
-  const card = document.querySelector("#recipe-sheet .sheet-card");
+  const sheet = document.getElementById("recipe-sheet");
+  const card = sheet.querySelector(".sheet-card");
+  const backdrop = sheet.querySelector(".sheet-backdrop");
   let startY = null;
   let dy = 0;
   card.addEventListener("touchstart", (e) => {
@@ -1647,13 +2196,32 @@ function bindSheetSwipe() {
     if (dy > 0) {
       card.style.transition = "none";
       card.style.transform = `translateY(${dy}px)`;
+      // el fondo se aclara a medida que bajas la hoja
+      backdrop.style.transition = "none";
+      backdrop.style.opacity = String(1 - Math.min(dy / 500, 0.6));
     }
   }, { passive: true });
+  // Si el sistema interrumpe el gesto (una llamada, un gesto del móvil…), la
+  // hoja vuelve a su sitio en vez de quedarse a medio bajar.
+  card.addEventListener("touchcancel", () => {
+    if (startY === null) return;
+    card.style.transition = "";
+    backdrop.style.transition = "opacity .25s ease";
+    card.style.transform = "";
+    backdrop.style.opacity = "";
+    startY = null;
+  });
   card.addEventListener("touchend", () => {
     if (startY === null) return;
     card.style.transition = "";
-    if (dy > 110) closeSheet();
-    else card.style.transform = "";
+    backdrop.style.transition = "opacity .25s ease";
+    if (dy > 110) {
+      sheet.classList.add("dragged"); // cierra desde donde está, sin volver a oscurecerse
+      closeSheet();
+    } else {
+      card.style.transform = "";
+      backdrop.style.opacity = "";
+    }
     startY = null;
   });
 }
@@ -1696,7 +2264,7 @@ function distanceM(lat1, lon1, lat2, lon2) {
 }
 
 function formatDistance(m) {
-  return m < 1000 ? `${Math.round(m / 10) * 10} m` : `${(m / 1000).toFixed(1).replace(".", ",")} km`;
+  return m < 1000 ? `${Math.round(m / 10) * 10} m` : `${localDecimal((m / 1000).toFixed(1))} km`;
 }
 
 function getPosition() {
@@ -1796,7 +2364,7 @@ function renderStoreCard() {
             <span class="store-logo">${s.name.charAt(0)}</span>
             <span class="store-name">${s.name}</span>
             <span class="store-dist">${formatDistance(s.dist)}</span>
-            <span class="store-price">${(base * s.index).toFixed(2)} €</span>
+            <span class="store-price">${euro(base * s.index)} €</span>
           </button>`).join("")}
       </div>
       <p class="hint">Precio aproximado de tu lista según la cadena: no son precios en tiempo real.</p>
@@ -1833,11 +2401,15 @@ function compraProgressHtml(done, total, grandTotal) {
       </div>
       <div class="cart-hero-text">
         <span class="cart-count"><b id="cart-done">${done}</b>/${total} en el carro</span>
-        <span class="cart-total"><b id="cart-total" data-value="${grandTotal.toFixed(2)}">${grandTotal.toFixed(2)}</b> €</span>
-        ${budget ? `<span class="cart-budget ${grandTotal <= budget ? "ok" : "warn"}">${grandTotal <= budget ? `✅ ${(budget - grandTotal).toFixed(2)} € por debajo de tu presupuesto` : `⚠️ ${(grandTotal - budget).toFixed(2)} € por encima de tu presupuesto`}</span>` : ""}
+        <span class="cart-total"><b id="cart-total" data-value="${grandTotal.toFixed(2)}">${euro(grandTotal)}</b> €</span>
+        ${budget ? `<span class="cart-budget ${grandTotal <= budget ? "ok" : "warn"}">${grandTotal <= budget ? `✅ ${euro(budget - grandTotal)} € por debajo de tu presupuesto` : `⚠️ ${euro(grandTotal - budget)} € por encima de tu presupuesto`}</span>` : ""}
       </div>
     </div>`;
 }
+
+// secciones de la compra que has plegado: siguen plegadas al volver a dibujar
+// la lista (cambiar de súper, deshacer, volver a la pestaña…)
+const collapsedSections = new Set();
 
 function renderCompra() {
   const { bought } = state;
@@ -1852,7 +2424,7 @@ function renderCompra() {
       <div class="locked-card">
         <div class="locked-icon">🔒</div>
         <h3>Tu lista ya está lista</h3>
-        <p>${itemCount} artículos de ${sections.length} secciones, por un total estimado de <b>${grandTotal.toFixed(2)} €</b>.</p>
+        <p>${itemCount} artículos de ${sections.length} secciones, por un total estimado de <b>${euro(grandTotal)} €</b>.</p>
         <p class="hint">Desbloquéala con Premium para ver cada producto, su cantidad y su precio, listo para llevar al súper.</p>
         <button type="button" class="btn block" id="unlock-compra-btn">Desbloquear con Premium</button>
       </div>
@@ -1872,18 +2444,18 @@ function renderCompra() {
     const subtotal = items.reduce((s, it) => s + it.cost, 0);
     const secDone = items.filter((it) => bought[it.foodId]).length;
     return `
-      <div class="section-block sec-${style.color} ${secDone === items.length ? "complete" : ""}" data-section="${section}" style="animation-delay:${0.05 + si * 0.07}s">
-        <button type="button" class="section-head" aria-expanded="true">
+      <div class="section-block sec-${style.color} ${secDone === items.length ? "complete" : ""} ${collapsedSections.has(section) ? "collapsed" : ""}" data-section="${section}" style="animation-delay:${0.05 + si * 0.07}s">
+        <button type="button" class="section-head" aria-expanded="${!collapsedSections.has(section)}" aria-controls="sec-items-${si}">
           <span class="section-emoji">${style.emoji}</span>
           <span class="section-head-text">
             <span class="section-name">${section}</span>
-            <span class="section-sub"><span class="sec-done">${secDone}</span>/${items.length} · ${subtotal.toFixed(2)} €</span>
+            <span class="section-sub"><span class="sec-done">${secDone}</span>/${items.length} · ${euro(subtotal)} €</span>
           </span>
           <span class="section-check">✓</span>
           <span class="section-caret">⌄</span>
         </button>
         <div class="section-bar"><div class="section-bar-fill" style="width:${(secDone / items.length) * 100}%"></div></div>
-        <div class="section-items">
+        <div class="section-items" id="sec-items-${si}"><div class="section-items-inner">
           ${items.map((it) => {
             const isBought = !!bought[it.foodId];
             return `
@@ -1892,38 +2464,53 @@ function renderCompra() {
                   <span class="item-emoji">${FOOD_EMOJI[it.foodId] || "🛒"}</span>
                   <div>
                     <div class="item-name">${it.name}</div>
-                    <div class="item-qty">${formatQty(it.qty, it.unit)}</div>
+                    <div class="item-qty">${formatQty(it.qty, it.unit, { buy: true })}</div>
                   </div>
                 </div>
-                <div class="item-cost">${it.cost.toFixed(2)} €</div>
+                <div class="item-cost">${euro(it.cost)} €</div>
                 <div class="check-circle">${isBought ? "✓" : ""}</div>
               </div>`;
           }).join("")}
-        </div>
+        </div></div>
       </div>`;
   }).join("") + `
     <div class="compra-actions">
-      ${doneCount ? `<button type="button" class="btn ghost block" id="reset-bought">↺ Vaciar el carro</button>` : ""}
+      <button type="button" class="btn ghost block" id="reset-bought"${doneCount ? "" : " hidden"}>↺ Vaciar el carro</button>
     </div>`;
 
   bindStoreCard(el);
   const totalEl = document.getElementById("cart-total");
   animateCountUp(totalEl, Math.round(grandTotal), { duration: 600 });
-  setTimeout(() => { totalEl.textContent = grandTotal.toFixed(2); }, 650);
+  setTimeout(() => { totalEl.textContent = euro(grandTotal); }, 650);
 
   el.querySelectorAll(".section-head").forEach((head) => {
     head.addEventListener("click", () => {
       const block = head.closest(".section-block");
       const collapsed = block.classList.toggle("collapsed");
       head.setAttribute("aria-expanded", String(!collapsed));
+      if (collapsed) collapsedSections.add(block.dataset.section);
+      else collapsedSections.delete(block.dataset.section);
     });
   });
 
   const reset = document.getElementById("reset-bought");
   if (reset) reset.addEventListener("click", () => {
+    const before = state.bought;
+    const wasCollapsed = [...collapsedSections];
+    collapsedSections.clear(); // carro vacío: todas las secciones a la vista
     state.bought = {};
     saveState();
     renderCompra();
+    // por si lo tocaste sin querer: se puede deshacer unos segundos
+    showToast("🧺 Carro vaciado", {
+      label: "Deshacer",
+      run: () => {
+        state.bought = before;
+        wasCollapsed.forEach((sec) => collapsedSections.add(sec));
+        saveState();
+        renderCompra();
+      },
+    });
   });
 
   const updateProgress = () => {
@@ -1933,15 +2520,21 @@ function renderCompra() {
     const C = Number(ring.getAttribute("stroke-dasharray"));
     ring.style.strokeDashoffset = C * (1 - done / allItems.length);
     el.querySelector(".cart-ring-emoji").textContent = done === allItems.length ? "🎉" : "🛒";
+    // «Vaciar el carro» aparece con el primer artículo marcado y se va con el último
+    if (reset) reset.hidden = done === 0;
     return done;
   };
 
   el.querySelectorAll(".item-row").forEach((row) => {
+    actLikeButton(row);
+    row.setAttribute("role", "checkbox");
+    row.setAttribute("aria-checked", String(!!state.bought[row.dataset.food]));
     row.addEventListener("click", () => {
       const foodId = row.dataset.food;
       const newVal = !state.bought[foodId];
       state.bought[foodId] = newVal;
       row.classList.toggle("bought", newVal);
+      row.setAttribute("aria-checked", String(newVal));
       const circle = row.querySelector(".check-circle");
       circle.textContent = newVal ? "✓" : "";
       if (newVal) {
@@ -1975,6 +2568,7 @@ function renderCompra() {
         setTimeout(() => {
           block.classList.add("collapsed");
           block.querySelector(".section-head").setAttribute("aria-expanded", "false");
+          collapsedSections.add(block.dataset.section);
         }, 600);
       }
     });
@@ -2002,8 +2596,9 @@ function bmiInfo(p) {
 }
 
 function langPickerHtml() {
-  return `<div class="lang-picker">${Object.entries(LANGUAGES).map(([code, l]) => `
-    <button type="button" class="lang-btn ${code === currentLang ? "selected" : ""}" data-lang="${code}">
+  // aria-pressed dice cuál está elegido; lang hace que «English» se lea en inglés
+  return `<div class="lang-picker" role="group" aria-label="Idioma">${Object.entries(LANGUAGES).map(([code, l]) => `
+    <button type="button" class="lang-btn ${code === currentLang ? "selected" : ""}" data-lang="${code}" lang="${code}" aria-pressed="${code === currentLang}">
       <span class="lang-flag">${l.flag}</span>${l.label}
     </button>`).join("")}</div>`;
 }
@@ -2020,12 +2615,13 @@ function applyTheme(theme) {
   if (theme === "auto") delete root.dataset.theme;
   else root.dataset.theme = theme;
   try { localStorage.setItem(THEME_KEY, theme); } catch (e) { /* seguimos sin guardar */ }
+  if (typeof syncThemeColor === "function") syncThemeColor();
 }
 
 function themePickerHtml() {
   const current = currentTheme();
-  return `<div class="lang-picker theme-picker">${Object.entries(THEMES).map(([key, t]) => `
-    <button type="button" class="lang-btn ${key === current ? "selected" : ""}" data-theme-choice="${key}">
+  return `<div class="lang-picker theme-picker" role="group" aria-label="Apariencia">${Object.entries(THEMES).map(([key, t]) => `
+    <button type="button" class="lang-btn ${key === current ? "selected" : ""}" data-theme-choice="${key}" aria-pressed="${key === current}">
       <span class="lang-flag">${t.emoji}</span>${t.label}
     </button>`).join("")}</div>`;
 }
@@ -2035,7 +2631,10 @@ function bindThemePicker(root) {
     btn.addEventListener("click", () => {
       applyTheme(btn.dataset.themeChoice);
       track(`tema-${btn.dataset.themeChoice}`);
-      root.querySelectorAll("[data-theme-choice]").forEach((b) => b.classList.toggle("selected", b === btn));
+      root.querySelectorAll("[data-theme-choice]").forEach((b) => {
+        b.classList.toggle("selected", b === btn);
+        b.setAttribute("aria-pressed", String(b === btn));
+      });
       buzz(8);
     });
   });
@@ -2161,21 +2760,43 @@ document.addEventListener("DOMContentLoaded", () => {
   initOnboardingForm();
   const form = document.getElementById("onboarding-form");
 
+  // Al cambiar de paso con los botones, el foco pasa al título del paso nuevo:
+  // así el lector de pantalla lo anuncia, y no se pierde cuando «Siguiente»
+  // (en el último paso) o «Atrás» (en el primero) desaparecen.
+  const focusStepTitle = () => {
+    const h = document.querySelector(`.wizard-step[data-step="${wizardStep}"] h3`);
+    if (!h) return;
+    h.setAttribute("tabindex", "-1");
+    h.focus({ preventScroll: true });
+  };
   document.getElementById("wizard-next").addEventListener("click", () => {
-    if (validateStep(wizardStep)) goToWizardStep(wizardStep + 1);
+    if (validateStep(wizardStep)) { goToWizardStep(wizardStep + 1); focusStepTitle(); }
   });
   document.getElementById("wizard-back").addEventListener("click", () => {
     if (wizardStep > 0) {
       goToWizardStep(wizardStep - 1);
+      focusStepTitle();
     } else if (wizardMode === "edit") {
-      showView("perfil");
+      leaveEditMode();
     }
   });
-  document.getElementById("wizard-cancel").addEventListener("click", () => {
-    showView("perfil");
-  });
+  document.getElementById("wizard-cancel").addEventListener("click", leaveEditMode);
 
   ["input", "change", "click"].forEach((ev) => form.addEventListener(ev, () => requestAnimationFrame(updateWizardPreview)));
+
+  // Intro en un campo de un paso intermedio avanza al siguiente paso en vez de
+  // enviar el formulario entero y saltarse el resto de preguntas.
+  form.addEventListener("keydown", (e) => {
+    if (e.key !== "Enter" || e.isComposing || wizardStep >= 3) return;
+    if (!(e.target instanceof HTMLInputElement)) return;
+    e.preventDefault();
+    if (validateStep(wizardStep)) {
+      goToWizardStep(wizardStep + 1);
+      const sel = `.wizard-step[data-step="${wizardStep}"]`;
+      const first = document.querySelector(`${sel} .choice-card[tabindex="0"], ${sel} input, ${sel} select:not(.select-hidden)`);
+      if (first) first.focus({ preventScroll: true });
+    }
+  });
 
   form.addEventListener("submit", (e) => {
     e.preventDefault();
@@ -2202,7 +2823,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   document.querySelectorAll(".tab-btn").forEach((btn) => {
-    btn.addEventListener("click", () => showView(btn.dataset.view));
+    btn.addEventListener("click", () => openTab(btn.dataset.view));
   });
 
   document.getElementById("favorites-btn").addEventListener("click", () => openFavoritesSheet());
@@ -2216,15 +2837,26 @@ document.addEventListener("DOMContentLoaded", () => {
     renderCompra();
   });
 
-  document.getElementById("sheet-close").addEventListener("click", closeSheet);
+  document.getElementById("sheet-close").addEventListener("click", () => closeSheet());
   bindSheetSwipe();
+  bindPlanSwipe();
   window.addEventListener("resize", moveTabIndicator);
-  document.getElementById("sheet-backdrop").addEventListener("click", closeSheet);
+  document.getElementById("sheet-backdrop").addEventListener("click", () => closeSheet());
 
   trackDailyOpen(isStandalone());
 
+  // Accesos directos del icono de la app (mantener pulsado): «?tab=plan» abre
+  // esa pestaña directamente, sin pasar por la bienvenida.
+  let shortcutTab = null;
+  try {
+    const tab = new URLSearchParams(location.search).get("tab");
+    if (TAB_ORDER.includes(tab) && tab !== "dashboard") shortcutTab = tab;
+    if (location.search) history.replaceState(history.state, "", location.pathname + location.hash);
+  } catch (e) { /* sin acceso directo */ }
+
   if (state.profile && state.plan) {
     enterApp();
+    if (shortcutTab) showView(shortcutTab);
   } else {
     setWizardMode("create");
     goToWizardStep(0);
@@ -2239,7 +2871,7 @@ document.addEventListener("DOMContentLoaded", () => {
   } catch (e) { /* almacenamiento no disponible, mostramos el splash igualmente */ }
 
   const returning = !!(state.profile && state.plan);
-  if (splashAlreadyShown) {
+  if (splashAlreadyShown || (returning && shortcutTab)) {
     const splash = document.getElementById("splash");
     if (splash) splash.remove();
   } else if (returning) {

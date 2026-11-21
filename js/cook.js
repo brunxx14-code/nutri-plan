@@ -59,7 +59,8 @@ function openCookMode(dayIdx, slotKey) {
   const info = getRecipeInfo(state.plan[dayIdx][slotKey]);
   cook = {
     recipe: info.recipe, dayIdx, slotKey, factor: dayFactor(dayIdx),
-    idx: 0, timers: {}, tick: null, wake: null,
+    idx: 0, timers: {}, got: new Set(), tick: null, wake: null, title: document.title,
+    opener: document.activeElement, // al salir, el foco vuelve aquí
   };
   track("modo-cocina");
   const el = document.createElement("div");
@@ -67,13 +68,15 @@ function openCookMode(dayIdx, slotKey) {
   el.id = "cook";
   el.setAttribute("role", "dialog");
   el.setAttribute("aria-label", "Modo cocina");
+  el.setAttribute("aria-modal", "true");
   el.innerHTML = `
     <div class="cook-top">
       <button type="button" class="cook-close" id="cook-close" aria-label="Cerrar">✕</button>
       <div class="cook-title">👩‍🍳 ${cook.recipe.name}</div>
     </div>
-    <div class="cook-dots" id="cook-dots"></div>
+    <div class="cook-dots" id="cook-dots" role="group" aria-label="Pasos"></div>
     <div class="cook-stage" id="cook-stage"></div>
+    <div class="sr-only" id="cook-live" aria-live="polite"></div>
     <div class="cook-nav">
       <button type="button" class="btn ghost" id="cook-prev">← Anterior</button>
       <button type="button" class="btn" id="cook-next">Siguiente →</button>
@@ -89,9 +92,11 @@ function openCookMode(dayIdx, slotKey) {
   });
   bindCookSwipe(el.querySelector("#cook-stage"));
   document.addEventListener("visibilitychange", onCookVisibility);
+  document.addEventListener("keydown", onCookKey);
   keepScreenOn();
   cook.tick = setInterval(tickCookTimers, 250);
   renderCookStep(0);
+  try { el.querySelector("#cook-next").focus({ preventScroll: true }); } catch (e) { /* sin foco */ }
 }
 
 function closeCookMode() {
@@ -99,8 +104,15 @@ function closeCookMode() {
   clearInterval(cook.tick);
   if (cook.wake) cook.wake.release().catch(() => {});
   document.removeEventListener("visibilitychange", onCookVisibility);
+  document.removeEventListener("keydown", onCookKey);
   const el = document.getElementById("cook");
+  const opener = cook.opener;
+  document.title = cook.title;
   cook = null;
+  // el foco vuelve al botón que abrió el modo cocina, si sigue en pantalla
+  if (opener && opener.isConnected && opener.offsetParent) {
+    try { opener.focus({ preventScroll: true }); } catch (e) { /* sin foco */ }
+  }
   if (!el) return;
   el.classList.remove("open");
   setTimeout(() => el.remove(), 280);
@@ -118,6 +130,18 @@ function goCookStep(idx) {
   const dir = idx > cook.idx ? "fwd" : "back";
   buzz(6);
   renderCookStep(idx, dir);
+  announceCookStep(idx);
+}
+
+/* El lector de pantalla lee el paso nuevo al cambiar (botones, flechas,
+   deslizar o puntos), sin tener que ir a buscarlo. Va en una zona aparte
+   porque el reloj del temporizador cambia cada segundo. */
+function announceCookStep(idx) {
+  const live = document.getElementById("cook-live");
+  if (!live) return;
+  live.innerHTML = idx === 0
+    ? "<span>Prepara los ingredientes</span>"
+    : `<span>Paso ${idx} de ${cook.recipe.steps.length}</span>. <span>${cook.recipe.steps[idx - 1]}</span>`;
 }
 
 function renderCookDots() {
@@ -125,7 +149,8 @@ function renderCookDots() {
   dots.innerHTML = Array.from({ length: totalCookSteps() }, (_, i) => {
     const t = cook.timers[i];
     const cls = [i === cook.idx ? "now" : "", i < cook.idx ? "done" : "", t && t.running ? "timing" : ""].join(" ");
-    return `<button type="button" class="cook-dot ${cls}" data-step="${i}" aria-label="${i === 0 ? "Ingredientes" : `Paso ${i}`}"></button>`;
+    // el punto del paso actual lo anuncia el lector de pantalla («paso actual»)
+    return `<button type="button" class="cook-dot ${cls}" data-step="${i}" aria-label="${i === 0 ? "Ingredientes" : `Paso ${i}`}"${i === cook.idx ? ` aria-current="step"` : ""}></button>`;
   }).join("");
   dots.querySelectorAll("[data-step]").forEach((b) => b.addEventListener("click", () => goCookStep(Number(b.dataset.step))));
 }
@@ -140,11 +165,13 @@ function renderCookStep(idx, dir = "fwd") {
       <div class="cook-kicker">Antes de empezar</div>
       <h2 class="cook-step-text small">Prepara los ingredientes</h2>
       <div class="cook-ings">
-        ${cook.recipe.ingredients.map(([id, qty]) => {
+        ${cook.recipe.ingredients.map(([id, qty], i) => {
           const food = FOODS[id];
+          // lo que ya marcaste sigue marcado si vuelves a este paso
+          const got = cook.got.has(i);
           return `
-            <label class="cook-ing">
-              <input type="checkbox">
+            <label class="cook-ing${got ? " got" : ""}">
+              <input type="checkbox" data-ing="${i}"${got ? " checked" : ""}>
               <span class="cook-ing-emoji" aria-hidden="true">${FOOD_EMOJI[id] || FOOD_ROLE_EMOJI[food.cat] || "•"}</span>
               <span class="cook-ing-name">${food.name}</span>
               <span class="cook-ing-qty">${formatQty(qty * cook.factor, food.unit)}</span>
@@ -164,7 +191,9 @@ function renderCookStep(idx, dir = "fwd") {
   stage.querySelectorAll(".cook-ing input").forEach((box) => {
     box.addEventListener("change", () => {
       box.closest(".cook-ing").classList.toggle("got", box.checked);
+      cook.got[box.checked ? "add" : "delete"](Number(box.dataset.ing));
       buzz(6);
+      markIngredientsReady();
     });
   });
   renderCookTimer();
@@ -172,16 +201,51 @@ function renderCookStep(idx, dir = "fwd") {
 
   const prev = document.getElementById("cook-prev");
   const next = document.getElementById("cook-next");
+  const prevHadFocus = document.activeElement === prev;
   prev.disabled = idx === 0;
+  // si «← Anterior» tenía el foco y se desactiva (vuelves a los ingredientes), el foco pasa a «Empezar →»
+  if (prevHadFocus && prev.disabled) {
+    try { next.focus({ preventScroll: true }); } catch (e) { /* sin foco */ }
+  }
   next.textContent = idx === 0 ? "Empezar →" : idx === total ? "✅ ¡Listo!" : "Siguiente →";
   next.classList.toggle("done", idx === total);
+  markIngredientsReady(false);
+}
+
+/* Con todos los ingredientes marcados, «Empezar →» se pone verde y da un
+   pequeño salto, para que se vea que ya puedes ponerte a cocinar. */
+function markIngredientsReady(animate = true) {
+  const next = document.getElementById("cook-next");
+  if (!next || !cook) return;
+  const ready = cook.idx === 0 && cook.got.size === cook.recipe.ingredients.length;
+  const was = next.classList.contains("ready");
+  next.classList.toggle("ready", ready);
+  if (ready && !was && animate) {
+    next.classList.remove("ready-pop");
+    void next.offsetWidth;
+    next.classList.add("ready-pop");
+    buzz([8, 40, 8]);
+  } else if (!ready) next.classList.remove("ready-pop");
 }
 
 // ---------- Temporizadores ----------
 
+/* Los botones del temporizador se vuelven a crear al pulsarlos. Si uno tenía
+   el foco (teclado), el foco pasa al botón que toma su sitio: «Iniciar» →
+   «Pausar», «Pausar»/«Seguir» → el mismo, «Reiniciar» → «Iniciar». */
 function renderCookTimer() {
   const box = document.getElementById("cook-timer");
   if (!box) return;
+  const had = box.contains(document.activeElement);
+  paintCookTimer(box);
+  if (!had) return;
+  const target = box.querySelector("#cook-timer-toggle") || box.querySelector("button");
+  if (target) {
+    try { target.focus({ preventScroll: true }); } catch (e) { /* sin foco */ }
+  }
+}
+
+function paintCookTimer(box) {
   const mins = Number(box.dataset.mins);
   const t = cook.timers[cook.idx];
   if (!t) {
@@ -244,20 +308,78 @@ function tickCookTimers() {
     t.running = false;
     t.left = 0;
     t.rang = true;
+    t.rangAt = Date.now();
     beep();
     if (navigator.vibrate) navigator.vibrate([250, 120, 250, 120, 250]);
-    showToast(`⏰ ¡Tiempo! Paso ${i} listo`);
+    // si estás en otro paso, el aviso lleva «Ir al paso» para volver al que ha sonado
+    const step = Number(i);
+    showToast(`⏰ ¡Tiempo! Paso ${i} listo`, step === cook.idx ? undefined : {
+      label: "Ir al paso",
+      run: () => { if (cook) goCookStep(step); },
+    });
     if (Number(i) === cook.idx) renderCookTimer();
     renderCookDots();
   }
   updateCookRing();
+  updateCookTitle();
+}
+
+/* El temporizador también se ve en la pestaña del navegador, por si cambias
+   de pestaña o de app mientras se cuece algo: «⏱️ 4:32 · NutriPlan». Al
+   sonar pone «⏰» durante un minuto. */
+function updateCookTitle() {
+  const timers = Object.values(cook.timers);
+  const running = timers.filter((t) => t.running);
+  let title = cook.title;
+  if (running.length) {
+    title = `⏱️ ${formatClock(Math.min(...running.map(timerLeft)))} · ${cook.title}`;
+  } else if (timers.some((t) => t.rang && Date.now() - t.rangAt < 60000)) {
+    title = `⏰ ${cook.title}`;
+  }
+  if (document.title !== title) document.title = title;
 }
 
 // ---------- Gestos y final ----------
 
+/* Con teclado (o un mando bluetooth): flechas para pasar de paso, Inicio y Fin
+   para ir al principio o al final, Esc para salir. */
+function onCookKey(e) {
+  if (!cook || e.altKey || e.ctrlKey || e.metaKey) return;
+  if (e.target && e.target.closest && e.target.closest("input, textarea, select")) return;
+  if (e.key === "ArrowRight" || e.key === "PageDown") {
+    e.preventDefault();
+    if (cook.idx < totalCookSteps() - 1) goCookStep(cook.idx + 1);
+  } else if (e.key === "ArrowLeft" || e.key === "PageUp") {
+    e.preventDefault();
+    goCookStep(cook.idx - 1);
+  } else if (e.key === "Home" || e.key === "End") {
+    // Inicio vuelve a los ingredientes y Fin salta al último paso
+    e.preventDefault();
+    const target = e.key === "Home" ? 0 : totalCookSteps() - 1;
+    if (target !== cook.idx) goCookStep(target);
+  } else if (e.key === "Escape") {
+    e.preventDefault();
+    closeCookMode();
+  } else if (e.key === "Tab") {
+    // Tab da la vuelta dentro del modo cocina, que tapa toda la pantalla
+    const box = document.getElementById("cook");
+    const items = [...box.querySelectorAll("button, [tabindex]:not([tabindex='-1'])")].filter((b) => !b.disabled && b.offsetParent !== null);
+    if (!items.length) return;
+    const first = items[0], last = items[items.length - 1];
+    const inside = box.contains(document.activeElement);
+    if (e.shiftKey && (document.activeElement === first || !inside)) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && (document.activeElement === last || !inside)) { e.preventDefault(); first.focus(); }
+  }
+}
+
 function bindCookSwipe(stage) {
   let x0 = null, y0 = 0;
-  stage.addEventListener("touchstart", (e) => { x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; }, { passive: true });
+  stage.addEventListener("touchstart", (e) => {
+    // con dos dedos (pellizcar para ampliar el texto) no es un deslizamiento
+    if (e.touches.length !== 1) { x0 = null; return; }
+    x0 = e.touches[0].clientX; y0 = e.touches[0].clientY;
+  }, { passive: true });
+  stage.addEventListener("touchcancel", () => { x0 = null; }, { passive: true });
   stage.addEventListener("touchend", (e) => {
     if (x0 === null) return;
     const dx = e.changedTouches[0].clientX - x0;
