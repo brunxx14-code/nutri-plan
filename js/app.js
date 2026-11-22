@@ -1978,7 +1978,11 @@ function openRecipeSheet(dayIdx, slotKey) {
     </div>
   `;
   document.getElementById("swap-open-btn").addEventListener("click", () => openSwapSheet(dayIdx, slotKey));
-  document.getElementById("cook-open-btn").addEventListener("click", () => openCookMode(dayIdx, slotKey));
+  document.getElementById("cook-open-btn").addEventListener("click", () => {
+    // lo que ya tachaste en «Ingredientes» sigue tachado en el modo cocina
+    const got = [...body.querySelectorAll(".ingredient-row")].flatMap((row, i) => row.classList.contains("got") ? [i] : []);
+    openCookMode(dayIdx, slotKey, got);
+  });
   // preparar la cocina: tachar los ingredientes que ya tienes a mano (solo
   // mientras la receta está abierta, no se guarda)
   body.querySelectorAll(".ingredient-row").forEach((row) => {

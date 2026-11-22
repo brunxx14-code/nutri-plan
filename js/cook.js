@@ -55,11 +55,12 @@ function onCookVisibility() {
 
 // ---------- Abrir y cerrar ----------
 
-function openCookMode(dayIdx, slotKey) {
+function openCookMode(dayIdx, slotKey, got = []) {
   const info = getRecipeInfo(state.plan[dayIdx][slotKey]);
   cook = {
     recipe: info.recipe, dayIdx, slotKey, factor: dayFactor(dayIdx),
-    idx: 0, timers: {}, got: new Set(), tick: null, wake: null, title: document.title,
+    // los ingredientes que ya tachaste en la receta llegan marcados
+    idx: 0, timers: {}, got: new Set(got), tick: null, wake: null, title: document.title,
     opener: document.activeElement, // al salir, el foco vuelve aquí
   };
   track("modo-cocina");
