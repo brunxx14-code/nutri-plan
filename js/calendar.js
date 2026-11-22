@@ -47,6 +47,8 @@ function calDayLabel(c) {
   const name = new Date(y, mo - 1, d).toLocaleDateString(calLocale(), { weekday: "long", day: "numeric", month: "long" });
   if (c.future) return `${name}: todavía no ha llegado`;
   if (c.done >= MEALS_FOR_STREAK) return `${name}: día cumplido`;
+  // el día con 🧊 lo decía solo el color; ahora también el lector de pantalla
+  if (c.frozen) return `${name}: racha salvada con un protector`;
   if (!c.done) return `${name}: sin comidas`;
   return c.done === 1 ? `${name}: 1 comida` : `${name}: ${c.done} comidas`;
 }
