@@ -260,8 +260,12 @@ function markIngredientsReady(animate = true) {
     next.classList.remove("ready-pop");
     void next.offsetWidth;
     next.classList.add("ready-pop");
+    if (count) { count.classList.remove("all-pop"); void count.offsetWidth; count.classList.add("all-pop"); }
     buzz([8, 40, 8]);
-  } else if (!ready) next.classList.remove("ready-pop");
+  } else if (!ready) {
+    next.classList.remove("ready-pop");
+    if (count) count.classList.remove("all-pop");
+  }
 }
 
 // ---------- Temporizadores ----------

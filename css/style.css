@@ -1347,6 +1347,9 @@ input:focus, select:focus { outline: 2px solid var(--coral); outline-offset: 1px
 .cook-step-text.small { font-size: 24px; }
 .cook-ing-count { margin-top: 6px; font-size: 14px; font-weight: 800; color: var(--muted); transition: color .2s; }
 .cook-ing-count.all { color: var(--green); }
+/* al marcar el último ingrediente, «✅ Todo a mano» da un saltito, como «Empezar →» */
+.cook-ing-count.all-pop { animation: popCheck .35s ease; transform-origin: left center; }
+@media (prefers-reduced-motion: reduce) { .cook-ing-count.all-pop { animation: none; } }
 .cook-ings { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
 .cook-ing {
   display: flex; flex-direction: row; align-items: center; text-align: left; gap: 12px; padding: 12px 14px; border-radius: 16px;
