@@ -40,6 +40,17 @@ function calendarMonth(offset) {
   return { first, lead, cells, onPlan, best };
 }
 
+/* El lector de pantalla oía solo «21»; ahora oye el día y cómo fue,
+   con las mismas palabras que «Tu semana»: «sábado, 21 de noviembre: 2 comidas». */
+function calDayLabel(c) {
+  const [y, mo, d] = c.iso.split("-").map(Number);
+  const name = new Date(y, mo - 1, d).toLocaleDateString(calLocale(), { weekday: "long", day: "numeric", month: "long" });
+  if (c.future) return `${name}: todavía no ha llegado`;
+  if (c.done >= MEALS_FOR_STREAK) return `${name}: día cumplido`;
+  if (!c.done) return `${name}: sin comidas`;
+  return c.done === 1 ? `${name}: 1 comida` : `${name}: ${c.done} comidas`;
+}
+
 function calendarCardHtml() {
   const min = earliestCalOffset();
   calMonthOffset = Math.max(min, Math.min(0, calMonthOffset));
@@ -56,7 +67,7 @@ function calendarCardHtml() {
         ${DAYS.map((_, i) => `<span class="cal-wd">${dayInitial(i)}</span>`).join("")}
         ${"<span></span>".repeat(m.lead)}
         ${m.cells.map((c, i) => `
-          <button type="button" class="cal-day lvl-${c.future ? "f" : c.done} ${c.today ? "today" : ""} ${c.frozen ? "frozen" : ""}" data-iso="${c.iso}" aria-pressed="false" ${c.today ? 'aria-current="date"' : ""} ${c.future ? "disabled" : ""} style="animation-delay:${i * 0.012}s">
+          <button type="button" class="cal-day lvl-${c.future ? "f" : c.done} ${c.today ? "today" : ""} ${c.frozen ? "frozen" : ""}" data-iso="${c.iso}" aria-label="${calDayLabel(c)}" aria-pressed="false" ${c.today ? 'aria-current="date"' : ""} ${c.future ? "disabled" : ""} style="animation-delay:${i * 0.012}s">
             <span>${c.d}</span>${c.off ? '<i class="cal-off" aria-hidden="true"></i>' : ""}
           </button>`).join("")}
       </div>
