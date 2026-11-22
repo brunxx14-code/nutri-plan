@@ -86,7 +86,28 @@ function bindCalendarCard(root) {
   };
   card.querySelector("#cal-prev").addEventListener("click", () => rerender(-1));
   card.querySelector("#cal-next").addEventListener("click", () => rerender(1));
-  card.querySelectorAll(".cal-day[data-iso]").forEach((btn) => {
+  // con teclado los días se recorren con las flechas, como un calendario del sistema:
+  // ← → un día, ↑ ↓ una semana, Inicio y Fin al primero y al último; Tab entra solo en uno
+  const days = [...card.querySelectorAll(".cal-day[data-iso]")];
+  const usable = days.filter((b) => !b.disabled);
+  const rove = (btn) => days.forEach((b) => b.setAttribute("tabindex", b === btn ? "0" : "-1"));
+  rove(usable.find((b) => b.classList.contains("today")) || usable[0]);
+  card.querySelector(".cal-grid").addEventListener("keydown", (e) => {
+    const i = days.indexOf(e.target);
+    if (i < 0 || e.altKey || e.ctrlKey || e.metaKey) return;
+    const step = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 }[e.key];
+    let to = null;
+    if (step) to = days[i + step];
+    else if (e.key === "Home") to = usable[0];
+    else if (e.key === "End") to = usable[usable.length - 1];
+    else return;
+    e.preventDefault();
+    if (!to || to.disabled) return;
+    rove(to);
+    to.focus({ preventScroll: true });
+  });
+  days.forEach((btn) => btn.addEventListener("focus", () => rove(btn)));
+  days.forEach((btn) => {
     btn.addEventListener("click", () => {
       card.querySelectorAll(".cal-day.sel").forEach((b) => { b.classList.remove("sel"); b.setAttribute("aria-pressed", "false"); });
       btn.classList.add("sel");
