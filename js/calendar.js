@@ -85,11 +85,17 @@ function calendarCardHtml() {
 function bindCalendarCard(root) {
   const card = root.querySelector("#cal-card");
   if (!card) return;
-  const rerender = (delta) => {
+  const rerender = (delta, fromDay) => {
     calMonthOffset += delta;
     buzz(6);
     card.outerHTML = calendarCardHtml();
     bindCalendarCard(root);
+    if (fromDay) {
+      // con RePág/AvPág desde un día, el foco pasa al mismo día del otro mes (o al último que haya)
+      const left = [...root.querySelectorAll("#cal-card .cal-day[data-iso]:not(:disabled)")];
+      const to = left.find((b) => Number(b.dataset.iso.slice(8)) === fromDay) || left[left.length - 1];
+      if (to) { to.focus({ preventScroll: true }); return; }
+    }
     // el foco se queda en la flecha que pulsaste; si ya no se puede ir más allá, pasa a la otra
     const same = root.querySelector(delta < 0 ? "#cal-prev" : "#cal-next");
     const other = root.querySelector(delta < 0 ? "#cal-next" : "#cal-prev");
@@ -98,7 +104,7 @@ function bindCalendarCard(root) {
   card.querySelector("#cal-prev").addEventListener("click", () => rerender(-1));
   card.querySelector("#cal-next").addEventListener("click", () => rerender(1));
   // con teclado los días se recorren con las flechas, como un calendario del sistema:
-  // ← → un día, ↑ ↓ una semana, Inicio y Fin al primero y al último; Tab entra solo en uno
+  // ← → un día, ↑ ↓ una semana, Inicio y Fin al primero y al último, RePág y AvPág de mes; Tab entra solo en uno
   const days = [...card.querySelectorAll(".cal-day[data-iso]")];
   const usable = days.filter((b) => !b.disabled);
   const rove = (btn) => days.forEach((b) => b.setAttribute("tabindex", b === btn ? "0" : "-1"));
@@ -111,6 +117,13 @@ function bindCalendarCard(root) {
     if (step) to = days[i + step];
     else if (e.key === "Home") to = usable[0];
     else if (e.key === "End") to = usable[usable.length - 1];
+    else if (e.key === "PageUp" || e.key === "PageDown") {
+      // RePág y AvPág cambian de mes, como ‹ y ›
+      e.preventDefault();
+      const arrow = card.querySelector(e.key === "PageUp" ? "#cal-prev" : "#cal-next");
+      if (!arrow.disabled) rerender(e.key === "PageUp" ? -1 : 1, Number(e.target.dataset.iso.slice(8)));
+      return;
+    }
     else return;
     e.preventDefault();
     if (!to || to.disabled) return;
