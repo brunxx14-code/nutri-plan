@@ -1980,12 +1980,30 @@ function openRecipeSheet(dayIdx, slotKey) {
   document.getElementById("swap-open-btn").addEventListener("click", () => openSwapSheet(dayIdx, slotKey));
   document.getElementById("cook-open-btn").addEventListener("click", () => {
     // lo que ya tachaste en «Ingredientes» sigue tachado en el modo cocina
-    const got = [...body.querySelectorAll(".ingredient-row")].flatMap((row, i) => row.classList.contains("got") ? [i] : []);
-    openCookMode(dayIdx, slotKey, got);
+    const got = ingRows.flatMap((row, i) => row.classList.contains("got") ? [i] : []);
+    // y al volver a la receta, lo que marcaste en el modo cocina sale tachado aquí
+    openCookMode(dayIdx, slotKey, got, (cookGot) => {
+      if (!ingRows[0] || !ingRows[0].isConnected) return; // la hoja ya muestra otra cosa
+      ingRows.forEach((row, i) => {
+        row.classList.toggle("got", cookGot.has(i));
+        row.setAttribute("aria-checked", String(cookGot.has(i)));
+      });
+      updateIngTip();
+    });
   });
   // preparar la cocina: tachar los ingredientes que ya tienes a mano (solo
   // mientras la receta está abierta, no se guarda)
-  body.querySelectorAll(".ingredient-row").forEach((row) => {
+  const ingRows = [...body.querySelectorAll(".ingredient-row")];
+  // con todo a mano, la pista de arriba lo celebra y anima a cocinar
+  const updateIngTip = () => {
+    const tip = body.querySelector(".ing-tip");
+    const all = ingRows.every((x) => x.classList.contains("got"));
+    if (all !== tip.classList.contains("all-got")) {
+      tip.classList.toggle("all-got", all);
+      tip.textContent = all ? "✓ Todo a mano. ¡A cocinar!" : "Toca cada ingrediente cuando lo tengas a mano.";
+    }
+  };
+  ingRows.forEach((row) => {
     actLikeButton(row);
     row.setAttribute("role", "checkbox");
     row.setAttribute("aria-checked", "false");
@@ -1993,14 +2011,7 @@ function openRecipeSheet(dayIdx, slotKey) {
       const on = row.classList.toggle("got");
       row.setAttribute("aria-checked", String(on));
       if (on) buzz(8);
-      // con todo a mano, la pista de arriba lo celebra y anima a cocinar
-      const tip = body.querySelector(".ing-tip");
-      const rows = body.querySelectorAll(".ingredient-row");
-      const all = [...rows].every((x) => x.classList.contains("got"));
-      if (all !== tip.classList.contains("all-got")) {
-        tip.classList.toggle("all-got", all);
-        tip.textContent = all ? "✓ Todo a mano. ¡A cocinar!" : "Toca cada ingrediente cuando lo tengas a mano.";
-      }
+      updateIngTip();
     });
   });
   // cocinar sin el modo cocina: tachar cada paso al terminarlo, para no perderse

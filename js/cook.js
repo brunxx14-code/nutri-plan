@@ -55,12 +55,12 @@ function onCookVisibility() {
 
 // ---------- Abrir y cerrar ----------
 
-function openCookMode(dayIdx, slotKey, got = []) {
+function openCookMode(dayIdx, slotKey, got = [], onClose = null) {
   const info = getRecipeInfo(state.plan[dayIdx][slotKey]);
   cook = {
     recipe: info.recipe, dayIdx, slotKey, factor: dayFactor(dayIdx),
     // los ingredientes que ya tachaste en la receta llegan marcados
-    idx: 0, timers: {}, got: new Set(got), tick: null, wake: null, title: document.title,
+    idx: 0, timers: {}, got: new Set(got), onClose, tick: null, wake: null, title: document.title,
     opener: document.activeElement, // al salir, el foco vuelve aquí
   };
   track("modo-cocina");
@@ -105,7 +105,7 @@ function closeCookMode(opts) {
   // si sales con un temporizador en marcha (sin querer, con ✕, Esc o atrás), el aviso deja volver tal cual
   const finished = opts && opts.finished === true;
   const snap = !finished && Object.values(cook.timers).some((t) => t.running)
-    ? { dayIdx: cook.dayIdx, slotKey: cook.slotKey, recipeId: cook.recipe.id, idx: cook.idx, timers: cook.timers, got: cook.got }
+    ? { dayIdx: cook.dayIdx, slotKey: cook.slotKey, recipeId: cook.recipe.id, idx: cook.idx, timers: cook.timers, got: cook.got, onClose: cook.onClose }
     : null;
   clearInterval(cook.tick);
   if (cook.wake) cook.wake.release().catch(() => {});
@@ -113,8 +113,11 @@ function closeCookMode(opts) {
   document.removeEventListener("keydown", onCookKey);
   const el = document.getElementById("cook");
   const opener = cook.opener;
+  const onClose = cook.onClose;
+  const got = cook.got;
   document.title = cook.title;
   cook = null;
+  if (onClose) onClose(got);
   // el foco vuelve al botón que abrió el modo cocina, si sigue en pantalla
   if (opener && opener.isConnected && opener.offsetParent) {
     try { opener.focus({ preventScroll: true }); } catch (e) { /* sin foco */ }
@@ -131,7 +134,7 @@ function resumeCookMode(snap) {
   if (cook || !state.plan[snap.dayIdx] || state.plan[snap.dayIdx][snap.slotKey] !== snap.recipeId) return;
   const old = document.getElementById("cook");
   if (old) old.remove();
-  openCookMode(snap.dayIdx, snap.slotKey);
+  openCookMode(snap.dayIdx, snap.slotKey, [], snap.onClose);
   cook.timers = snap.timers;
   cook.got = snap.got;
   renderCookStep(snap.idx);
