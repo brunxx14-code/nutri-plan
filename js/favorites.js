@@ -94,7 +94,15 @@ function recipeMatches(recipe, query) {
   if (!query) return true;
   const words = normalizeText(query).split(/\s+/).filter(Boolean);
   const haystack = normalizeText([recipe.name, ...recipe.ingredients.map(([id]) => FOODS[id].name)].join(" "));
-  return words.every((w) => haystack.includes(w));
+  return words.every((w) => wordForms(w).some((f) => haystack.includes(f)));
+}
+
+/* «huevos» también encuentra «huevo» y «tomatoes» encuentra «tomato»: se prueba la palabra sin la -s o la -es del plural. */
+function wordForms(w) {
+  const forms = [w];
+  if (w.length > 3 && w.endsWith("s")) forms.push(w.slice(0, -1));
+  if (w.length > 4 && w.endsWith("es")) forms.push(w.slice(0, -2));
+  return forms;
 }
 
 function recipesForView() {
