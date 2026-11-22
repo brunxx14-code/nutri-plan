@@ -187,9 +187,9 @@ function renderCookStep(idx, dir = "fwd") {
   if (idx === 0) {
     html = `
       <div class="cook-kicker">Antes de empezar</div>
-      <h2 class="cook-step-text small">Prepara los ingredientes</h2>
-      <div class="cook-ing-count" id="cook-ing-count">${cookIngCountText()}</div>
-      <div class="cook-ings">
+      <h2 class="cook-step-text small" id="cook-ing-title">Prepara los ingredientes</h2>
+      <div class="cook-ing-count" id="cook-ing-count" role="status">${cookIngCountText()}</div>
+      <div class="cook-ings" role="group" aria-labelledby="cook-ing-title">
         ${cook.recipe.ingredients.map(([id, qty], i) => {
           const food = FOODS[id];
           // lo que ya marcaste sigue marcado si vuelves a este paso
