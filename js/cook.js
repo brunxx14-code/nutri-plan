@@ -99,8 +99,13 @@ function openCookMode(dayIdx, slotKey) {
   try { el.querySelector("#cook-next").focus({ preventScroll: true }); } catch (e) { /* sin foco */ }
 }
 
-function closeCookMode() {
+function closeCookMode(opts) {
   if (!cook) return;
+  // si sales con un temporizador en marcha (sin querer, con ✕, Esc o atrás), el aviso deja volver tal cual
+  const finished = opts && opts.finished === true;
+  const snap = !finished && Object.values(cook.timers).some((t) => t.running)
+    ? { dayIdx: cook.dayIdx, slotKey: cook.slotKey, recipeId: cook.recipe.id, idx: cook.idx, timers: cook.timers, got: cook.got }
+    : null;
   clearInterval(cook.tick);
   if (cook.wake) cook.wake.release().catch(() => {});
   document.removeEventListener("visibilitychange", onCookVisibility);
@@ -113,9 +118,24 @@ function closeCookMode() {
   if (opener && opener.isConnected && opener.offsetParent) {
     try { opener.focus({ preventScroll: true }); } catch (e) { /* sin foco */ }
   }
+  if (snap) showToast("⏱️ Temporizador parado", { label: "Volver", run: () => resumeCookMode(snap) });
   if (!el) return;
   el.classList.remove("open");
   setTimeout(() => el.remove(), 280);
+}
+
+/* «Volver» tras salir con un temporizador en marcha: el mismo paso, los mismos
+   temporizadores (siguen contando desde donde iban) y los ingredientes marcados. */
+function resumeCookMode(snap) {
+  if (cook || !state.plan[snap.dayIdx] || state.plan[snap.dayIdx][snap.slotKey] !== snap.recipeId) return;
+  const old = document.getElementById("cook");
+  if (old) old.remove();
+  openCookMode(snap.dayIdx, snap.slotKey);
+  cook.timers = snap.timers;
+  cook.got = snap.got;
+  renderCookStep(snap.idx);
+  announceCookStep(snap.idx);
+  tickCookTimers();
 }
 
 // ---------- Pasos ----------
@@ -408,7 +428,7 @@ function finishCooking() {
   const entry = state.daily[todayIso()];
   const alreadyEaten = entry && entry.eaten && entry.eaten[slotKey];
   track("receta-cocinada");
-  closeCookMode();
+  closeCookMode({ finished: true });
   closeSheet();
   if (isToday && !alreadyEaten) {
     showView("dashboard");

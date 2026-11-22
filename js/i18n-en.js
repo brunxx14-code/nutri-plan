@@ -362,6 +362,8 @@ I18N.en = {
     "¡Listo!": "Done!",
     "Antes de empezar": "Before you start",
     "✅ Todo a mano": "✅ All at hand",
+    "⏱️ Temporizador parado": "⏱️ Timer stopped",
+    "Volver": "Go back",
     "Prepara los ingredientes": "Get your ingredients ready",
     "Ingredientes": "Ingredients",
     "Pasos": "Steps",

@@ -2,7 +2,7 @@
    Primero intenta la red (así los probadores siempre ven la última versión)
    y, si no hay conexión, sirve la copia guardada. */
 
-const CACHE = "nutriplan-v145";
+const CACHE = "nutriplan-v146";
 const APP_SHELL = [
   "./",
   "index.html",
