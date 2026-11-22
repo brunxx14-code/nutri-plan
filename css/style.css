@@ -570,6 +570,7 @@ input:focus, select:focus { outline: 2px solid var(--coral); outline-offset: 1px
 /* ---------- Cambiar plato ---------- */
 .swap-open-btn { margin: 4px 0 8px; }
 .portion-hint { margin: 0 0 8px; }
+.swap-current { margin: 6px 0 0; font-size: 13px; font-weight: 700; color: var(--muted); }
 .swap-list { display: flex; flex-direction: column; gap: 8px; margin: 14px 0; }
 .swap-option {
   display: flex; justify-content: space-between; align-items: center; gap: 12px; text-align: left;

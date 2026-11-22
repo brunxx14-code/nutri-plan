@@ -2012,6 +2012,8 @@ function openSwapSheet(dayIdx, slotKey) {
   const slotLabel = MEAL_SLOTS.find((s) => s.key === slotKey).label;
   const currentId = state.plan[dayIdx][slotKey];
   const factor = dayFactor(dayIdx);
+  // lo que tiene el plato de ahora, para comparar de un vistazo con cada opción
+  const current = getRecipeInfo(currentId);
   const options = swapAlternatives(currentId, state.profile)
     .sort((a, b) => isFavorite(b.recipe.id) - isFavorite(a.recipe.id));
   const body = document.getElementById("sheet-body");
@@ -2019,6 +2021,7 @@ function openSwapSheet(dayIdx, slotKey) {
     <span class="tag">${slotLabel} · ${DAYS[dayIdx]}</span>
     <h3>Cambiar ${getRecipeInfo(currentId).recipe.name.toLowerCase()}</h3>
     <p class="hint">Mismo tipo de plato, macros parecidos. La ración se ajusta sola.</p>
+    <p class="swap-current">Ahora: ${Math.round(current.prot * factor)} g prot · ${euro(current.cost * factor)} €${recipeCookMins(current.recipe) ? ` · ⏱\u00a0${recipeCookMins(current.recipe)}\u00a0min` : ""}</p>
     ${options.length ? `<div class="swap-list">
       ${options.map((info) => `
         <button type="button" class="swap-option" data-recipe="${info.recipe.id}">

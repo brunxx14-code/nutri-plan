@@ -500,6 +500,8 @@ I18N.en = {
     // Plan y recetas
     "Destacado · {cat}": "Featured · {cat}",
     "Cantidades ajustadas a tus calorías (×{n} la ración estándar).": "Quantities adjusted to your calories (×{n} the standard portion).",
+    "Ahora: {a} g prot · {b} € · ⏱\u00a0{c}\u00a0min": "Now: {a} g prot · €{b} · ⏱\u00a0{c}\u00a0min",
+    "Ahora: {a} g prot · {b} €": "Now: {a} g prot · €{b}",
     "{a} g prot · {b} €": "{a} g prot · €{b}",
     "{a} g prot · {b} € · ⏱ {c} min": "{a} g prot · €{b} · ⏱ {c} min",
     "{a} g prot · {b} € · ⏱\u00a0{c}\u00a0min": "{a} g prot · €{b} · ⏱\u00a0{c}\u00a0min",
