@@ -577,6 +577,9 @@ I18N.en = {
 
     "Paso {a} de {b}": "Step {a} of {b}",
     "{a} de {b} a mano": "{a} of {b} at hand",
+    // antes que «Paso {n}», que si no se queda con todo lo que va detrás
+    "Paso {n}, temporizador en marcha": "Step {n}, timer running",
+    "Paso {n}, tiempo cumplido": "Step {n}, time's up",
     "Paso {n}": "Step {n}",
     "Iniciar {n} min": "Start {n} min",
     "¡Tiempo! Paso {n} listo": "Time's up! Step {n} done",

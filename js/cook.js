@@ -173,8 +173,10 @@ function renderCookDots() {
   dots.innerHTML = Array.from({ length: totalCookSteps() }, (_, i) => {
     const t = cook.timers[i];
     const cls = [i === cook.idx ? "now" : "", i < cook.idx ? "done" : "", t && t.running ? "timing" : ""].join(" ");
-    // el punto del paso actual lo anuncia el lector de pantalla («paso actual»)
-    return `<button type="button" class="cook-dot ${cls}" data-step="${i}" aria-label="${i === 0 ? "Ingredientes" : `Paso ${i}`}"${i === cook.idx ? ` aria-current="step"` : ""}></button>`;
+    // el punto del paso actual lo anuncia el lector de pantalla («paso actual»), y el
+    // de un paso con temporizador dice si está contando o ya ha sonado, como su color
+    const name = i === 0 ? "Ingredientes" : t && t.running ? `Paso ${i}, temporizador en marcha` : t && t.rang ? `Paso ${i}, tiempo cumplido` : `Paso ${i}`;
+    return `<button type="button" class="cook-dot ${cls}" data-step="${i}" aria-label="${name}"${i === cook.idx ? ` aria-current="step"` : ""}></button>`;
   }).join("");
   dots.querySelectorAll("[data-step]").forEach((b) => b.addEventListener("click", () => goCookStep(Number(b.dataset.step))));
 }
