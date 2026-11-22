@@ -470,6 +470,8 @@ I18N.en = {
     "{d}: todavía no ha llegado": "{d}: still to come",
     "{d}: día cumplido": "{d}: day on plan",
     "{d}: racha salvada con un protector": "{d}: streak saved with a freeze",
+    "Mes anterior: {m}": "Previous month: {m}",
+    "Mes siguiente: {m}": "Next month: {m}",
     "{d}: sin comidas": "{d}: no meals",
     "{d}: 1 comida": "{d}: 1 meal",
     "{d}: {n} comidas": "{d}: {n} meals",

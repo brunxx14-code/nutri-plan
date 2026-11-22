@@ -58,12 +58,16 @@ function calendarCardHtml() {
   calMonthOffset = Math.max(min, Math.min(0, calMonthOffset));
   const m = calendarMonth(calMonthOffset);
   const title = m.first.toLocaleDateString(calLocale(), { month: "long", year: "numeric" });
+  // las flechas dicen a qué mes llevan, «Mes anterior: octubre de 2026», no solo «Mes anterior»
+  const monthName = (delta) => new Date(m.first.getFullYear(), m.first.getMonth() + delta, 1).toLocaleDateString(calLocale(), { month: "long", year: "numeric" });
+  const prevLabel = calMonthOffset <= min ? "Mes anterior" : `Mes anterior: ${monthName(-1)}`;
+  const nextLabel = calMonthOffset >= 0 ? "Mes siguiente" : `Mes siguiente: ${monthName(1)}`;
   return `
     <div class="cal-card" id="cal-card">
       <div class="cal-head">
-        <button type="button" class="cal-nav" id="cal-prev" aria-label="Mes anterior" ${calMonthOffset <= min ? "disabled" : ""}>‹</button>
+        <button type="button" class="cal-nav" id="cal-prev" aria-label="${prevLabel}" ${calMonthOffset <= min ? "disabled" : ""}>‹</button>
         <div class="cal-title">🗓️ <span class="cal-month">${title}</span></div>
-        <button type="button" class="cal-nav" id="cal-next" aria-label="Mes siguiente" ${calMonthOffset >= 0 ? "disabled" : ""}>›</button>
+        <button type="button" class="cal-nav" id="cal-next" aria-label="${nextLabel}" ${calMonthOffset >= 0 ? "disabled" : ""}>›</button>
       </div>
       <div class="cal-grid">
         ${DAYS.map((_, i) => `<span class="cal-wd">${dayInitial(i)}</span>`).join("")}
