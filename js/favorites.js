@@ -124,7 +124,12 @@ function recipesForView() {
 
 function recipesResultsHtml(list, today, factor) {
   const { tab, query } = recipesSheetView;
-  if (!list.length) return `<p class="hint fav-none">${tab === "all" && query ? "No hay recetas que coincidan con tu búsqueda." : "No hay recetas de este tipo."}</p>${tab === "all" && query ? `<button type="button" class="chip-btn small" id="recipe-search-clear">✕ Borrar búsqueda</button>` : ""}`;
+  if (!list.length) {
+    // con un tipo de plato elegido, la búsqueda puede tener recetas en otros tipos («pollo» en Desayunos)
+    const elsewhere = tab === "all" && query && recipesSheetView.filter !== "all"
+      ? RECIPES.filter((r) => matchesProfile(r, state.profile) && recipeMatches(r, query)).length : 0;
+    return `<p class="hint fav-none">${tab === "all" && query ? "No hay recetas que coincidan con tu búsqueda." : "No hay recetas de este tipo."}</p>${elsewhere ? `<button type="button" class="chip-btn small" id="recipe-search-anytype">${elsewhere === 1 ? "Ver 1 en todos los tipos de plato" : `Ver ${elsewhere} en todos los tipos de plato`}</button>` : ""}${tab === "all" && query ? `<button type="button" class="chip-btn small" id="recipe-search-clear">✕ Borrar búsqueda</button>` : ""}`;
+  }
   return `
     ${tab === "fav" ? `<p class="hint">Salen más a menudo cuando regeneras el plan. También puedes ponerlas hoy mismo.</p>` : `<p class="hint">${list.length === 1 ? "1 receta que encaja con tu dieta. Guárdala con el corazón si te gusta." : `${list.length} recetas que encajan con tu dieta. Guarda las que te gusten con el corazón.`}</p>`}
     <div class="fav-list">${list.map((info) => recipeListItemHtml(info, today, factor)).join("")}</div>`;
@@ -240,6 +245,8 @@ function rerenderRecipesSheet(view, focusSelector) {
 }
 
 function bindRecipeResults(root, today) {
+  const anyType = root.querySelector("#recipe-search-anytype");
+  if (anyType) anyType.addEventListener("click", () => rerenderRecipesSheet({ filter: "all" }, '[data-filter="all"]'));
   const clear = root.querySelector("#recipe-search-clear");
   if (clear) clear.addEventListener("click", () => {
     const search = document.getElementById("recipe-search");

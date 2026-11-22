@@ -1428,6 +1428,8 @@ input:focus, select:focus { outline: 2px solid var(--coral); outline-offset: 1px
 .fav-empty .btn { margin-top: 14px; }
 .fav-none { text-align: center; padding: 20px 0; }
 #recipe-search-clear { display: block; margin: -8px auto 16px; }
+#recipe-search-anytype { display: block; margin: -8px auto 10px; }
+#recipe-search-anytype + #recipe-search-clear { margin-top: 0; }
 
 /* ---------- Calendario del mes ---------- */
 .cal-card { background: var(--card); border: 1px solid var(--border); border-radius: 24px; padding: 16px; margin-bottom: 16px; box-shadow: var(--shadow, 0 6px 20px rgba(0,0,0,.05)); }
