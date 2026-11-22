@@ -361,6 +361,7 @@ I18N.en = {
     "Empezar →": "Start →",
     "¡Listo!": "Done!",
     "Antes de empezar": "Before you start",
+    "✅ Todo a mano": "✅ All at hand",
     "Prepara los ingredientes": "Get your ingredients ready",
     "Ingredientes": "Ingredients",
     "Pasos": "Steps",
@@ -570,6 +571,7 @@ I18N.en = {
     "/{n} días cumplidos": "/{n} days on plan",
 
     "Paso {a} de {b}": "Step {a} of {b}",
+    "{a} de {b} a mano": "{a} of {b} at hand",
     "Paso {n}": "Step {n}",
     "Iniciar {n} min": "Start {n} min",
     "¡Tiempo! Paso {n} listo": "Time's up! Step {n} done",

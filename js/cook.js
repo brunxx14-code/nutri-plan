@@ -164,6 +164,7 @@ function renderCookStep(idx, dir = "fwd") {
     html = `
       <div class="cook-kicker">Antes de empezar</div>
       <h2 class="cook-step-text small">Prepara los ingredientes</h2>
+      <div class="cook-ing-count" id="cook-ing-count">${cookIngCountText()}</div>
       <div class="cook-ings">
         ${cook.recipe.ingredients.map(([id, qty], i) => {
           const food = FOODS[id];
@@ -212,12 +213,23 @@ function renderCookStep(idx, dir = "fwd") {
   markIngredientsReady(false);
 }
 
+/* «2 de 5 a mano»: cuántos ingredientes llevas reunidos; con todos, «✅ Todo a mano». */
+function cookIngCountText() {
+  const total = cook.recipe.ingredients.length;
+  return cook.got.size === total ? "✅ Todo a mano" : `${cook.got.size} de ${total} a mano`;
+}
+
 /* Con todos los ingredientes marcados, «Empezar →» se pone verde y da un
    pequeño salto, para que se vea que ya puedes ponerte a cocinar. */
 function markIngredientsReady(animate = true) {
   const next = document.getElementById("cook-next");
   if (!next || !cook) return;
   const ready = cook.idx === 0 && cook.got.size === cook.recipe.ingredients.length;
+  const count = document.getElementById("cook-ing-count");
+  if (count) {
+    count.textContent = cookIngCountText();
+    count.classList.toggle("all", ready);
+  }
   const was = next.classList.contains("ready");
   next.classList.toggle("ready", ready);
   if (ready && !was && animate) {
