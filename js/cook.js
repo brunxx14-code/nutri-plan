@@ -291,7 +291,7 @@ function paintCookTimer(box) {
   const mins = Number(box.dataset.mins);
   const t = cook.timers[cook.idx];
   if (!t) {
-    box.innerHTML = `<button type="button" class="cook-timer-start" id="cook-timer-start">⏱️ Iniciar ${mins} min</button>`;
+    box.innerHTML = `<button type="button" class="cook-timer-start" id="cook-timer-start" aria-keyshortcuts="t">⏱️ Iniciar ${mins} min</button>`;
     box.querySelector("#cook-timer-start").addEventListener("click", () => {
       cook.timers[cook.idx] = { total: mins * 60000, end: Date.now() + mins * 60000, running: true, left: 0, rang: false };
       buzz(10);
@@ -313,7 +313,7 @@ function paintCookTimer(box) {
       <div class="cook-clock" id="cook-clock">${t.rang ? "⏰" : formatClock(timerLeft(t))}</div>
     </div>
     <div class="cook-timer-btns">
-      ${t.rang ? "" : `<button type="button" class="chip-btn" id="cook-timer-toggle">${t.running ? "⏸️ Pausar" : "▶️ Seguir"}</button>`}
+      ${t.rang ? "" : `<button type="button" class="chip-btn" id="cook-timer-toggle" aria-keyshortcuts="t">${t.running ? "⏸️ Pausar" : "▶️ Seguir"}</button>`}
       <button type="button" class="chip-btn" id="cook-timer-reset">↺ Reiniciar</button>
     </div>`;
   const toggle = box.querySelector("#cook-timer-toggle");
@@ -384,7 +384,7 @@ function updateCookTitle() {
 // ---------- Gestos y final ----------
 
 /* Con teclado (o un mando bluetooth): flechas para pasar de paso, Inicio y Fin
-   para ir al principio o al final, Esc para salir. */
+   para ir al principio o al final, T para el temporizador, Esc para salir. */
 function onCookKey(e) {
   if (!cook || e.altKey || e.ctrlKey || e.metaKey) return;
   // en un campo de texto las teclas son para escribir; una casilla de ingrediente no lo es, así que Esc, Tab y las flechas siguen funcionando
@@ -400,6 +400,10 @@ function onCookKey(e) {
     e.preventDefault();
     const target = e.key === "Home" ? 0 : totalCookSteps() - 1;
     if (target !== cook.idx) goCookStep(target);
+  } else if (e.key === "t" || e.key === "T") {
+    // T inicia, pausa o sigue el temporizador del paso, sin tener que llegar al botón
+    const btn = document.querySelector("#cook-timer-start, #cook-timer-toggle");
+    if (btn) { e.preventDefault(); btn.click(); }
   } else if (e.key === "Escape") {
     e.preventDefault();
     closeCookMode();
