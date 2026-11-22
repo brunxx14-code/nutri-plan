@@ -77,14 +77,15 @@ function calendarCardHtml() {
         <button type="button" class="cal-nav" id="cal-next" aria-label="${nextLabel}" ${calMonthOffset >= 0 ? "disabled" : ""}>›</button>
       </div>
       <div class="cal-grid">
-        ${DAYS.map((_, i) => `<span class="cal-wd">${dayInitial(i)}</span>`).join("")}
+        ${DAYS.map((_, i) => `<span class="cal-wd" aria-hidden="true">${dayInitial(i)}</span>`).join("")}
         ${"<span></span>".repeat(m.lead)}
         ${m.cells.map((c, i) => `
           <button type="button" class="cal-day lvl-${c.future ? "f" : c.done} ${c.today ? "today" : ""} ${c.frozen ? "frozen" : ""}" data-iso="${c.iso}" aria-label="${calDayLabel(c)}" aria-pressed="false" ${c.today ? 'aria-current="date"' : ""} ${c.future ? "disabled" : ""} style="animation-delay:${i * 0.012}s">
             <span>${c.d}</span>${c.off ? '<i class="cal-off" aria-hidden="true"></i>' : ""}
           </button>`).join("")}
       </div>
-      <div class="cal-legend">
+      <!-- la leyenda y las iniciales solo sirven a la vista: cada día ya dice su fecha y cómo fue -->
+      <div class="cal-legend" aria-hidden="true">
         <span>Menos</span>${[0, 1, 2, 3, 4].map((l) => `<i class="cal-swatch lvl-${l}"></i>`).join("")}<span>Más</span>
       </div>
       <div class="cal-detail" id="cal-detail" aria-live="polite">Toca un día para ver el detalle</div>
