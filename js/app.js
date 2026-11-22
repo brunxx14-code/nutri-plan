@@ -1949,7 +1949,7 @@ function openRecipeSheet(dayIdx, slotKey) {
     <div class="macro-tiles">
       <div class="macro-tile kcal"><b>${Math.round(info.kcal * factor)}</b><span>🔥 kcal</span></div>
       <div class="macro-tile prot"><b>${Math.round(info.prot * factor)} g</b><span>🍗 prot</span></div>
-      <div class="macro-tile carbs"><b>${Math.round(info.carbs * factor)} g</b><span>🌾 carbs</span></div>
+      <div class="macro-tile carbs"><b>${Math.round(info.carbs * factor)} g</b><span>🌾 hidratos</span></div>
       <div class="macro-tile fat"><b>${Math.round(info.fat * factor)} g</b><span>🥑 grasa</span></div>
       <div class="macro-tile cost"><b>${euroLabel(info.cost * factor)}</b><span>🛒 coste</span></div>
     </div>

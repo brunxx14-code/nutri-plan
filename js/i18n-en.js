@@ -186,6 +186,7 @@ I18N.en = {
     "kcal": "kcal",
     "prot": "prot",
     "carbs": "carbs",
+    "hidratos": "carbs",
     "grasa": "fat",
     "No hay otros platos de este tipo que encajen con tu dieta y tus gustos.": "There are no other dishes of this type that fit your diet and tastes.",
     "Mismo tipo de plato, macros parecidos. La ración se ajusta sola.": "Same type of dish, similar macros. The portion adjusts itself.",
