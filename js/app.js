@@ -1973,6 +1973,7 @@ function openRecipeSheet(dayIdx, slotKey) {
     </div>
     <div class="sheet-section">
       <h4>Preparación${cookMins ? ` <span class="prep-time">⏱ ${cookMins} min de cocción</span>` : ""}</h4>
+      <p class="hint steps-tip">Toca cada paso al terminarlo.</p>
       <ol class="steps-list">${r.steps.map((s) => `<li>${s}</li>`).join("")}</ol>
     </div>
   `;
@@ -1996,6 +1997,18 @@ function openRecipeSheet(dayIdx, slotKey) {
         tip.classList.toggle("all-got", all);
         tip.textContent = all ? "✓ Todo a mano. ¡A cocinar!" : "Toca cada ingrediente cuando lo tengas a mano.";
       }
+    });
+  });
+  // cocinar sin el modo cocina: tachar cada paso al terminarlo, para no perderse
+  // al volver a la receta (solo mientras está abierta, no se guarda)
+  body.querySelectorAll(".steps-list li").forEach((li) => {
+    actLikeButton(li);
+    li.setAttribute("role", "checkbox");
+    li.setAttribute("aria-checked", "false");
+    li.addEventListener("click", () => {
+      const on = li.classList.toggle("done");
+      li.setAttribute("aria-checked", String(on));
+      if (on) buzz(8);
     });
   });
   bindFavButtons(body);
