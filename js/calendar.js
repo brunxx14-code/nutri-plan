@@ -43,6 +43,13 @@ function calendarMonth(offset) {
 /* El lector de pantalla oía solo «21»; ahora oye el día y cómo fue,
    con las mismas palabras que «Tu semana»: «sábado, 21 de noviembre: 2 comidas». */
 function calDayLabel(c) {
+  // el puntito ámbar de comidas fuera del plan solo se veía; ahora también se oye
+  const base = calDayStatus(c);
+  if (!c.off) return base;
+  return c.off === 1 ? `${base} · 1 fuera del plan` : `${base} · ${c.off} fuera del plan`;
+}
+
+function calDayStatus(c) {
   const [y, mo, d] = c.iso.split("-").map(Number);
   const name = new Date(y, mo - 1, d).toLocaleDateString(calLocale(), { weekday: "long", day: "numeric", month: "long" });
   if (c.future) return `${name}: todavía no ha llegado`;
