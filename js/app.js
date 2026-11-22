@@ -1958,7 +1958,7 @@ function openRecipeSheet(dayIdx, slotKey) {
     <div class="why-block why-short"><p>💡 ${whySentences[0]}</p></div>
     <div class="sheet-section">
       <h4>Ingredientes (tu ración)</h4>
-      <p class="hint ing-tip">Toca cada ingrediente cuando lo tengas a mano.</p>
+      <p class="hint ing-tip" role="status">Toca cada ingrediente cuando lo tengas a mano.</p>
       ${Math.abs(factor - 1) >= 0.05 ? `<p class="hint portion-hint">Cantidades ajustadas a tus calorías (×${localDecimal(factor.toFixed(2))} la ración estándar).</p>` : ""}
       ${r.ingredients.map(([id, qty]) => {
         const food = FOODS[id];
@@ -1973,7 +1973,7 @@ function openRecipeSheet(dayIdx, slotKey) {
     </div>
     <div class="sheet-section">
       <h4>Preparación${cookMins ? ` <span class="prep-time">⏱ ${cookMins} min de cocción</span>` : ""}</h4>
-      <p class="hint steps-tip">Toca cada paso al terminarlo.</p>
+      <p class="hint steps-tip" role="status">Toca cada paso al terminarlo.</p>
       <ol class="steps-list">${r.steps.map((s) => `<li>${s}</li>`).join("")}</ol>
     </div>
   `;
