@@ -381,7 +381,8 @@ function updateCookTitle() {
    para ir al principio o al final, Esc para salir. */
 function onCookKey(e) {
   if (!cook || e.altKey || e.ctrlKey || e.metaKey) return;
-  if (e.target && e.target.closest && e.target.closest("input, textarea, select")) return;
+  // en un campo de texto las teclas son para escribir; una casilla de ingrediente no lo es, así que Esc, Tab y las flechas siguen funcionando
+  if (e.target && e.target.closest && e.target.closest("textarea, select, input:not([type='checkbox']):not([type='radio'])")) return;
   if (e.key === "ArrowRight" || e.key === "PageDown") {
     e.preventDefault();
     if (cook.idx < totalCookSteps() - 1) goCookStep(cook.idx + 1);
