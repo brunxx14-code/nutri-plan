@@ -2009,6 +2009,14 @@ function openRecipeSheet(dayIdx, slotKey) {
       const on = li.classList.toggle("done");
       li.setAttribute("aria-checked", String(on));
       if (on) buzz(8);
+      // con todos los pasos tachados, la pista de arriba lo celebra
+      const tip = body.querySelector(".steps-tip");
+      const all = [...body.querySelectorAll(".steps-list li")].every((x) => x.classList.contains("done"));
+      if (all !== tip.classList.contains("all-got")) {
+        tip.classList.toggle("all-got", all);
+        tip.textContent = all ? "✓ Receta terminada. ¡Que aproveche!" : "Toca cada paso al terminarlo.";
+        if (all) buzz([10, 40, 10]);
+      }
     });
   });
   bindFavButtons(body);

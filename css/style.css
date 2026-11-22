@@ -768,8 +768,8 @@ input:focus, select:focus { outline: 2px solid var(--coral); outline-offset: 1px
 .ing-emoji { font-size: 20px; width: 34px; height: 34px; border-radius: 10px; background: var(--bg); display: flex; align-items: center; justify-content: center; flex: none; }
 .ing-text { flex: 1; min-width: 0; }
 .ing-tip { margin: -2px 0 4px; }
-.ing-tip.all-got { color: var(--green-dark); font-weight: 600; animation: popCheck .35s ease; transform-origin: left center; display: inline-block; }
-@media (prefers-reduced-motion: reduce) { .ing-tip.all-got { animation: none; } }
+.ing-tip.all-got, .steps-tip.all-got { color: var(--green-dark); font-weight: 600; animation: popCheck .35s ease; transform-origin: left center; display: inline-block; }
+@media (prefers-reduced-motion: reduce) { .ing-tip.all-got, .steps-tip.all-got { animation: none; } }
 .ingredient-row { cursor: pointer; border-radius: 10px; transition: opacity .25s; -webkit-tap-highlight-color: transparent; }
 .ingredient-row:focus-visible { outline: 2px solid var(--coral); outline-offset: 2px; }
 .ingredient-row .ing-emoji { position: relative; transition: transform .25s; }

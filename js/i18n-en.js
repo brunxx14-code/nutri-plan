@@ -183,6 +183,7 @@ I18N.en = {
     "✓ Todo a mano. ¡A cocinar!": "✓ All set. Time to cook!",
     "Preparación": "Method",
     "Toca cada paso al terminarlo.": "Tap each step once it's done.",
+    "✓ Receta terminada. ¡Que aproveche!": "✓ Recipe done. Enjoy your meal!",
     "coste": "cost",
     "kcal": "kcal",
     "prot": "prot",
