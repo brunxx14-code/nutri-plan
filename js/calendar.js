@@ -69,6 +69,7 @@ function calendarCardHtml() {
   const monthName = (delta) => new Date(m.first.getFullYear(), m.first.getMonth() + delta, 1).toLocaleDateString(calLocale(), { month: "long", year: "numeric" });
   const prevLabel = calMonthOffset <= min ? "Mes anterior" : `Mes anterior: ${monthName(-1)}`;
   const nextLabel = calMonthOffset >= 0 ? "Mes siguiente" : `Mes siguiente: ${monthName(1)}`;
+  // «1 día cumplido», no «1 días cumplidos» (en inglés, «1 day on plan»)
   return `
     <div class="cal-card" id="cal-card">
       <div class="cal-head">
@@ -90,7 +91,7 @@ function calendarCardHtml() {
       </div>
       <div class="cal-detail" id="cal-detail" aria-live="polite">Toca un día para ver el detalle</div>
       <div class="cal-stats">
-        <div><b>${m.onPlan}</b><span>días cumplidos</span></div>
+        <div><b>${m.onPlan}</b><span>${m.onPlan === 1 ? "día cumplido" : "días cumplidos"}</span></div>
         <div><b>${m.best}</b><span>mejor racha</span></div>
       </div>
     </div>`;

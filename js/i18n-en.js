@@ -399,7 +399,7 @@ I18N.en = {
     "Mes anterior": "Previous month", "Mes siguiente": "Next month",
     "Menos": "Less", "Más": "More",
     "Toca un día para ver el detalle": "Tap a day to see the details",
-    "días cumplidos": "days on plan", "mejor racha": "best streak",
+    "días cumplidos": "days on plan", "día cumplido": "day on plan", "mejor racha": "best streak",
     // Ahora toca
     "Empieza el día con energía": "Start the day with energy",
     "La comida fuerte del día": "The main meal of the day",
