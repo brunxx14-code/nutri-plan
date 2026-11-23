@@ -56,6 +56,7 @@ function floatXp(amount, anchor) {
   const shellBox = shell.getBoundingClientRect();
   const el = document.createElement("span");
   el.className = "xp-float";
+  el.setAttribute("aria-hidden", "true");
   el.textContent = `+${amount} XP`;
   el.style.left = `${box.left - shellBox.left + box.width / 2}px`;
   el.style.top = `${box.top - shellBox.top}px`;
@@ -117,30 +118,43 @@ function nextCelebration() {
   celebrating = true;
   const el = document.createElement("div");
   el.className = `celebrate celebrate-${item.type}`;
-  el.innerHTML = item.type === "level" ? `
+  // zona de aviso: el lector de pantalla lee el logro o el nivel nuevo al salir
+  // (el contenido se pone un instante después para que se anuncie)
+  el.setAttribute("role", "status");
+  const html = item.type === "level" ? `
       <div class="celebrate-card">
         <div class="celebrate-kicker">¡Subes de nivel!</div>
-        <div class="celebrate-emoji">${item.level.emoji}</div>
+        <div class="celebrate-emoji" aria-hidden="true">${item.level.emoji}</div>
         <div class="celebrate-title">Nivel ${item.idx + 1} · ${item.level.name}</div>
         <p class="celebrate-sub">${item.next ? `Siguiente: ${item.next.emoji} ${item.next.name} a ${item.next.xp} XP` : "Has llegado a lo más alto 👑"}</p>
         <button type="button" class="btn block">¡Vamos!</button>
       </div>` : `
       <div class="celebrate-card">
         <div class="celebrate-kicker">¡Logro desbloqueado!</div>
-        <div class="celebrate-emoji">${item.badge.emoji}</div>
+        <div class="celebrate-emoji" aria-hidden="true">${item.badge.emoji}</div>
         <div class="celebrate-title">${item.badge.name}</div>
         <p class="celebrate-sub">${item.badge.desc}</p>
         <button type="button" class="btn block">Genial</button>
       </div>`;
   document.getElementById("app-shell").appendChild(el);
+  requestAnimationFrame(() => { el.innerHTML = html; });
   burstConfetti();
   buzz(25);
+  // Esc la cierra, como tocarla, sin cerrar también la hoja que haya debajo
+  const onKey = (e) => {
+    if (e.key !== "Escape") return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    close();
+  };
   const close = () => {
     if (el.classList.contains("hide")) return;
+    document.removeEventListener("keydown", onKey, true);
     el.classList.add("hide");
     setTimeout(() => { el.remove(); nextCelebration(); }, 300);
   };
   el.addEventListener("click", close);
+  document.addEventListener("keydown", onKey, true);
   setTimeout(close, item.type === "level" ? 5000 : 3500);
 }
 
@@ -149,7 +163,7 @@ function nextCelebration() {
 function levelChipHtml() {
   const { idx, level, pct } = levelFor(state.xp);
   return `
-    <button type="button" class="level-chip" id="level-chip">
+    <button type="button" class="level-chip" id="level-chip" aria-label="Ver tus logros: nivel ${idx + 1}, ${state.xp} XP">
       <span class="level-emoji">${level.emoji}</span>
       <span class="level-text">Nv. ${idx + 1}</span>
       <span class="level-bar"><i style="width:${Math.round(pct * 100)}%"></i></span>
@@ -163,6 +177,7 @@ function updateLevelChip() {
   chip.querySelector(".level-emoji").textContent = level.emoji;
   chip.querySelector(".level-text").textContent = `Nv. ${idx + 1}`;
   chip.querySelector(".level-bar i").style.width = `${Math.round(pct * 100)}%`;
+  chip.setAttribute("aria-label", `Ver tus logros: nivel ${idx + 1}, ${state.xp} XP`);
   chip.classList.remove("pop");
   void chip.offsetWidth;
   chip.classList.add("pop");
@@ -181,8 +196,9 @@ function badgeShelfHtml() {
       <div class="badge-grid">
         ${BADGES.map((b, i) => `
           <div class="badge ${state.badges[b.id] ? "won" : "locked"}" style="animation-delay:${i * 0.04}s">
-            <span class="badge-emoji">${state.badges[b.id] ? b.emoji : "🔒"}</span>
+            <span class="badge-emoji" aria-hidden="true">${state.badges[b.id] ? b.emoji : "🔒"}</span>
             <span class="badge-name">${b.name}</span>
+            <span class="sr-only">${state.badges[b.id] ? "Conseguido" : "Por conseguir"}</span>
             <span class="badge-desc">${b.desc}</span>
           </div>`).join("")}
       </div>
@@ -238,7 +254,9 @@ function checkChallenge() {
   const entry = dailyEntry();
   const card = document.getElementById("challenge-card");
   const [done, goal] = todayChallenge().progress(entry);
+  let justCompleted = false;
   if (!entry.challengeDone && done >= goal) {
+    justCompleted = true;
     entry.challengeDone = true;
     saveState();
     track(`reto-${todayChallenge().id}`);
@@ -246,11 +264,17 @@ function checkChallenge() {
     showToast("🎯 ¡Reto del día superado!");
     if (bumpCounter("challenges") >= 3) unlockBadge("retador");
   }
-  if (card) {
-    card.outerHTML = challengeCardHtml();
-    const fresh = document.getElementById("challenge-card");
-    if (entry.challengeDone && done >= goal && fresh) fresh.classList.add("just-done");
+  if (!card) return;
+  // si el reto sigue a medias, solo se mueve la barra (así se ve avanzar con su transición)
+  if (!justCompleted && card.classList.contains("complete") === !!entry.challengeDone) {
+    const bar = card.querySelector(".challenge-bar i");
+    if (bar) bar.style.width = `${Math.min(100, (done / goal) * 100)}%`;
+    return;
   }
+  card.outerHTML = challengeCardHtml();
+  const fresh = document.getElementById("challenge-card");
+  // la celebración de la tarjeta solo al superarlo, no en cada acción posterior
+  if (justCompleted && fresh) fresh.classList.add("just-done");
 }
 
 // ---------- Ganchos desde las acciones de la app ----------
@@ -337,12 +361,17 @@ const TOUR_SLIDES = [
 function showTour() {
   const el = document.createElement("div");
   el.id = "tour";
+  // pantalla completa encima del cuestionario: para el lector de pantalla y el
+  // teclado es un diálogo, y solo se lee la diapositiva que se ve
+  el.setAttribute("role", "dialog");
+  el.setAttribute("aria-modal", "true");
+  el.setAttribute("aria-label", "Bienvenida");
   el.innerHTML = `
     <button type="button" class="tour-skip" id="tour-skip">Saltar</button>
     <div class="tour-track" id="tour-track">
       ${TOUR_SLIDES.map((s, i) => `
-        <section class="tour-slide" data-i="${i}">
-          <div class="tour-art">
+        <section class="tour-slide" data-i="${i}"${i ? ` aria-hidden="true"` : ""}>
+          <div class="tour-art" aria-hidden="true">
             <span class="tour-main">${s.art[0]}</span>
             ${s.art.slice(1).map((e, k) => `<span class="tour-orbit o${k}">${e}</span>`).join("")}
           </div>
@@ -350,7 +379,7 @@ function showTour() {
           <p>${s.text}</p>
         </section>`).join("")}
     </div>
-    <div class="tour-dots">${TOUR_SLIDES.map((_, i) => `<i class="${i === 0 ? "on" : ""}"></i>`).join("")}</div>
+    <div class="tour-dots" aria-hidden="true">${TOUR_SLIDES.map((_, i) => `<i class="${i === 0 ? "on" : ""}"></i>`).join("")}</div>
     <button type="button" class="btn block tour-next" id="tour-next">Siguiente</button>
     <p class="tour-free">Gratis · sin registro · 1 minuto</p>
   `;
@@ -366,6 +395,12 @@ function showTour() {
     track(`tour-${how}`);
     el.classList.add("hide");
     setTimeout(() => el.remove(), 450);
+    // el foco no se queda en el tour que desaparece: pasa al título del cuestionario
+    const h = document.querySelector(`.wizard-step[data-step="${wizardStep}"] h3`);
+    if (h && el.contains(document.activeElement)) {
+      h.setAttribute("tabindex", "-1");
+      h.focus({ preventScroll: true });
+    }
   };
   const go = (i) => slider.scrollTo({ left: i * slider.clientWidth, behavior: prefersReducedMotion() ? "auto" : "smooth" });
   slider.addEventListener("scroll", () => {
@@ -373,13 +408,30 @@ function showTour() {
     if (i === current) return;
     current = i;
     el.querySelectorAll(".tour-dots i").forEach((d, k) => d.classList.toggle("on", k === i));
-    el.querySelectorAll(".tour-slide").forEach((s, k) => s.classList.toggle("active", k === i));
+    el.querySelectorAll(".tour-slide").forEach((s, k) => {
+      s.classList.toggle("active", k === i);
+      if (k === i) s.removeAttribute("aria-hidden"); else s.setAttribute("aria-hidden", "true");
+    });
     next.textContent = i === TOUR_SLIDES.length - 1 ? "Crear mi plan gratis" : "Siguiente";
     buzz(6);
   });
   el.querySelector(".tour-slide").classList.add("active");
   next.addEventListener("click", () => (current < TOUR_SLIDES.length - 1 ? go(current + 1) : finish("completo")));
   el.querySelector("#tour-skip").addEventListener("click", () => finish("saltado"));
+  // con teclado: ← y → pasan de diapositiva, Esc hace lo mismo que «Saltar»
+  // y Tab se queda entre «Saltar» y «Siguiente»
+  el.addEventListener("keydown", (e) => {
+    if (el.classList.contains("hide")) return;
+    if (e.key === "ArrowRight" && current < TOUR_SLIDES.length - 1) { e.preventDefault(); go(current + 1); }
+    else if (e.key === "ArrowLeft" && current > 0) { e.preventDefault(); go(current - 1); }
+    else if (e.key === "Escape") { e.preventDefault(); finish("saltado"); }
+    else if (e.key === "Tab") {
+      const skip = el.querySelector("#tour-skip");
+      e.preventDefault();
+      (document.activeElement === next ? skip : next).focus();
+    }
+  });
+  next.focus({ preventScroll: true });
 }
 
 // ---------- "Creando tu plan" ----------
@@ -392,17 +444,20 @@ function showPlanReveal(onDone) {
     { emoji: "🔥", text: "Calculando tus calorías", value: `${targets.calories} kcal/día` },
     { emoji: "🍗", text: "Repartiendo tus macros", value: `${targets.protein} g proteína` },
     { emoji: "🍽️", text: "Eligiendo tus comidas", value: `${meals} platos` },
-    { emoji: "🛒", text: "Preparando tu compra", value: `${grandTotal.toFixed(2)} €` },
+    { emoji: "🛒", text: "Preparando tu compra", value: `${euro(grandTotal)} €` },
   ];
   const el = document.createElement("div");
   el.id = "plan-reveal";
+  el.setAttribute("role", "dialog");
+  el.setAttribute("aria-modal", "true");
+  el.setAttribute("aria-labelledby", "reveal-title");
   el.innerHTML = `
-    <div class="reveal-spinner"><span>🥗</span></div>
-    <h2 class="reveal-title">Creando tu plan…</h2>
+    <div class="reveal-spinner" aria-hidden="true"><span>🥗</span></div>
+    <h2 class="reveal-title" id="reveal-title" aria-live="polite">Creando tu plan…</h2>
     <div class="reveal-steps">
       ${steps.map((s, i) => `
         <div class="reveal-step" data-i="${i}">
-          <span class="reveal-icon">${s.emoji}</span>
+          <span class="reveal-icon" aria-hidden="true">${s.emoji}</span>
           <span class="reveal-text">${s.text}</span>
           <span class="reveal-value">${s.value}</span>
           <span class="reveal-check">✓</span>
@@ -419,7 +474,10 @@ function showPlanReveal(onDone) {
   setTimeout(() => {
     el.classList.add("ready");
     el.querySelector(".reveal-title").textContent = "¡Tu plan está listo! 🎉";
-    el.querySelector("#reveal-go").classList.remove("hidden");
+    const go = el.querySelector("#reveal-go");
+    go.classList.remove("hidden");
+    // El foco pasa al botón, así Intro abre el plan y el lector de pantalla lo anuncia.
+    go.focus({ preventScroll: true });
     burstConfetti();
   }, 250 + steps.length * stepMs + 200);
   el.querySelector("#reveal-go").addEventListener("click", () => {

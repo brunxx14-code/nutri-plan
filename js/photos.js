@@ -45,9 +45,12 @@ function unsplashUrl(id, width) {
 
 /* <img> con carga diferida y aparición suave. `fallback` es el emoji que se
    ve sobre el fondo de color mientras carga o si la foto falla. */
-function photoHtml(id, { width = 400, alt = "", className = "", fallback = "🍽️" } = {}) {
+function photoHtml(id, { width = 400, alt = "", className = "", fallback = "🍽️", eager = false } = {}) {
+  // la foto grande de la receta se ve nada más abrir: se pide ya y con prioridad
+  // en vez de esperar a que el navegador decida que está en pantalla
+  const loading = eager ? `loading="eager" fetchpriority="high"` : `loading="lazy"`;
   const img = id
-    ? `<img src="${unsplashUrl(id, width)}" srcset="${unsplashUrl(id, width * 2)} 2x" alt="${alt}" loading="lazy" decoding="async" onload="this.classList.add('loaded')" onerror="this.remove()">`
+    ? `<img src="${unsplashUrl(id, width)}" srcset="${unsplashUrl(id, width * 2)} 2x" alt="${alt}" ${loading} decoding="async" onload="this.classList.add('loaded')" onerror="this.remove()">`
     : "";
   return `<div class="photo ${className}"><span class="photo-fallback" aria-hidden="true">${fallback}</span>${img}</div>`;
 }

@@ -30,24 +30,42 @@ function weekRecap() {
   };
 }
 
+/* Lo que dice el lector de pantalla de cada día del resumen, en vez de
+   «✓ L» o «2 M»: «Lunes: día cumplido», «Martes: 2 comidas»… */
+function recapDayLabel(d) {
+  const name = d.i === todayPlanIndex() ? `${DAYS[d.i]} (hoy)` : DAYS[d.i];
+  if (d.future) return `${name}: todavía no ha llegado`;
+  if (d.onPlan) return `${name}: día cumplido`;
+  if (!d.done) return `${name}: sin comidas`;
+  return d.done === 1 ? `${name}: 1 comida` : `${name}: ${d.done} comidas`;
+}
+
+/* «1 comida» en singular: «comida» sola se traduce como «lunch» (la comida del
+   mediodía), así que aquí se elige la palabra según el idioma. */
+function mealWord(emoji = true) {
+  const w = currentLang === "en" ? "meal" : "comida";
+  return emoji ? `🍽️ ${w}` : w;
+}
+
 function recapCardHtml() {
   const r = weekRecap();
+  // el lunes solo ha pasado un día: «0/1 día cumplido», no «0/1 días cumplidos»
   return `
     <div class="recap-card" id="recap-card">
       <div class="recap-head">
         <span class="recap-kicker">📊 Tu semana</span>
-        <span class="recap-score"><b>${r.daysOnPlan}</b>/${r.daysSoFar} días cumplidos</span>
+        <span class="recap-score"><b>${r.daysOnPlan}</b>/${r.daysSoFar === 1 ? "1 día cumplido" : `${r.daysSoFar} días cumplidos`}</span>
       </div>
       <div class="recap-days">
         ${r.days.map((d) => `
-          <div class="recap-day ${d.onPlan ? "on" : ""} ${d.future ? "future" : ""}" style="animation-delay:${d.i * 0.05}s">
+          <div class="recap-day ${d.onPlan ? "on" : ""} ${d.future ? "future" : ""} ${d.i === todayPlanIndex() ? "today" : ""}" style="animation-delay:${d.i * 0.05}s" role="img" aria-label="${recapDayLabel(d)}">
             <span class="recap-dot">${d.onPlan ? "✓" : d.future ? "" : d.done || ""}</span>
             <span class="recap-letter">${dayInitial(d.i)}</span>
           </div>`).join("")}
       </div>
       <div class="recap-stats">
-        <div><b>${r.meals}</b><span>🍽️ comidas</span></div>
-        <div><b>${r.water}</b><span>💧 vasos</span></div>
+        <div><b>${r.meals}</b><span>${r.meals === 1 ? mealWord() : "🍽️ comidas"}</span></div>
+        <div><b>${r.water}</b><span>${r.water === 1 ? "💧 vaso" : "💧 vasos"}</span></div>
         <div><b>${r.streak}</b><span>🔥 racha</span></div>
         <div><b>${r.level.level.emoji} ${r.level.idx + 1}</b><span>⭐ nivel</span></div>
       </div>
@@ -106,7 +124,7 @@ function drawRecapImage() {
   ctx.fillText(tr("Mi semana"), 80, 270);
   ctx.font = font(600, 44);
   ctx.globalAlpha = 0.9;
-  ctx.fillText(tr(`${r.daysOnPlan} de ${r.daysSoFar} días cumpliendo mi plan`), 80, 345);
+  ctx.fillText(tr(r.daysSoFar === 1 ? `${r.daysOnPlan} de 1 día cumpliendo mi plan` : `${r.daysOnPlan} de ${r.daysSoFar} días cumpliendo mi plan`), 80, 345);
   ctx.globalAlpha = 1;
 
   // los 7 días
@@ -114,12 +132,22 @@ function drawRecapImage() {
   r.days.forEach((d, i) => {
     const x = 80 + i * (size + gap);
     const y = 420;
-    ctx.fillStyle = d.onPlan ? "#ffffff" : "rgba(255,255,255,.22)";
-    ctx.beginPath(); ctx.arc(x + size / 2, y + size / 2, size / 2, 0, Math.PI * 2); ctx.fill();
+    // igual que en la tarjeta: ✓ si cumpliste, las comidas que hiciste si no,
+    // y un círculo discontinuo para los días que aún no han llegado
+    if (d.future) {
+      ctx.strokeStyle = "rgba(255,255,255,.45)";
+      ctx.lineWidth = 4;
+      ctx.setLineDash([12, 10]);
+      ctx.beginPath(); ctx.arc(x + size / 2, y + size / 2, size / 2 - 2, 0, Math.PI * 2); ctx.stroke();
+      ctx.setLineDash([]);
+    } else {
+      ctx.fillStyle = d.onPlan ? "#ffffff" : "rgba(255,255,255,.22)";
+      ctx.beginPath(); ctx.arc(x + size / 2, y + size / 2, size / 2, 0, Math.PI * 2); ctx.fill();
+    }
     ctx.textAlign = "center";
     ctx.fillStyle = d.onPlan ? "#c2452a" : "#fff";
     ctx.font = font(800, 48);
-    ctx.fillText(d.onPlan ? "✓" : "", x + size / 2, y + size / 2 + 17);
+    ctx.fillText(d.onPlan ? "✓" : d.future || !d.done ? "" : String(d.done), x + size / 2, y + size / 2 + 17);
     ctx.fillStyle = "#fff";
     ctx.font = font(700, 34);
     ctx.fillText(dayInitial(i), x + size / 2, y + size + 52);
@@ -127,9 +155,9 @@ function drawRecapImage() {
 
   // estadísticas
   const stats = [
-    ["🍽️", r.meals, tr("comidas")],
-    ["💧", r.water, tr("vasos de agua")],
-    ["🔥", r.streak, tr("días de racha")],
+    ["🍽️", r.meals, r.meals === 1 ? mealWord(false) : tr("comidas")],
+    ["💧", r.water, tr(r.water === 1 ? "vaso de agua" : "vasos de agua")],
+    ["🔥", r.streak, tr(r.streak === 1 ? "día de racha" : "días de racha")],
     [r.level.level.emoji, tr(`Nivel ${r.level.idx + 1}`), tr(r.level.level.name)],
   ];
   stats.forEach(([emoji, value, label], i) => {
@@ -161,7 +189,12 @@ function drawRecapImage() {
 
 async function shareRecap(btn) {
   track("compartir-semana");
+  if (btn.disabled) return;
   btn.disabled = true;
+  // mientras se dibuja la imagen, el botón dice qué está pasando
+  const label = btn.textContent;
+  btn.textContent = "⏳ Preparando tu imagen…";
+  btn.setAttribute("aria-busy", "true");
   try {
     if (document.fonts && document.fonts.ready) await document.fonts.ready;
     const canvas = drawRecapImage();
@@ -182,10 +215,18 @@ async function shareRecap(btn) {
     if (!e || e.name !== "AbortError") showToast("No se pudo compartir ahora");
   } finally {
     btn.disabled = false;
+    btn.textContent = label;
+    btn.removeAttribute("aria-busy");
   }
 }
 
+/* El navegador solo deja abrir un «Compartir» a la vez: un segundo toque
+   mientras el primero sigue abierto fallaba con «No se pudo compartir ahora». */
+let shareInFlight = false;
+
 async function inviteFriend() {
+  if (shareInFlight) return;
+  shareInFlight = true;
   track("invitar-amigo");
   const text = tr("Estoy usando NutriPlan: te hace un plan de comidas a tu medida y la lista de la compra con precios. Pruébala gratis:");
   try {
@@ -197,6 +238,8 @@ async function inviteFriend() {
     showToast("🔗 Enlace copiado, ¡pégalo donde quieras!");
   } catch (e) {
     if (!e || e.name !== "AbortError") showToast(`🔗 ${APP_URL}`);
+  } finally {
+    shareInFlight = false;
   }
 }
 
@@ -211,7 +254,8 @@ function recipeShareText(recipeId, factor = 1) {
     `${Math.round(info.kcal * factor)} kcal · ${Math.round(info.prot * factor)} g ${tr("proteína")}`,
     "",
     `🛒 ${tr("Ingredientes")}:`,
-    ...r.ingredients.map(([id, qty]) => `• ${FOODS[id].name}: ${formatQty(qty * factor, FOODS[id].unit)}`),
+    // tr(): «3½ ud» sale «3½ pcs» en inglés, como en la receta en pantalla
+    ...r.ingredients.map(([id, qty]) => `• ${FOODS[id].name}: ${tr(formatQty(qty * factor, FOODS[id].unit))}`),
     "",
     `👩‍🍳 ${tr("Preparación")}:`,
     ...r.steps.map((s, i) => `${i + 1}. ${s}`),
@@ -229,6 +273,8 @@ function bindShareRecipe(root, factor) {
   root.querySelectorAll("[data-share-recipe]").forEach((btn) => {
     btn.addEventListener("click", async (e) => {
       e.stopPropagation();
+      if (shareInFlight) return;
+      shareInFlight = true;
       track("receta-compartida");
       buzz(8);
       const text = recipeShareText(btn.dataset.shareRecipe, factor);
@@ -241,6 +287,8 @@ function bindShareRecipe(root, factor) {
         showToast("📋 Receta copiada, ¡pégala donde quieras!");
       } catch (err) {
         if (!err || err.name !== "AbortError") showToast("No se pudo compartir ahora");
+      } finally {
+        shareInFlight = false;
       }
     });
   });

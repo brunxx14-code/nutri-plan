@@ -237,7 +237,7 @@ function explainRecipe(recipe, info, profile, slotLabel) {
   if (profile.goal === "perder") {
     sentences.push(
       proteinKcalShare > 0.25
-        ? `Como tu objetivo es perder grasa, en la ${slotLabel.toLowerCase()} priorizamos platos con bastante proteína (${Math.round(info.prot)} g): ayuda a saciarte y a conservar músculo mientras comes por debajo de tu gasto.`
+        ? `Como tu objetivo es perder grasa, en ${slotLabel === "Desayuno" ? "el" : "la"} ${slotLabel.toLowerCase()} priorizamos platos con bastante proteína (${Math.round(info.prot)} g): ayuda a saciarte y a conservar músculo mientras comes por debajo de tu gasto.`
         : `Es una opción ligera (${Math.round(info.kcal)} kcal) que encaja con el déficit calórico que necesitas para perder grasa sin pasar hambre.`
     );
   } else if (profile.goal === "ganar") {
@@ -267,8 +267,38 @@ function explainRecipe(recipe, info, profile, slotLabel) {
   return sentences;
 }
 
-function formatQty(qty, unit) {
-  if (unit === "ud") return `${Math.round(qty)} ud`;
-  if (unit === "ml") return qty >= 1000 ? `${(qty / 1000).toFixed(2)} l` : `${Math.round(qty)} ml`;
-  return qty >= 1000 ? `${(qty / 1000).toFixed(2)} kg` : `${Math.round(qty)} g`;
+/* Unidades en cuartos: 0,25 de lechuga es "¼ ud", no "0 ud". En la lista de
+   la compra ({ buy: true }) se redondea hacia arriba: no se compra media lechuga. */
+const FRACTIONS = { 0: "", 1: "¼", 2: "½", 3: "¾" };
+function formatUnits(qty, buy) {
+  if (buy) return String(Math.max(1, Math.ceil(qty - 0.05)));
+  const quarters = Math.max(1, Math.round(qty * 4));
+  const whole = Math.floor(quarters / 4);
+  const frac = FRACTIONS[quarters % 4];
+  return whole && frac ? `${whole}${frac}` : whole ? String(whole) : frac;
+}
+
+/* Euros con dos decimales: coma en español (0,72 €), punto en inglés (0.72 €). */
+function euro(n) {
+  return localDecimal(Number(n).toFixed(2));
+}
+
+/* Precio con su símbolo: «1,42 €» en español y «€1.42» en inglés */
+function euroLabel(n) {
+  return typeof currentLang !== "undefined" && currentLang === "en" ? `€${euro(n)}` : `${euro(n)} €`;
+}
+
+function localDecimal(s) {
+  return typeof currentLang === "undefined" || currentLang === "es" ? s.replace(".", ",") : s;
+}
+
+/* Kilos y litros con hasta dos decimales, sin ceros de más: 1,5 kg, 1,25 l. */
+function bigUnit(n) {
+  return localDecimal(String(Number(n.toFixed(2))));
+}
+
+function formatQty(qty, unit, { buy = false } = {}) {
+  if (unit === "ud") return `${formatUnits(qty, buy)} ud`;
+  if (unit === "ml") return qty >= 1000 ? `${bigUnit(qty / 1000)} l` : `${Math.round(qty)} ml`;
+  return qty >= 1000 ? `${bigUnit(qty / 1000)} kg` : `${Math.round(qty)} g`;
 }

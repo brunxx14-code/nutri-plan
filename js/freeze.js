@@ -38,12 +38,14 @@ function useStreakFreezes() {
   if (!used) return;
   saveState();
   track("protector-usado");
-  setTimeout(() => showToast(`🧊 Protector usado: tu racha de ${currentStreak()} días sigue viva`), 900);
+  // «tu racha de 1 día», no «de 1 días»
+  const n = currentStreak();
+  setTimeout(() => showToast(`🧊 Protector usado: tu racha de ${n === 1 ? "1 día" : `${n} días`} sigue viva`), 900);
 }
 
 function freezeChipHtml() {
   const n = streakFreezes();
-  return n ? `<span class="freeze-count" aria-label="Protectores de racha">🧊${n > 1 ? `×${n}` : ""}</span>` : "";
+  return n ? `<span class="freeze-count" aria-hidden="true">🧊${n > 1 ? `×${n}` : ""}</span>` : "";
 }
 
 document.addEventListener("click", (e) => {
@@ -51,6 +53,7 @@ document.addEventListener("click", (e) => {
   const n = streakFreezes();
   buzz(6);
   showToast(n
-    ? `🧊 Tienes ${n} ${n === 1 ? "protector" : "protectores"} de racha: si un día fallas, salvan tu racha`
+    // con uno solo, «te salva la racha», no «salvan tu racha»
+    ? (n === 1 ? "🧊 Tienes 1 protector de racha: si un día fallas, te salva la racha" : `🧊 Tienes ${n} protectores de racha: si un día fallas, salvan tu racha`)
     : "🧊 Sube de nivel para ganar un protector de racha");
 });
