@@ -42,11 +42,12 @@ function recapDayLabel(d) {
 
 function recapCardHtml() {
   const r = weekRecap();
+  // el lunes solo ha pasado un día: «0/1 día cumplido», no «0/1 días cumplidos»
   return `
     <div class="recap-card" id="recap-card">
       <div class="recap-head">
         <span class="recap-kicker">📊 Tu semana</span>
-        <span class="recap-score"><b>${r.daysOnPlan}</b>/${r.daysSoFar} días cumplidos</span>
+        <span class="recap-score"><b>${r.daysOnPlan}</b>/${r.daysSoFar === 1 ? "1 día cumplido" : `${r.daysSoFar} días cumplidos`}</span>
       </div>
       <div class="recap-days">
         ${r.days.map((d) => `
@@ -116,7 +117,7 @@ function drawRecapImage() {
   ctx.fillText(tr("Mi semana"), 80, 270);
   ctx.font = font(600, 44);
   ctx.globalAlpha = 0.9;
-  ctx.fillText(tr(`${r.daysOnPlan} de ${r.daysSoFar} días cumpliendo mi plan`), 80, 345);
+  ctx.fillText(tr(r.daysSoFar === 1 ? `${r.daysOnPlan} de 1 día cumpliendo mi plan` : `${r.daysOnPlan} de ${r.daysSoFar} días cumpliendo mi plan`), 80, 345);
   ctx.globalAlpha = 1;
 
   // los 7 días

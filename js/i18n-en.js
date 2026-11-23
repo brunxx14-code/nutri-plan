@@ -577,6 +577,8 @@ I18N.en = {
     "{n} g proteína": "{n} g protein",
     "{n} platos": "{n} dishes",
 
+    "{a} de 1 día cumpliendo mi plan": "{a} of 1 day on my plan",
+    "/1 día cumplido": "/1 day on plan",
     "{a} de {b} días cumpliendo mi plan": "{a} of {b} days on my plan",
     "/{n} días cumplidos": "/{n} days on plan",
 
