@@ -157,9 +157,11 @@ function bindCalendarCard(root) {
       const [y, mo, d] = iso.split("-").map(Number);
       const label = new Date(y, mo - 1, d).toLocaleDateString(calLocale(), { weekday: "long", day: "numeric", month: "long" });
       const off = entry && entry.offPlan ? Object.keys(entry.offPlan).length : 0;
+      // un día que cuenta para la racha lo dice también en el detalle, no solo el color
       card.querySelector("#cal-detail").innerHTML = `
         <b class="cal-date">${label}</b>
         <span>🍽️ ${mealsDone(entry)}/${MEAL_SLOTS.length} comidas</span>
+        ${mealsDone(entry) >= MEALS_FOR_STREAK ? "<span>✅ Día cumplido</span>" : ""}
         <span>💧 ${waterLabel((entry && entry.water) || 0)}</span>
         ${off ? `<span>🍔 ${off} fuera del plan</span>` : ""}
         ${entry && entry.frozen ? "<span>🧊 Racha salvada con un protector</span>" : ""}`;

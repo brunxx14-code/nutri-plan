@@ -419,7 +419,7 @@ I18N.en = {
     "Protectores de racha": "Streak freezes",
     "Sube de nivel para ganar un protector de racha": "Level up to earn a streak freeze",
     "1 protector de racha": "1 streak freeze",
-    "Racha salvada con un protector": "Streak saved with a freeze",
+    "Racha salvada con un protector": "Streak saved with a freeze", "Día cumplido": "Day on plan",
     "Compartir receta": "Share recipe",
     "Receta copiada, ¡pégala donde quieras!": "Recipe copied, paste it anywhere!",
     "Receta de NutriPlan. Crea tu plan de comidas gratis:": "Recipe from NutriPlan. Create your free meal plan:",
