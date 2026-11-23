@@ -1453,6 +1453,8 @@ input:focus, select:focus { outline: 2px solid var(--coral); outline-offset: 1px
 .cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
 .cal-title { font-weight: 800; font-size: 17px; }
 .cal-month { display: inline-block; }
+.cal-month.from-right { animation: viewFromRight .28s cubic-bezier(.22,.95,.4,1); }
+.cal-month.from-left { animation: viewFromLeft .28s cubic-bezier(.22,.95,.4,1); }
 .cal-month::first-letter, .cal-date::first-letter { text-transform: uppercase; }
 .cal-nav { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--border); background: var(--bg); color: var(--ink); font-size: 20px; line-height: 1; cursor: pointer; }
 .cal-nav:disabled { opacity: .3; cursor: default; }
@@ -1485,7 +1487,7 @@ input:focus, select:focus { outline: 2px solid var(--coral); outline-offset: 1px
 /* al elegir un día, su detalle entra con un fundido hacia arriba: la fecha primero y las cifras justo detrás */
 .cal-detail.swap > * { animation: fadein .25s ease both; }
 .cal-detail.swap > :not(.cal-date) { animation-delay: .05s; }
-@media (prefers-reduced-motion: reduce) { .cal-day, .cal-detail.swap > * { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .cal-day, .cal-detail.swap > *, .cal-month { animation: none; } }
 
 /* ---------- Ahora toca ---------- */
 .up-next {

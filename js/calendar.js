@@ -105,6 +105,8 @@ function bindCalendarCard(root) {
     buzz(6);
     card.outerHTML = calendarCardHtml();
     bindCalendarCard(root);
+    // el nombre del mes entra desde el lado hacia el que vas, como los días del Plan
+    root.querySelector("#cal-card .cal-month").classList.add(delta < 0 ? "from-left" : "from-right");
     if (fromDay) {
       // con RePág/AvPág desde un día, el foco pasa al mismo día del otro mes (o al último que haya)
       const left = [...root.querySelectorAll("#cal-card .cal-day[data-iso]:not(:disabled)")];
