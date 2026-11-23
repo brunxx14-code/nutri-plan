@@ -1306,6 +1306,13 @@ input:focus, select:focus { outline: 2px solid var(--coral); outline-offset: 1px
 .recap-day.today .recap-letter { opacity: 1; font-weight: 800; }
 .recap-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 14px; }
 .recap-stats div { background: rgba(255,255,255,.16); border-radius: 14px; padding: 9px 4px; text-align: center; }
+/* las cifras de la semana entran una detrás de otra, siguiendo a los días
+   (que entran de 0 a 0,75 s), en vez de estar ya quietas cuando aparece la tarjeta */
+.recap-stats div { animation: popBig .45s ease both; }
+.recap-stats div:nth-child(1) { animation-delay: .4s; }
+.recap-stats div:nth-child(2) { animation-delay: .47s; }
+.recap-stats div:nth-child(3) { animation-delay: .54s; }
+.recap-stats div:nth-child(4) { animation-delay: .61s; }
 .recap-stats b { display: block; font-size: 18px; font-weight: 800; }
 .recap-stats span { font-size: 11px; opacity: .92; }
 .recap-actions { display: flex; flex-direction: column; gap: 8px; }
