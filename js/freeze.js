@@ -38,7 +38,9 @@ function useStreakFreezes() {
   if (!used) return;
   saveState();
   track("protector-usado");
-  setTimeout(() => showToast(`🧊 Protector usado: tu racha de ${currentStreak()} días sigue viva`), 900);
+  // «tu racha de 1 día», no «de 1 días»
+  const n = currentStreak();
+  setTimeout(() => showToast(`🧊 Protector usado: tu racha de ${n === 1 ? "1 día" : `${n} días`} sigue viva`), 900);
 }
 
 function freezeChipHtml() {
