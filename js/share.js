@@ -58,7 +58,7 @@ function recapCardHtml() {
       </div>
       <div class="recap-stats">
         <div><b>${r.meals}</b><span>🍽️ comidas</span></div>
-        <div><b>${r.water}</b><span>💧 vasos</span></div>
+        <div><b>${r.water}</b><span>${r.water === 1 ? "💧 vaso" : "💧 vasos"}</span></div>
         <div><b>${r.streak}</b><span>🔥 racha</span></div>
         <div><b>${r.level.level.emoji} ${r.level.idx + 1}</b><span>⭐ nivel</span></div>
       </div>
@@ -149,8 +149,8 @@ function drawRecapImage() {
   // estadísticas
   const stats = [
     ["🍽️", r.meals, tr("comidas")],
-    ["💧", r.water, tr("vasos de agua")],
-    ["🔥", r.streak, tr("días de racha")],
+    ["💧", r.water, tr(r.water === 1 ? "vaso de agua" : "vasos de agua")],
+    ["🔥", r.streak, tr(r.streak === 1 ? "día de racha" : "días de racha")],
     [r.level.level.emoji, tr(`Nivel ${r.level.idx + 1}`), tr(r.level.level.name)],
   ];
   stats.forEach(([emoji, value, label], i) => {
