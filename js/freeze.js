@@ -53,6 +53,7 @@ document.addEventListener("click", (e) => {
   const n = streakFreezes();
   buzz(6);
   showToast(n
-    ? `🧊 Tienes ${n} ${n === 1 ? "protector" : "protectores"} de racha: si un día fallas, salvan tu racha`
+    // con uno solo, «te salva la racha», no «salvan tu racha»
+    ? (n === 1 ? "🧊 Tienes 1 protector de racha: si un día fallas, te salva la racha" : `🧊 Tienes ${n} protectores de racha: si un día fallas, salvan tu racha`)
     : "🧊 Sube de nivel para ganar un protector de racha");
 });

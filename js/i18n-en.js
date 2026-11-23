@@ -599,7 +599,7 @@ I18N.en = {
     "Ahora toca · {slot}": "Up next · {slot}",
     "Protector usado: tu racha de 1 día sigue viva": "Freeze used: your 1-day streak is still alive",
     "Protector usado: tu racha de {n} días sigue viva": "Freeze used: your {n}-day streak is still alive",
-    "Tienes {n} protector de racha: si un día fallas, salvan tu racha": "You have {n} streak freeze: if you miss a day, it saves your streak",
+    "Tienes 1 protector de racha: si un día fallas, te salva la racha": "You have 1 streak freeze: if you miss a day, it saves your streak",
     "Tienes {n} protectores de racha: si un día fallas, salvan tu racha": "You have {n} streak freezes: if you miss a day, they save your streak",
     // Genéricas al final: solo se usan si no encaja ninguna más concreta
     // Fechas, cantidades y unidades
