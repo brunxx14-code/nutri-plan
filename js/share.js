@@ -40,6 +40,13 @@ function recapDayLabel(d) {
   return d.done === 1 ? `${name}: 1 comida` : `${name}: ${d.done} comidas`;
 }
 
+/* «1 comida» en singular: «comida» sola se traduce como «lunch» (la comida del
+   mediodía), así que aquí se elige la palabra según el idioma. */
+function mealWord(emoji = true) {
+  const w = currentLang === "en" ? "meal" : "comida";
+  return emoji ? `🍽️ ${w}` : w;
+}
+
 function recapCardHtml() {
   const r = weekRecap();
   // el lunes solo ha pasado un día: «0/1 día cumplido», no «0/1 días cumplidos»
@@ -57,7 +64,7 @@ function recapCardHtml() {
           </div>`).join("")}
       </div>
       <div class="recap-stats">
-        <div><b>${r.meals}</b><span>🍽️ comidas</span></div>
+        <div><b>${r.meals}</b><span>${r.meals === 1 ? mealWord() : "🍽️ comidas"}</span></div>
         <div><b>${r.water}</b><span>${r.water === 1 ? "💧 vaso" : "💧 vasos"}</span></div>
         <div><b>${r.streak}</b><span>🔥 racha</span></div>
         <div><b>${r.level.level.emoji} ${r.level.idx + 1}</b><span>⭐ nivel</span></div>
@@ -148,7 +155,7 @@ function drawRecapImage() {
 
   // estadísticas
   const stats = [
-    ["🍽️", r.meals, tr("comidas")],
+    ["🍽️", r.meals, r.meals === 1 ? mealWord(false) : tr("comidas")],
     ["💧", r.water, tr(r.water === 1 ? "vaso de agua" : "vasos de agua")],
     ["🔥", r.streak, tr(r.streak === 1 ? "día de racha" : "días de racha")],
     [r.level.level.emoji, tr(`Nivel ${r.level.idx + 1}`), tr(r.level.level.name)],
