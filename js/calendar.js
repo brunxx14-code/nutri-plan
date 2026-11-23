@@ -163,6 +163,11 @@ function bindCalendarCard(root) {
         <span>💧 ${waterLabel((entry && entry.water) || 0)}</span>
         ${off ? `<span>🍔 ${off} fuera del plan</span>` : ""}
         ${entry && entry.frozen ? "<span>🧊 Racha salvada con un protector</span>" : ""}`;
+      // el detalle nuevo entra con un fundido corto, así se nota que ha cambiado de día
+      const detail = card.querySelector("#cal-detail");
+      detail.classList.remove("swap");
+      void detail.offsetWidth;
+      detail.classList.add("swap");
     });
   });
 }
